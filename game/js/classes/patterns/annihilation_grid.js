@@ -29,7 +29,7 @@ AnnihilationGridPattern.prototype.generateBullets = function(battleBox) {
 
 AnnihilationGridPattern.prototype.update = function(dt) {
     this.elapsed += dt;
-    var bb = this.battleBox;
+    var bb = Cbbox.getBound();
     var bw = bb[2] - bb[0], bh = bb[3] - bb[1];
     if (!this.contracting) {
         this.buildTimer += dt;
@@ -77,7 +77,7 @@ AnnihilationGridPattern.prototype.update = function(dt) {
 
 AnnihilationGridPattern.prototype.draw = function(ctx) {
     ctx.save();
-    var bb = this.battleBox;
+    var bb = Cbbox.getBound();
     for (var i = 0; i < this.gridLines.length; i++) {
         var l = this.gridLines[i];
         if (l.warning) {

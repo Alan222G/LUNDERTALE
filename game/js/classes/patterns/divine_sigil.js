@@ -20,7 +20,7 @@ DivineSigilPattern.prototype.generateBullets = function(battleBox) {
 
 DivineSigilPattern.prototype.update = function(dt) {
     this.elapsed += dt;
-    var bb = this.battleBox;
+    var bb = Cbbox.getBound();
     this.sigilTimer += dt;
     if (this.sigilTimer >= this.sigilInterval && this.elapsed < this.duration - 2) {
         this.sigilTimer = 0;

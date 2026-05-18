@@ -23,7 +23,7 @@ CrystalStormPattern.prototype.generateBullets = function(battleBox) {
 
 CrystalStormPattern.prototype.update = function(dt) {
     this.elapsed += dt;
-    var bb = this.battleBox;
+    var bb = Cbbox.getBound();
 
     // Spawn crystals
     this.spawnTimer += dt;

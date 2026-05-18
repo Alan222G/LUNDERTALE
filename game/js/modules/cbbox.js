@@ -4,7 +4,7 @@ var Cbbox = (function() {
     var pos, width, height, speed, newWidth, newHeight;
 
     function init() {
-        pos = new Vect(370, 420, 0);
+        pos = new Vect(370, 490, 0); // pos.y is now the fixed BOTTOM edge
         speed = 600;
     }
 
@@ -26,19 +26,19 @@ var Cbbox = (function() {
     function draw(ctx) {
         ctx.save();
         ctx.fillStyle = "#FFF";
-        ctx.fillRect(pos.x - width / 2, pos.y - height / 2, width, height);
+        ctx.fillRect(pos.x - width / 2, pos.y - height, width, height);
         ctx.globalAlpha = 1;
         ctx.fillStyle = "#000";
-        ctx.fillRect(pos.x + 5 - width / 2, pos.y + 5 - height / 2, width - 10, height - 10);
+        ctx.fillRect(pos.x + 5 - width / 2, pos.y + 5 - height, width - 10, height - 10);
         ctx.restore();
     }
 
     function getBound() {
         return [
             pos.x - width / 2 + 5,
-            pos.y - height / 2 + 5,
+            pos.y - height + 5,
             pos.x + width / 2 - 5,
-            pos.y + height / 2 - 5
+            pos.y - 5
         ];
     }
 

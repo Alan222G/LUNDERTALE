@@ -61,7 +61,7 @@ HawkingBurstPattern.prototype.update = function(dt) {
         if (b.radius > b.maxRadius) this.bursts.splice(i, 1);
     }
     // Update particles
-    var bb = this.battleBox;
+    var bb = Cbbox.getBound();
     for (var i = this.particles.length - 1; i >= 0; i--) {
         var p = this.particles[i];
         p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt;

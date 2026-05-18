@@ -305,10 +305,10 @@ var Combat = (function() {
                 Cmenu.draw(ctx, menuState, MENU_STATE);
                 Writer.drawText(ctx);
                 switch (menuState) {
-                    case MENU_STATE.FIGHT: Soul.drawAt(ctx, new Vect(40, 446, 0)); break;
-                    case MENU_STATE.ACT: Soul.drawAt(ctx, new Vect(193, 446, 0)); break;
-                    case MENU_STATE.ITEM: Soul.drawAt(ctx, new Vect(353, 446, 0)); break;
-                    case MENU_STATE.MERCY: Soul.drawAt(ctx, new Vect(508, 446, 0)); break;
+                    case MENU_STATE.FIGHT: Soul.drawAt(ctx, new Vect(90, 546, 0)); break;
+                    case MENU_STATE.ACT: Soul.drawAt(ctx, new Vect(243, 546, 0)); break;
+                    case MENU_STATE.ITEM: Soul.drawAt(ctx, new Vect(403, 546, 0)); break;
+                    case MENU_STATE.MERCY: Soul.drawAt(ctx, new Vect(558, 546, 0)); break;
                 }
                 ctx.restore();
                 break;

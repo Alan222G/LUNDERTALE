@@ -14,19 +14,22 @@ WheelOfFortunePattern.prototype.generateBullets = function(battleBox) {
     this.battleBox = battleBox;
     this.elapsed = 0;
     this.beams = [];
-    var cx = (battleBox[0] + battleBox[2]) / 2, cy = (battleBox[1] + battleBox[3]) / 2;
     // Two wheels on opposite sides
     this.wheels = [
-        { x: cx - 60, y: cy - 40, rot: 0, speed: 2.5, eyes: 6, radius: 30, beamTimer: 0, beamInterval: 0.8 },
-        { x: cx + 60, y: cy + 40, rot: Math.PI, speed: -2.0, eyes: 5, radius: 25, beamTimer: 0.4, beamInterval: 0.9 }
+        { offsetX: -60, offsetY: -40, rot: 0, speed: 2.5, eyes: 6, radius: 30, beamTimer: 0, beamInterval: 0.8 },
+        { offsetX: 60, offsetY: 40, rot: Math.PI, speed: -2.0, eyes: 5, radius: 25, beamTimer: 0.4, beamInterval: 0.9 }
     ];
 };
 
 WheelOfFortunePattern.prototype.update = function(dt) {
     this.elapsed += dt;
+    var bb = Cbbox.getBound();
+    var cx = (bb[0] + bb[2]) / 2, cy = (bb[1] + bb[3]) / 2;
     var soulPos = Soul.getPos();
     for (var w = 0; w < this.wheels.length; w++) {
         var wheel = this.wheels[w];
+        wheel.x = cx + wheel.offsetX;
+        wheel.y = cy + wheel.offsetY;
         wheel.rot += wheel.speed * dt;
         wheel.beamTimer += dt;
         if (wheel.beamTimer >= wheel.beamInterval && this.elapsed < this.duration - 1.5) {

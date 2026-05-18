@@ -20,7 +20,7 @@ AngelicChainsPattern.prototype.generateBullets = function(battleBox) {
 
 AngelicChainsPattern.prototype.update = function(dt) {
     this.elapsed += dt;
-    var bb = this.battleBox;
+    var bb = Cbbox.getBound();
     this.chainTimer += dt;
     if (this.chainTimer >= this.chainInterval && this.elapsed < this.duration - 2) {
         this.chainTimer = 0;

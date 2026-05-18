@@ -22,7 +22,7 @@ GravityWellPattern.prototype.generateBullets = function(battleBox) {
 
 GravityWellPattern.prototype.update = function(dt) {
     this.elapsed += dt;
-    var bb = this.battleBox;
+    var bb = Cbbox.getBound();
     this.wellTimer += dt;
     if (this.wellTimer >= this.wellInterval && this.elapsed < this.duration - 2 && this.wells.length < 8) {
         this.wellTimer = 0;

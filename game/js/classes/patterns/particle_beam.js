@@ -93,7 +93,7 @@ ParticleBeamPattern.prototype.update = function(dt) {
         }
 
         // Beam sweep
-        var bb = this.battleBox;
+        var bb = Cbbox.getBound();
         var margin = this.beamMaxWidth / 2 + 10;
         this.beamX += this.sweepDir * this.beamSweepSpeed * dt;
 
@@ -144,7 +144,7 @@ ParticleBeamPattern.prototype.update = function(dt) {
 
 ParticleBeamPattern.prototype.draw = function(ctx) {
     if (this.elapsed > this.duration) return;
-    var bb = this.battleBox;
+    var bb = Cbbox.getBound();
 
     ctx.save();
 

@@ -27,7 +27,7 @@ var Overworld = (function() {
 
         // Singularity battle trigger (top-right area)
         triggerList.push({
-            x: 500, y: 100, w: 60, h: 60,
+            x: 485, y: 85, w: 90, h: 90,
             triggered: false,
             bossId: "singularity",
             label: "Singularity",
@@ -44,7 +44,7 @@ var Overworld = (function() {
 
         // Seraphina Vex battle trigger (bottom-left area)
         triggerList.push({
-            x: 100, y: 350, w: 60, h: 60,
+            x: 85, y: 335, w: 90, h: 90,
             triggered: false,
             bossId: "seraphina",
             label: "Seraphina Vex",
@@ -61,7 +61,7 @@ var Overworld = (function() {
 
         // Ramiel battle trigger (bottom-right area)
         triggerList.push({
-            x: 500, y: 350, w: 60, h: 60,
+            x: 485, y: 335, w: 90, h: 90,
             triggered: false,
             bossId: "ramiel",
             label: "RAMIEL",
