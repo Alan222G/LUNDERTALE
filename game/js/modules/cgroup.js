@@ -64,7 +64,7 @@ var Cgroup = (function() {
                 attacks: ["bulletRain"],
                 phases: [
                     { patterns: ["bulletRain", "wallsOBullet"], soulMode: "red", renderType: "blackhole" },
-                    { patterns: ["spiralShot", "gasterBlaster", "pulsarBeam", "eventHorizon"], soulMode: "red", renderType: "supermassive_blackhole" }
+                    { patterns: ["spiralShot", "gasterBlaster", "pulsarBeam", "eventHorizon", "accretionSpiral"], soulMode: "red", renderType: "supermassive_blackhole" }
                 ],
                 phaseHP: [3600, 4200],
                 karmaEnabled: false,

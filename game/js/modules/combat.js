@@ -358,27 +358,89 @@ var Combat = (function() {
             case COMBAT_STATE.DEFEND:
                 Cbbox.draw(ctx);
                 Chp.draw(ctx, Player.getHPCur(), Player.getHPMax(), 55);
-                // Draw center gravity well for Phase 2 (Singularity only)
+                // Draw center gravity well for Phase 2 (Singularity only) — Mini supermassive black hole
                 var defEnemy = Cgroup.getEnemy(selectStateEnemy);
                 if (Cgroup.getBossId() === "singularity" && defEnemy && defEnemy.currentPhase === 1) {
                     ctx.save();
                     var gwTime = defEnemy.timeCounter || 0;
-                    var gwPulse = Math.sin(gwTime * 6) * 3;
-                    // Outer glow ring
-                    var gwGrad = ctx.createRadialGradient(320, 320, 0, 320, 320, 20 + gwPulse);
-                    gwGrad.addColorStop(0, "rgba(0,0,0,1)");
-                    gwGrad.addColorStop(0.6, "rgba(80,0,160,0.6)");
-                    gwGrad.addColorStop(1, "rgba(0,0,0,0)");
+                    var gwCX = 320, gwCY = 320;
+                    
+                    // Outer distortion halo
+                    var gwHaloGrad = ctx.createRadialGradient(gwCX, gwCY, 8, gwCX, gwCY, 38);
+                    gwHaloGrad.addColorStop(0, "rgba(100, 0, 200, 0.2)");
+                    gwHaloGrad.addColorStop(0.5, "rgba(40, 0, 80, 0.08)");
+                    gwHaloGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+                    ctx.fillStyle = gwHaloGrad;
                     ctx.beginPath();
-                    ctx.arc(320, 320, 20 + gwPulse, 0, Math.PI * 2);
-                    ctx.fillStyle = gwGrad;
+                    ctx.arc(gwCX, gwCY, 38, 0, Math.PI * 2);
                     ctx.fill();
-                    // Ring
+                    
+                    // Mini accretion disk (tilted ellipse)
+                    ctx.save();
+                    ctx.translate(gwCX, gwCY);
+                    ctx.rotate(0.12);
+                    ctx.scale(1, 0.3);
+                    var gwDiskR = 28 + Math.sin(gwTime * 2.5) * 2;
+                    var gwDiskGrad = ctx.createRadialGradient(0, 0, 6, 0, 0, gwDiskR);
+                    gwDiskGrad.addColorStop(0, "rgba(255, 255, 255, 0.7)");
+                    gwDiskGrad.addColorStop(0.2, "rgba(255, 180, 60, 0.6)");
+                    gwDiskGrad.addColorStop(0.5, "rgba(200, 60, 0, 0.35)");
+                    gwDiskGrad.addColorStop(0.8, "rgba(80, 0, 120, 0.12)");
+                    gwDiskGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+                    ctx.fillStyle = gwDiskGrad;
                     ctx.beginPath();
-                    ctx.arc(320, 320, 14, 0, Math.PI * 2);
-                    ctx.strokeStyle = "rgba(200,50,255,0.7)";
+                    ctx.arc(0, 0, gwDiskR, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Mini swirling streaks
+                    ctx.globalAlpha = 0.35;
+                    for (var ms = 0; ms < 4; ms++) {
+                        var msOff = gwTime * 2 + ms * Math.PI / 2;
+                        ctx.strokeStyle = ms % 2 === 0 ? "rgba(255, 180, 60, 0.4)" : "rgba(180, 80, 255, 0.3)";
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.arc(0, 0, 10 + ms * 4, msOff, msOff + Math.PI * 0.5);
+                        ctx.stroke();
+                    }
+                    ctx.globalAlpha = 1;
+                    ctx.restore();
+                    
+                    // Event horizon (pure black core)
+                    ctx.fillStyle = "#000000";
+                    ctx.beginPath();
+                    ctx.arc(gwCX, gwCY, 8, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Photon ring (bright pulsing edge)
+                    var gwPhoton = Math.sin(gwTime * 6) * 0.12 + 0.88;
+                    ctx.shadowBlur = 8;
+                    ctx.shadowColor = "rgba(255, 180, 50, 0.6)";
+                    ctx.strokeStyle = "rgba(255, 220, 120, " + gwPhoton.toFixed(2) + ")";
                     ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.arc(gwCX, gwCY, 8, 0, Math.PI * 2);
                     ctx.stroke();
+                    ctx.shadowBlur = 0;
+                    
+                    // Secondary ring
+                    ctx.strokeStyle = "rgba(200, 50, 255, 0.3)";
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(gwCX, gwCY, 12, 0, Math.PI * 2);
+                    ctx.stroke();
+                    
+                    // Mini orbiting particles
+                    for (var mp = 0; mp < 5; mp++) {
+                        var mpAngle = gwTime * (2.0 + mp * 0.5) + mp * Math.PI * 2 / 5;
+                        var mpR = 14 + mp * 2;
+                        var mpx = gwCX + Math.cos(mpAngle) * mpR;
+                        var mpy = gwCY + Math.sin(mpAngle) * mpR * 0.3;
+                        var mpA = (0.5 + Math.sin(gwTime * 4 + mp) * 0.3).toFixed(2);
+                        ctx.fillStyle = "rgba(255, 180, 80, " + mpA + ")";
+                        ctx.beginPath();
+                        ctx.arc(mpx, mpy, 1, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    
                     ctx.restore();
                 }
                 BossController.draw(ctx);

@@ -36,34 +36,63 @@ PulsarBeamPattern.prototype.update = function(dt) {
 PulsarBeamPattern.prototype.draw = function(ctx) {
     if (this.elapsed > this.duration) return;
 
-    var length = 800; // Super long to cover everything
+    var length = 800;
     ctx.save();
     ctx.translate(this.centerX, this.centerY);
     ctx.rotate(this.angle);
 
     if (this.elapsed < this.warningTime) {
-        // Draw warning beam cross
-        ctx.globalAlpha = this.fadeTick * 0.5 + 0.2;
+        // Draw warning beam cross — pulsing red
+        var wAlpha = this.fadeTick * 0.5 + 0.2;
+        var wPulse = Math.sin(this.elapsed * 20) * 0.1;
+        ctx.globalAlpha = wAlpha + wPulse;
         ctx.fillStyle = "#FF0000";
-        ctx.fillRect(-length/2, -this.thickness/2, length, this.thickness); // Horizontal
-        ctx.fillRect(-this.thickness/2, -length/2, this.thickness, length); // Vertical
+        ctx.fillRect(-length/2, -this.thickness/2, length, this.thickness);
+        ctx.fillRect(-this.thickness/2, -length/2, this.thickness, length);
+        // Inner warning line
+        ctx.globalAlpha = (wAlpha + wPulse) * 0.6;
+        ctx.fillStyle = "#FF8800";
+        ctx.fillRect(-length/2, -this.thickness/4, length, this.thickness/2);
+        ctx.fillRect(-this.thickness/4, -length/2, this.thickness/2, length);
     } else {
-        // Draw actual destructive laser cross
-        ctx.globalAlpha = 1.0;
-        ctx.shadowBlur = 20;
-        ctx.shadowColor = "#FF5500";
+        // Outer aura — pulsing
+        var beamPulse = Math.sin(this.elapsed * 12) * 0.1 + 0.9;
+        ctx.globalAlpha = 0.35 * beamPulse;
+        ctx.fillStyle = "rgba(255, 50, 0, 0.4)";
+        ctx.fillRect(-length/2, -this.thickness * 0.8, length, this.thickness * 1.6);
+        ctx.fillRect(-this.thickness * 0.8, -length/2, this.thickness * 1.6, length);
         
-        // Horizontal Inner core
+        // Main beam — orange/red edges
+        ctx.globalAlpha = 1.0;
+        ctx.shadowBlur = 25;
+        ctx.shadowColor = "#FF5500";
+        ctx.fillStyle = "rgba(255, 100, 0, 0.65)";
+        ctx.fillRect(-length/2, -this.thickness/2, length, this.thickness);
+        ctx.fillRect(-this.thickness/2, -length/2, this.thickness, length);
+        
+        // Inner core — bright white
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = "#FFFFFF";
         ctx.fillStyle = "#FFFFFF";
         ctx.fillRect(-length/2, -this.thickness/4, length, this.thickness/2);
-        // Vertical Inner core
         ctx.fillRect(-this.thickness/4, -length/2, this.thickness/2, length);
         
-        // Horizontal Outer aura
-        ctx.fillStyle = "rgba(255, 100, 0, 0.6)";
-        ctx.fillRect(-length/2, -this.thickness/2, length, this.thickness);
-        // Vertical Outer aura
-        ctx.fillRect(-this.thickness/2, -length/2, this.thickness, length);
+        // Ultra-bright center line
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = "rgba(255, 255, 200, 0.9)";
+        ctx.fillRect(-length/2, -2, length, 4);
+        ctx.fillRect(-2, -length/2, 4, length);
+        
+        // Spark particles along beam edges
+        ctx.shadowBlur = 0;
+        for (var s = 0; s < 10; s++) {
+            var sparkX = (Math.random() - 0.5) * length * 0.8;
+            var sparkY = (this.thickness / 2) * (Math.random() > 0.5 ? 1 : -1) + (Math.random() - 0.5) * 6;
+            ctx.fillStyle = "rgba(255, 200, 50, " + (0.3 + Math.random() * 0.5).toFixed(2) + ")";
+            ctx.beginPath();
+            ctx.arc(sparkX, sparkY, 1 + Math.random(), 0, Math.PI * 2);
+            ctx.fill();
+        }
     }
 
     ctx.restore();

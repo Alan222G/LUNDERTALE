@@ -29,6 +29,7 @@ var BossController = (function() {
             "featherStorm": function(cfg) { return new FeatherStormPattern(cfg || { damVal: 5, duration: 7 }); },
             "judgmentRings": function(cfg) { return new JudgmentRingsPattern(cfg || { damVal: 6, duration: 8 }); },
             "heavenlyRays": function(cfg) { return new HeavenlyRaysPattern(cfg || { damVal: 8, duration: 7 }); },
+            "accretionSpiral": function(cfg) { return new AccretionSpiralPattern(cfg || { damVal: 7, duration: 8 }); },
         };
     }
 
@@ -60,6 +61,8 @@ var BossController = (function() {
             w = 280; h = 280; // Enough space for expanding rings
         } else if (patternName === "heavenlyRays") {
             w = 240; h = 240; // Perfect for laser grid
+        } else if (patternName === "accretionSpiral") {
+            w = 300; h = 300; // Large square for spiral chaos
         }
 
         return { patternName: patternName, width: w, height: h };

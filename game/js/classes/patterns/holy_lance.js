@@ -113,25 +113,48 @@ HolyLancePattern.prototype.draw = function(ctx) {
         ctx.translate(cx, cy);
         ctx.rotate(angle);
         
+        // Trailing light particles
+        ctx.shadowBlur = 0;
+        for (var t = 0; t < 3; t++) {
+            var ty = 14 + t * 8;
+            var tAlpha = (0.3 - t * 0.08).toFixed(2);
+            ctx.fillStyle = "rgba(255, 215, 0, " + tAlpha + ")";
+            ctx.beginPath();
+            ctx.arc((Math.random() - 0.5) * 3, ty, 1.5 - t * 0.3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
         // Golden lance glow
-        ctx.shadowBlur = 12;
+        ctx.shadowBlur = 16;
         ctx.shadowColor = "#FFD700";
         
-        // Lance body
+        // Lance body (longer, sleeker)
         ctx.fillStyle = "#FFFFFF";
-        ctx.fillRect(-3, -12, 6, 24);
+        ctx.fillRect(-3.5, -14, 7, 28);
         
-        // Golden edge
-        ctx.strokeStyle = "#FFD700";
-        ctx.lineWidth = 1.5;
-        ctx.strokeRect(-3, -12, 6, 24);
+        // Golden edge overlay
+        ctx.fillStyle = "rgba(255, 215, 0, 0.5)";
+        ctx.fillRect(-4.5, -14, 9, 28);
         
-        // Spear tip
+        // White hot center line
+        ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+        ctx.fillRect(-1, -14, 2, 28);
+        
+        // Spear tip (larger, sharper)
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = "#FFAA00";
         ctx.fillStyle = "#FFD700";
         ctx.beginPath();
-        ctx.moveTo(0, -16);
-        ctx.lineTo(-4, -10);
-        ctx.lineTo(4, -10);
+        ctx.moveTo(0, -20);
+        ctx.lineTo(-5, -12);
+        ctx.lineTo(5, -12);
+        ctx.fill();
+        // Bright tip core
+        ctx.fillStyle = "#FFFFFF";
+        ctx.beginPath();
+        ctx.moveTo(0, -18);
+        ctx.lineTo(-2, -13);
+        ctx.lineTo(2, -13);
         ctx.fill();
         
         ctx.restore();

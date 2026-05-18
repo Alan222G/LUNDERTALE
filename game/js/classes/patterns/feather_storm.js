@@ -97,23 +97,46 @@ FeatherStormPattern.prototype.draw = function(ctx) {
         ctx.translate(cx, cy);
         ctx.rotate(angle);
         
-        // Feather shape
-        ctx.shadowBlur = 6;
-        ctx.shadowColor = "#FFD700";
+        // Feather glow
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = "rgba(255, 215, 0, 0.5)";
         
-        // Feather body (elongated ellipse)
-        ctx.fillStyle = "#FFFAEB";
+        // Feather body (elongated, tapered)
+        var fGrad = ctx.createLinearGradient(-9, 0, 9, 0);
+        fGrad.addColorStop(0, "rgba(255, 250, 230, 0)");
+        fGrad.addColorStop(0.3, "rgba(255, 248, 220, 0.9)");
+        fGrad.addColorStop(0.5, "rgba(255, 255, 255, 1)");
+        fGrad.addColorStop(0.7, "rgba(255, 248, 220, 0.9)");
+        fGrad.addColorStop(1, "rgba(255, 250, 230, 0)");
+        ctx.fillStyle = fGrad;
         ctx.beginPath();
-        ctx.ellipse(0, 0, 8, 3, 0, 0, Math.PI * 2);
+        ctx.ellipse(0, 0, 10, 3.5, 0, 0, Math.PI * 2);
         ctx.fill();
         
-        // Feather spine
-        ctx.strokeStyle = "rgba(218, 165, 32, 0.6)";
+        // Feather spine (golden)
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = "rgba(218, 165, 32, 0.75)";
         ctx.lineWidth = 0.8;
         ctx.beginPath();
-        ctx.moveTo(-7, 0);
-        ctx.lineTo(7, 0);
+        ctx.moveTo(-9, 0);
+        ctx.lineTo(9, 0);
         ctx.stroke();
+        
+        // Barb details (tiny diagonal lines)
+        ctx.strokeStyle = "rgba(230, 210, 170, 0.3)";
+        ctx.lineWidth = 0.4;
+        for (var br = -6; br <= 6; br += 3) {
+            ctx.beginPath();
+            ctx.moveTo(br, 0);
+            ctx.lineTo(br + 1.5, br > 0 ? -2.5 : 2.5);
+            ctx.stroke();
+        }
+        
+        // Shimmer highlight
+        ctx.fillStyle = "rgba(255, 255, 200, 0.5)";
+        ctx.beginPath();
+        ctx.ellipse(2, -1, 3, 1, 0.2, 0, Math.PI * 2);
+        ctx.fill();
         
         ctx.restore();
     }
