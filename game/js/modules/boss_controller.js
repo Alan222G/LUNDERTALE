@@ -30,6 +30,10 @@ var BossController = (function() {
             "judgmentRings": function(cfg) { return new JudgmentRingsPattern(cfg || { damVal: 6, duration: 8 }); },
             "heavenlyRays": function(cfg) { return new HeavenlyRaysPattern(cfg || { damVal: 8, duration: 7 }); },
             "accretionSpiral": function(cfg) { return new AccretionSpiralPattern(cfg || { damVal: 7, duration: 8 }); },
+            "particleBeam": function(cfg) { return new ParticleBeamPattern(cfg || { damVal: 10, duration: 7 }); },
+            "atField": function(cfg) { return new ATFieldPattern(cfg || { damVal: 8, duration: 7 }); },
+            "geometricDrill": function(cfg) { return new GeometricDrillPattern(cfg || { damVal: 9, duration: 7 }); },
+            "crystalStorm": function(cfg) { return new CrystalStormPattern(cfg || { damVal: 6, duration: 7 }); },
         };
     }
 
@@ -63,6 +67,14 @@ var BossController = (function() {
             w = 240; h = 240; // Perfect for laser grid
         } else if (patternName === "accretionSpiral") {
             w = 300; h = 300; // Large square for spiral chaos
+        } else if (patternName === "particleBeam") {
+            w = 300; h = 300; // Wide for beam sweep
+        } else if (patternName === "atField") {
+            w = 280; h = 280; // Square for compression
+        } else if (patternName === "geometricDrill") {
+            w = 260; h = 300; // Tall for drill descent
+        } else if (patternName === "crystalStorm") {
+            w = 300; h = 280; // Wide for crystal rain
         }
 
         return { patternName: patternName, width: w, height: h };

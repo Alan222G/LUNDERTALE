@@ -116,6 +116,12 @@ Enemy.prototype.draw = function(ctx) {
         this.drawOphanim(ctx);
     } else if (this.renderType === "throne") {
         this.drawThrone(ctx);
+    } else if (this.renderType === "ramiel_crystal") {
+        this.drawRamielCrystal(ctx);
+    } else if (this.renderType === "ramiel_morph") {
+        this.drawRamielMorph(ctx);
+    } else if (this.renderType === "ramiel_berserk") {
+        this.drawRamielBerserk(ctx);
     } else if (this.active) {
         for (var i = 0; i < this.animations.length; i++) {
             ctx.save();
@@ -888,12 +894,10 @@ Enemy.prototype.drawThrone = function(ctx) {
 Enemy.prototype.onHitPlayer = function(damageDealt) {
     // Only Seraphina has these brutal passives
     if (this.renderType === "seraph") {
-        // Phase 1: Lifesteal (Damage * 10)
         var healAmount = damageDealt * 10;
         this.curHP = Math.min(this.maxHP, this.curHP + healAmount);
         console.log("Seraphina healed for " + healAmount);
     } else if (this.renderType === "ophanim") {
-        // Phase 2: Steal item (max 1 per phase)
         if (!this.hasStolenItem && typeof Inventory !== "undefined" && Inventory.getLength() > 0) {
             this.hasStolenItem = true;
             var randIdx = Math.floor(Math.random() * Inventory.getLength());
@@ -901,9 +905,436 @@ Enemy.prototype.onHitPlayer = function(damageDealt) {
             console.log("Seraphina stole an item!");
         }
     } else if (this.renderType === "throne") {
-        // Phase 3: Divine Bleed (5 seconds of 1HP/sec)
         if (typeof Player !== "undefined" && Player.addBleed) {
             Player.addBleed(5.0);
         }
+    } else if (this.renderType === "ramiel_morph" || this.renderType === "ramiel_berserk") {
+        // AT Field Reflect: heal 30% of damage dealt
+        var reflectHeal = Math.ceil(damageDealt * 0.3);
+        this.curHP = Math.min(this.maxHP, this.curHP + reflectHeal);
     }
 };
+
+// ============================================================
+// RAMIEL — Evangelion Angel Boss Rendering
+// ============================================================
+
+// Helper: draw an octahedron (diamond) shape
+Enemy.prototype.drawOctahedron = function(ctx, cx, cy, size, rotation, colors) {
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(rotation);
+
+    var topY = -size;
+    var botY = size;
+    var midW = size * 0.7;
+
+    // Main body gradient
+    var bodyGrad = ctx.createLinearGradient(-midW, topY, midW, botY);
+    bodyGrad.addColorStop(0, colors[0]);
+    bodyGrad.addColorStop(0.35, colors[1]);
+    bodyGrad.addColorStop(0.5, colors[2]);
+    bodyGrad.addColorStop(0.65, colors[1]);
+    bodyGrad.addColorStop(1, colors[0]);
+
+    // Left face
+    ctx.fillStyle = bodyGrad;
+    ctx.beginPath();
+    ctx.moveTo(0, topY);
+    ctx.lineTo(-midW, 0);
+    ctx.lineTo(0, botY);
+    ctx.closePath();
+    ctx.fill();
+
+    // Right face (slightly brighter)
+    var rightGrad = ctx.createLinearGradient(0, topY, midW, 0);
+    rightGrad.addColorStop(0, colors[1]);
+    rightGrad.addColorStop(0.5, colors[2]);
+    rightGrad.addColorStop(1, colors[1]);
+    ctx.fillStyle = rightGrad;
+    ctx.beginPath();
+    ctx.moveTo(0, topY);
+    ctx.lineTo(midW, 0);
+    ctx.lineTo(0, botY);
+    ctx.closePath();
+    ctx.fill();
+
+    // Edge highlights
+    ctx.strokeStyle = colors[3] || "rgba(180, 220, 255, 0.6)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(0, topY);
+    ctx.lineTo(-midW, 0);
+    ctx.lineTo(0, botY);
+    ctx.lineTo(midW, 0);
+    ctx.closePath();
+    ctx.stroke();
+
+    // Center dividing line
+    ctx.strokeStyle = colors[4] || "rgba(200, 240, 255, 0.4)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, topY);
+    ctx.lineTo(0, botY);
+    ctx.stroke();
+
+    ctx.restore();
+};
+
+// ---- PHASE 1: CRYSTAL OCTAHEDRON (Calm, Perfect) ----
+Enemy.prototype.drawRamielCrystal = function(ctx) {
+    var time = this.timeCounter;
+    ctx.save();
+    var cx = 320, cy = 150;
+
+    // Soft blue aura
+    var auraAlpha = (0.1 + Math.sin(time * 1.2) * 0.04).toFixed(3);
+    var auraGrad = ctx.createRadialGradient(cx, cy, 30, cx, cy, 160);
+    auraGrad.addColorStop(0, "rgba(50, 100, 255, " + auraAlpha + ")");
+    auraGrad.addColorStop(0.5, "rgba(20, 50, 180, " + (auraAlpha * 0.5).toFixed(3) + ")");
+    auraGrad.addColorStop(1, "rgba(0, 0, 80, 0)");
+    ctx.fillStyle = auraGrad;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 160, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Floating light motes
+    for (var m = 0; m < 10; m++) {
+        var mAngle = time * 0.4 + m * Math.PI / 5;
+        var mR = 70 + Math.sin(time * 1.2 + m * 2) * 20;
+        var mx = cx + Math.cos(mAngle) * mR;
+        var my = cy + Math.sin(mAngle * 0.6) * mR * 0.4;
+        var mAlpha = (0.2 + Math.sin(time * 2 + m) * 0.12).toFixed(2);
+        ctx.fillStyle = "rgba(150, 200, 255, " + mAlpha + ")";
+        ctx.beginPath();
+        ctx.arc(mx, my, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    // Slow idle rotation
+    var idleRot = Math.sin(time * 0.5) * 0.08;
+
+    // Shadow/glow beneath
+    ctx.shadowBlur = 25;
+    ctx.shadowColor = "rgba(50, 120, 255, 0.6)";
+
+    // Main octahedron
+    this.drawOctahedron(ctx, cx, cy, 60, idleRot, [
+        "rgba(15, 30, 120, 0.9)",   // dark sapphire
+        "rgba(30, 80, 200, 0.85)",   // medium blue
+        "rgba(60, 140, 255, 0.9)",   // bright blue
+        "rgba(120, 200, 255, 0.6)",  // edge highlight
+        "rgba(180, 230, 255, 0.3)"   // center line
+    ]);
+    ctx.shadowBlur = 0;
+
+    // Internal refraction lines
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(idleRot);
+    ctx.globalAlpha = 0.25;
+    ctx.strokeStyle = "rgba(200, 240, 255, 0.5)";
+    ctx.lineWidth = 1;
+    // Horizontal refraction
+    ctx.beginPath();
+    ctx.moveTo(-42 * 0.7, 0);
+    ctx.lineTo(42 * 0.7, 0);
+    ctx.stroke();
+    // Diagonal refractions
+    for (var r = 0; r < 3; r++) {
+        var ry = -30 + r * 30;
+        ctx.beginPath();
+        var rw = 42 * (1 - Math.abs(ry) / 60) * 0.7;
+        ctx.moveTo(-rw, ry);
+        ctx.lineTo(rw, ry);
+        ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    ctx.restore();
+
+    // Red pulsing core
+    var corePulse = Math.sin(time * 2.5) * 0.15 + 0.85;
+    var coreGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 12);
+    coreGrad.addColorStop(0, "rgba(255, 50, 30, " + (0.9 * corePulse).toFixed(2) + ")");
+    coreGrad.addColorStop(0.5, "rgba(200, 20, 20, " + (0.5 * corePulse).toFixed(2) + ")");
+    coreGrad.addColorStop(1, "rgba(100, 0, 0, 0)");
+    ctx.fillStyle = coreGrad;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 12, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Core bright dot
+    ctx.fillStyle = "rgba(255, 200, 200, " + (0.7 * corePulse).toFixed(2) + ")";
+    ctx.beginPath();
+    ctx.arc(cx, cy, 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+};
+
+// ---- PHASE 2: GEOMETRIC MORPHING (Rebuild) ----
+Enemy.prototype.drawRamielMorph = function(ctx) {
+    var time = this.timeCounter;
+    ctx.save();
+    var cx = 320, cy = 150;
+
+    // Distortion vignette
+    var vigGrad = ctx.createRadialGradient(cx, cy, 80, cx, cy, 340);
+    vigGrad.addColorStop(0, "rgba(0, 0, 0, 0)");
+    vigGrad.addColorStop(0.7, "rgba(0, 0, 30, 0.08)");
+    vigGrad.addColorStop(1, "rgba(0, 0, 50, 0.2)");
+    ctx.fillStyle = vigGrad;
+    ctx.fillRect(0, 0, 640, 480);
+
+    // Intense pulsing aura
+    var auraAlpha = (0.15 + Math.sin(time * 2) * 0.06).toFixed(3);
+    var auraGrad = ctx.createRadialGradient(cx, cy, 20, cx, cy, 180);
+    auraGrad.addColorStop(0, "rgba(80, 100, 255, " + auraAlpha + ")");
+    auraGrad.addColorStop(0.4, "rgba(40, 60, 200, " + (auraAlpha * 0.6).toFixed(3) + ")");
+    auraGrad.addColorStop(1, "rgba(20, 0, 120, 0)");
+    ctx.fillStyle = auraGrad;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 180, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Morphing shape: interpolate vertices between octahedron and star
+    var morphPhase = (Math.sin(time * 1.5) + 1) / 2; // 0 to 1
+    var numPoints = 8;
+    var baseSize = 65;
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(time * 0.3);
+
+    // Generate morphing vertices
+    ctx.shadowBlur = 20;
+    ctx.shadowColor = "rgba(60, 100, 255, 0.7)";
+
+    var grad = ctx.createRadialGradient(0, 0, 10, 0, 0, baseSize);
+    grad.addColorStop(0, "rgba(100, 180, 255, 0.95)");
+    grad.addColorStop(0.4, "rgba(50, 100, 230, 0.85)");
+    grad.addColorStop(0.8, "rgba(30, 50, 180, 0.8)");
+    grad.addColorStop(1, "rgba(20, 30, 120, 0.7)");
+    ctx.fillStyle = grad;
+
+    ctx.beginPath();
+    for (var i = 0; i < numPoints; i++) {
+        var angle = (i / numPoints) * Math.PI * 2;
+        // Alternate between inner and outer radii for star shape
+        var octR = baseSize; // Octahedron radius
+        var starOuter = baseSize * 1.3;
+        var starInner = baseSize * 0.4;
+        var targetR = (i % 2 === 0) ? starOuter : starInner;
+        var r = octR + (targetR - octR) * morphPhase;
+
+        var px = Math.cos(angle) * r;
+        var py = Math.sin(angle) * r;
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+    ctx.fill();
+
+    // Edge glow
+    ctx.strokeStyle = "rgba(150, 200, 255, 0.7)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Inner morphing lines
+    ctx.globalAlpha = 0.3;
+    ctx.strokeStyle = "rgba(200, 230, 255, 0.5)";
+    ctx.lineWidth = 1;
+    for (var i = 0; i < numPoints; i++) {
+        var angle = (i / numPoints) * Math.PI * 2;
+        var octR2 = baseSize;
+        var targetR2 = (i % 2 === 0) ? baseSize * 1.3 : baseSize * 0.4;
+        var r2 = octR2 + (targetR2 - octR2) * morphPhase;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(Math.cos(angle) * r2, Math.sin(angle) * r2);
+        ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+
+    ctx.restore();
+
+    // Energy particles orbiting wildly
+    for (var i = 0; i < 14; i++) {
+        var pAngle = time * (2.0 + i * 0.3) + i * Math.PI / 7;
+        var pR = 50 + i * 5 + Math.sin(time * 3 + i) * 10;
+        var px = cx + Math.cos(pAngle) * pR;
+        var py = cy + Math.sin(pAngle) * pR * 0.5;
+        var pAlpha = (0.4 + Math.sin(time * 4 + i * 2) * 0.25).toFixed(2);
+        var pSize = 1.5 + Math.sin(time * 3 + i) * 0.5;
+        ctx.fillStyle = i % 3 === 0
+            ? "rgba(150, 100, 255, " + pAlpha + ")"
+            : "rgba(80, 180, 255, " + pAlpha + ")";
+        ctx.beginPath();
+        ctx.arc(px, py, pSize, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    // Red core (more intense)
+    var corePulse = Math.sin(time * 3.5) * 0.2 + 0.8;
+    var coreGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 16);
+    coreGrad.addColorStop(0, "rgba(255, 60, 30, " + (0.95 * corePulse).toFixed(2) + ")");
+    coreGrad.addColorStop(0.4, "rgba(220, 30, 30, " + (0.6 * corePulse).toFixed(2) + ")");
+    coreGrad.addColorStop(1, "rgba(120, 0, 0, 0)");
+    ctx.fillStyle = coreGrad;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 16, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+};
+
+// ---- PHASE 3: BERSERK FRACTAL ----
+Enemy.prototype.drawRamielBerserk = function(ctx) {
+    var time = this.timeCounter;
+    ctx.save();
+    var cx = 320, cy = 150;
+
+    // Heavy vignette (dread)
+    var vigGrad = ctx.createRadialGradient(cx, cy, 60, cx, cy, 350);
+    vigGrad.addColorStop(0, "rgba(0, 0, 0, 0)");
+    vigGrad.addColorStop(0.5, "rgba(0, 0, 20, 0.1)");
+    vigGrad.addColorStop(1, "rgba(0, 0, 0, 0.35)");
+    ctx.fillStyle = vigGrad;
+    ctx.fillRect(0, 0, 640, 480);
+
+    // Lightning flickers
+    if (Math.random() < 0.05) {
+        ctx.fillStyle = "rgba(100, 150, 255, 0.08)";
+        ctx.fillRect(0, 0, 640, 480);
+    }
+
+    // Raging aura (red-violet)
+    var auraAlpha = (0.22 + Math.sin(time * 3) * 0.07).toFixed(3);
+    var auraGrad = ctx.createRadialGradient(cx, cy, 15, cx, cy, 200);
+    auraGrad.addColorStop(0, "rgba(200, 50, 255, " + auraAlpha + ")");
+    auraGrad.addColorStop(0.3, "rgba(150, 20, 200, " + (auraAlpha * 0.6).toFixed(3) + ")");
+    auraGrad.addColorStop(0.6, "rgba(80, 0, 120, " + (auraAlpha * 0.3).toFixed(3) + ")");
+    auraGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+    ctx.fillStyle = auraGrad;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 200, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Multiple overlapping octahedrons at different rotations (fractal look)
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = "rgba(200, 50, 255, 0.5)";
+
+    // Background octahedrons (faded, different sizes)
+    ctx.globalAlpha = 0.2;
+    this.drawOctahedron(ctx, cx, cy, 75, time * 0.7, [
+        "rgba(100, 0, 150, 0.6)", "rgba(150, 30, 200, 0.5)",
+        "rgba(200, 80, 255, 0.6)", "rgba(220, 150, 255, 0.3)", "rgba(255, 200, 255, 0.2)"
+    ]);
+    ctx.globalAlpha = 0.3;
+    this.drawOctahedron(ctx, cx, cy, 65, -time * 0.5 + 1.0, [
+        "rgba(120, 20, 180, 0.6)", "rgba(160, 40, 220, 0.5)",
+        "rgba(200, 100, 255, 0.6)", "rgba(230, 160, 255, 0.3)", "rgba(255, 200, 255, 0.2)"
+    ]);
+    ctx.globalAlpha = 1;
+
+    // Main octahedron (cracked, red-shifted)
+    ctx.shadowBlur = 25;
+    ctx.shadowColor = "rgba(255, 50, 100, 0.6)";
+    this.drawOctahedron(ctx, cx, cy, 60, Math.sin(time * 0.8) * 0.12, [
+        "rgba(80, 10, 80, 0.9)",     // dark magenta
+        "rgba(150, 30, 120, 0.85)",   // medium magenta
+        "rgba(200, 60, 180, 0.9)",    // bright magenta
+        "rgba(255, 120, 200, 0.7)",   // edge highlight
+        "rgba(255, 180, 220, 0.4)"    // center line
+    ]);
+    ctx.shadowBlur = 0;
+
+    // Crack lines (white energy leaking)
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(Math.sin(time * 0.8) * 0.12);
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
+    ctx.lineWidth = 1.5;
+    // Random-looking cracks
+    var cracks = [
+        [-10, -40, 5, -15], [5, -15, -8, 10], [-8, 10, 12, 35],
+        [15, -30, 25, -5], [25, -5, 10, 20],
+        [-20, -10, -30, 15]
+    ];
+    for (var c = 0; c < cracks.length; c++) {
+        var crack = cracks[c];
+        var cAlpha = (0.3 + Math.sin(time * 6 + c * 2) * 0.3).toFixed(2);
+        ctx.strokeStyle = "rgba(255, 255, 255, " + cAlpha + ")";
+        ctx.beginPath();
+        ctx.moveTo(crack[0], crack[1]);
+        ctx.lineTo(crack[2], crack[3]);
+        ctx.stroke();
+    }
+    ctx.restore();
+
+    // AT Field hexagonal rings (visible permanently)
+    ctx.globalAlpha = 0.15 + Math.sin(time * 2) * 0.05;
+    var hexRingR = 85 + Math.sin(time * 1.5) * 5;
+    ctx.strokeStyle = "rgba(255, 180, 0, 0.5)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (var h = 0; h < 6; h++) {
+        var hAngle = (h / 6) * Math.PI * 2 + time * 0.3;
+        var hx = cx + Math.cos(hAngle) * hexRingR;
+        var hy = cy + Math.sin(hAngle) * hexRingR;
+        if (h === 0) ctx.moveTo(hx, hy);
+        else ctx.lineTo(hx, hy);
+    }
+    ctx.closePath();
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    // Electric arcs from body
+    for (var e = 0; e < 4; e++) {
+        var eAngle = time * 2.5 + e * Math.PI / 2;
+        var eLen = 40 + Math.sin(time * 5 + e * 3) * 20;
+        var ex1 = cx + Math.cos(eAngle) * 42 * 0.7;
+        var ey1 = cy + Math.sin(eAngle) * 30;
+        var ex2 = cx + Math.cos(eAngle) * (42 * 0.7 + eLen);
+        var ey2 = cy + Math.sin(eAngle) * (30 + eLen * 0.5);
+        var eMid1x = (ex1 + ex2) / 2 + (Math.random() - 0.5) * 15;
+        var eMid1y = (ey1 + ey2) / 2 + (Math.random() - 0.5) * 15;
+        var eAlpha = (0.3 + Math.sin(time * 8 + e) * 0.2).toFixed(2);
+        ctx.strokeStyle = "rgba(180, 200, 255, " + eAlpha + ")";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(ex1, ey1);
+        ctx.lineTo(eMid1x, eMid1y);
+        ctx.lineTo(ex2, ey2);
+        ctx.stroke();
+    }
+
+    // Fire particles
+    for (var i = 0; i < 10; i++) {
+        var fAngle = time * 1.8 + i * Math.PI / 5;
+        var fR = 70 + Math.sin(time * 4 + i * 2) * 12;
+        var fx = cx + Math.cos(fAngle) * fR;
+        var fy = cy + Math.sin(fAngle) * fR * 0.4;
+        var fSize = 2 + Math.sin(time * 5 + i) * 1;
+        var fAlpha = (0.4 + Math.sin(time * 4 + i) * 0.25).toFixed(2);
+        ctx.fillStyle = "rgba(255, " + Math.floor(50 + Math.sin(time + i) * 50) + ", " + Math.floor(150 + Math.sin(time * 2 + i) * 80) + ", " + fAlpha + ")";
+        ctx.beginPath();
+        ctx.arc(fx, fy, fSize, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    // Core (intense red, flickering)
+    var corePulse = Math.sin(time * 5) * 0.2 + 0.8;
+    var coreGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 18);
+    coreGrad.addColorStop(0, "rgba(255, 40, 20, " + (1.0 * corePulse).toFixed(2) + ")");
+    coreGrad.addColorStop(0.3, "rgba(255, 80, 50, " + (0.7 * corePulse).toFixed(2) + ")");
+    coreGrad.addColorStop(0.6, "rgba(200, 20, 80, " + (0.4 * corePulse).toFixed(2) + ")");
+    coreGrad.addColorStop(1, "rgba(100, 0, 0, 0)");
+    ctx.fillStyle = coreGrad;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 18, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+};
+

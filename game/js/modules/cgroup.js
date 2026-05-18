@@ -12,6 +12,8 @@ var Cgroup = (function() {
         
         if (currentBossId === "seraphina") {
             setupSeraphina();
+        } else if (currentBossId === "ramiel") {
+            setupRamiel();
         } else {
             setupSingularity();
         }
@@ -156,6 +158,82 @@ var Cgroup = (function() {
                 mercyHP: 100,
                 xpReward: 350,
                 goldReward: 200,
+            })
+        ];
+        enemies[0].bubblePos = enemies[0].damagePos.getAdd(new Vect(60, -160, 0));
+        mercies = ["Spare", "Flee"];
+        defends = [];
+    }
+
+    function setupRamiel() {
+        enemies = [
+            new Enemy({
+                name: "RAMIEL",
+                checkText: "A perfect geometric form... it hums with annihilating energy.",
+                maxHP: 3200,
+                curHP: 3200,
+                renderType: "ramiel_crystal",
+                atk: 14,
+                def: 10,
+                defense: 1.2,
+                acts: ["Check", "Analyze", "Provoke", "Flee"],
+                actResponses: [
+                    "* RAMIEL - ATK 14 DEF 10\n* The 5th Angel. A fortress of light.\n* Its A.T. Field is almost absolute.",
+                    "* You study the geometric patterns.\n* The hum grows louder.\n* It seems to be... drilling.",
+                    "* You shout at the crystal.\n* The octahedron vibrates.\n* Was that... anger?",
+                    "* You turn your back and run away..."
+                ],
+                actFunctions: [
+                    function() { console.log("Checked Ramiel"); },
+                    function() {
+                        console.log("Analyzed Ramiel");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 15);
+                    },
+                    function() {
+                        console.log("Provoked Ramiel");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 10);
+                    },
+                    function() {
+                        console.log("Fled Ramiel");
+                        Sound.playSound("flash", true);
+                        Transition.start("overworld", function() {
+                            main.gameState = main.GAME_STATE.OVERWORLD;
+                            Overworld.setup(main.ctx);
+                        });
+                    }
+                ],
+                texts: [
+                    "* The crystal hums at a frequency that hurts.",
+                    "* Light refracts through the perfect geometry.",
+                    "* The air vibrates with absolute power.",
+                    "* You feel insignificant before its form.",
+                    "* The octahedron rotates silently."
+                ],
+                speech: [
+                    "...",
+                    "...",
+                    "GEOMETRY\nIS\nABSOLUTE.",
+                    "YOU CANNOT\nPENETRATE\nTHE FIELD."
+                ],
+                spriteId: "asriel",
+                attacks: ["particleBeam"],
+                phases: [
+                    { patterns: ["particleBeam", "crystalStorm"], soulMode: "red", renderType: "ramiel_crystal",
+                      speech: ["...", "...", "GEOMETRY\nIS\nABSOLUTE."] },
+                    { patterns: ["atField", "particleBeam", "crystalStorm"], soulMode: "red", renderType: "ramiel_morph",
+                      speech: ["FORM\nSHIFTS.", "YOU PERSIST?\nINTRIGUING.", "THE FIELD\nIS ETERNAL."] },
+                    { patterns: ["geometricDrill", "atField", "particleBeam", "crystalStorm"], soulMode: "red", renderType: "ramiel_berserk",
+                      speech: ["ENOUGH.", "ANNIHILATION\nPROTOCOL.", "THE DRILL\nWILL PIERCE\nALL.", "NO BARRIER\nCAN SAVE\nYOU."] }
+                ],
+                phaseHP: [3200, 4000, 5000],
+                karmaEnabled: false,
+                jitterEnabled: false,
+                damagePos: new Vect(320, 220, 0),
+                damageVel: 120,
+                bubbleOff: 30,
+                mercyHP: 100,
+                xpReward: 400,
+                goldReward: 250,
             })
         ];
         enemies[0].bubblePos = enemies[0].damagePos.getAdd(new Vect(60, -160, 0));

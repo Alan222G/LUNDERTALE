@@ -29,6 +29,10 @@ var Combat = (function() {
         if (bossId === "singularity") {
             Sound.playSound("bgm_singularity", true);
             Sound.pauseSoundHard("bgm_seraphina");
+        } else if (bossId === "ramiel") {
+            // Ramiel uses singularity music (epic energy track)
+            Sound.playSound("bgm_singularity", true);
+            Sound.pauseSoundHard("bgm_seraphina");
         } else {
             Sound.playSound("bgm_seraphina", true);
             Sound.pauseSoundHard("bgm_singularity");

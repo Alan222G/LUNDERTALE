@@ -58,6 +58,23 @@ var Overworld = (function() {
                 });
             }
         });
+
+        // Ramiel battle trigger (bottom-right area)
+        triggerList.push({
+            x: 500, y: 350, w: 60, h: 60,
+            triggered: false,
+            bossId: "ramiel",
+            label: "RAMIEL",
+            color: "rgba(30, 100, 255, 0.5)",
+            action: function() {
+                var self = this;
+                Transition.start(function() {
+                    main.gameState = main.GAME_STATE.COMBAT;
+                    Combat.init(self.bossId);
+                    Combat.setup(main.ctx);
+                });
+            }
+        });
         
         // Load boss animations
         singFrames = [
@@ -142,12 +159,55 @@ var Overworld = (function() {
                 if (t.bossId === "seraphina") {
                     var frameIdx = Math.floor(animTimer * 4) % seraFrames.length;
                     img = seraFrames[frameIdx];
+                } else if (t.bossId === "ramiel") {
+                    // Procedural mini crystal for Ramiel
+                    img = null; // Force fallback to procedural
                 } else {
                     var frameIdx = Math.floor(animTimer * 4) % singFrames.length;
                     img = singFrames[frameIdx];
                 }
                 
-                if (img && img.complete) {
+                if (t.bossId === "ramiel") {
+                    // Draw procedural mini octahedron
+                    var rTime = animTimer;
+                    var rRot = Math.sin(rTime * 0.8) * 0.15;
+                    var rSize = 18 + Math.sin(rTime * 2) * 2;
+                    
+                    // Blue glow
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = "rgba(50, 120, 255, 0.8)";
+                    
+                    // Diamond shape
+                    ctx.save();
+                    ctx.translate(gcx, gcy);
+                    ctx.rotate(rRot);
+                    var dGrad = ctx.createLinearGradient(-rSize * 0.5, -rSize, rSize * 0.5, rSize);
+                    dGrad.addColorStop(0, "rgba(20, 40, 150, 0.9)");
+                    dGrad.addColorStop(0.5, "rgba(60, 140, 255, 0.95)");
+                    dGrad.addColorStop(1, "rgba(20, 40, 150, 0.9)");
+                    ctx.fillStyle = dGrad;
+                    ctx.beginPath();
+                    ctx.moveTo(0, -rSize);
+                    ctx.lineTo(rSize * 0.6, 0);
+                    ctx.lineTo(0, rSize);
+                    ctx.lineTo(-rSize * 0.6, 0);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.strokeStyle = "rgba(150, 200, 255, 0.7)";
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                    
+                    // Red core
+                    ctx.shadowBlur = 0;
+                    var cPulse = Math.sin(rTime * 3) * 0.2 + 0.8;
+                    ctx.fillStyle = "rgba(255, 50, 30, " + (0.8 * cPulse).toFixed(2) + ")";
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                    
+                    ctx.shadowBlur = 0;
+                } else if (img && img.complete) {
                     ctx.drawImage(img, t.x, t.y, t.w, t.h);
                 } else {
                     // Fallback to glowing circle if images aren't loaded yet
