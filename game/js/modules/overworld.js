@@ -7,7 +7,7 @@ var Overworld = (function() {
     var mapData = null;
 
     var bgImage = new Image();
-    bgImage.src = "Resources/Fondo del overworld.png";
+    bgImage.src = "Resources/Fondo del overworld Best.png";
     
     var animTimer = 0;
     var singFrames = [];
@@ -76,6 +76,10 @@ var Overworld = (function() {
 
     function setup(ctx) {
         active = true;
+        Sound.pauseSoundHard("bgm");
+        Sound.pauseSoundHard("bgm_seraphina");
+        Sound.pauseSoundHard("bgm_singularity");
+        Sound.playSound("bgm_overworld", true);
     }
 
     function update(dt) {

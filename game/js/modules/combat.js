@@ -24,6 +24,15 @@ var Combat = (function() {
         gravityDmgTimer = 0;
         Cbbox.setup(574, 140);
         Cgroup.setup(bossId);
+
+        Sound.pauseSoundHard("bgm_overworld");
+        if (bossId === "singularity") {
+            Sound.playSound("bgm_singularity", true);
+            Sound.pauseSoundHard("bgm_seraphina");
+        } else {
+            Sound.playSound("bgm_seraphina", true);
+            Sound.pauseSoundHard("bgm_singularity");
+        }
     }
 
     function setup(ctx) {
