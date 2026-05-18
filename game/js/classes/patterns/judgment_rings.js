@@ -94,22 +94,62 @@ JudgmentRingsPattern.prototype.draw = function(ctx) {
         var startAngle = r.gapAngle + r.gapSize / 2;
         var endAngle = r.gapAngle - r.gapSize / 2 + Math.PI * 2;
 
-        ctx.shadowBlur = 15;
+        // Outer golden aura
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = "rgba(255, 200, 0, 0.6)";
+        ctx.strokeStyle = "rgba(255, 200, 50, 0.4)";
+        ctx.lineWidth = this.ringThickness + 6;
+        ctx.beginPath();
+        ctx.arc(r.x, r.y, r.radius, startAngle, endAngle);
+        ctx.stroke();
+        
+        // Main golden ring
+        ctx.shadowBlur = 12;
         ctx.shadowColor = "#FFD700";
         ctx.strokeStyle = "rgba(255, 215, 0, 0.9)";
         ctx.lineWidth = this.ringThickness;
-        
         ctx.beginPath();
         ctx.arc(r.x, r.y, r.radius, startAngle, endAngle);
         ctx.stroke();
         
         // Inner white core
         ctx.shadowBlur = 0;
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.85)";
         ctx.lineWidth = this.ringThickness * 0.4;
         ctx.beginPath();
         ctx.arc(r.x, r.y, r.radius, startAngle, endAngle);
         ctx.stroke();
+        
+        // Ultra-bright center line in ring
+        ctx.strokeStyle = "rgba(255, 255, 220, 0.6)";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(r.x, r.y, r.radius, startAngle, endAngle);
+        ctx.stroke();
+        
+        // Gap indicator — subtle glow at gap edges
+        var gapStart = r.gapAngle - r.gapSize / 2;
+        var gapEnd = r.gapAngle + r.gapSize / 2;
+        for (var g = 0; g < 2; g++) {
+            var gAngle = g === 0 ? gapStart : gapEnd;
+            var gx = r.x + Math.cos(gAngle) * r.radius;
+            var gy = r.y + Math.sin(gAngle) * r.radius;
+            ctx.fillStyle = "rgba(255, 255, 200, 0.5)";
+            ctx.beginPath();
+            ctx.arc(gx, gy, 3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        // Trailing sparkle particles along ring path
+        for (var sp = 0; sp < 3; sp++) {
+            var spAngle = startAngle + Math.random() * (endAngle - startAngle);
+            var spx = r.x + Math.cos(spAngle) * r.radius + (Math.random() - 0.5) * 6;
+            var spy = r.y + Math.sin(spAngle) * r.radius + (Math.random() - 0.5) * 6;
+            ctx.fillStyle = "rgba(255, 215, 0, " + (0.2 + Math.random() * 0.3).toFixed(2) + ")";
+            ctx.beginPath();
+            ctx.arc(spx, spy, 0.8 + Math.random() * 0.8, 0, Math.PI * 2);
+            ctx.fill();
+        }
     }
     ctx.restore();
 };

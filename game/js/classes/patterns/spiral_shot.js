@@ -85,6 +85,51 @@ SpiralShotPattern.prototype.spawnRing = function() {
     }
 };
 
+SpiralShotPattern.prototype.draw = function(ctx) {
+    ctx.save();
+    for (var i = 0; i < this.bullets.length; i++) {
+        var b = this.bullets[i];
+        if (!b.active) continue;
+        
+        ctx.save();
+        ctx.globalAlpha = b.fadeTick;
+        var bx = b.x + b.width / 2;
+        var by = b.y + b.height / 2;
+        var r = b.width / 2;
+        
+        // Outer glow
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = "rgba(0, 200, 255, 0.6)";
+        
+        // Dark void core
+        var vGrad = ctx.createRadialGradient(bx, by, 0, bx, by, r + 1);
+        vGrad.addColorStop(0, "rgba(0, 0, 0, 0.9)");
+        vGrad.addColorStop(0.6, "rgba(40, 0, 80, 0.7)");
+        vGrad.addColorStop(1, "rgba(0, 200, 255, 0)");
+        ctx.fillStyle = vGrad;
+        ctx.beginPath();
+        ctx.arc(bx, by, r + 1, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Chromatic edge
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = "rgba(0, 255, 255, 0.8)";
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.arc(bx, by, r, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        // Bright center dot
+        ctx.fillStyle = "rgba(180, 220, 255, 0.7)";
+        ctx.beginPath();
+        ctx.arc(bx, by, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.restore();
+    }
+    ctx.restore();
+};
+
 SpiralShotPattern.prototype.isOver = function() {
     return this.elapsed >= this.duration && this.bullets.length === 0;
 };

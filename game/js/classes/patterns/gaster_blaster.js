@@ -98,33 +98,72 @@ GasterBlasterPattern.prototype.draw = function(ctx) {
         ctx.save();
 
         if (beam.timer <= this.warningDuration) {
-            // WARNING PHASE — flashing semi-transparent rectangle
-            var flashRate = Math.floor(beam.timer * 12) % 2;
-            ctx.globalAlpha = flashRate ? 0.3 : 0.15;
-            ctx.fillStyle = "#F44";
+            // WARNING PHASE — flashing with inner glow line
+            var flashRate = Math.floor(beam.timer * 14) % 2;
+            ctx.globalAlpha = flashRate ? 0.35 : 0.12;
+            ctx.fillStyle = "#FF2200";
             ctx.fillRect(beam.x, beam.y, beam.w, beam.h);
+            // Inner warning line
+            ctx.globalAlpha = flashRate ? 0.5 : 0.2;
+            ctx.fillStyle = "#FF8800";
+            if (beam.horizontal) {
+                ctx.fillRect(beam.x, beam.y + beam.h / 2 - 1, beam.w, 2);
+            } else {
+                ctx.fillRect(beam.x + beam.w / 2 - 1, beam.y, 2, beam.h);
+            }
         } else {
-            // ACTIVE PHASE — bright beam with glow
+            // ACTIVE PHASE — plasma beam with layers
             var beamLife = beam.timer - this.warningDuration;
             var fadeOut = 1 - (beamLife / this.beamDuration);
+            var pulse = Math.sin(beamLife * 20) * 0.08 + 0.92;
             ctx.globalAlpha = fadeOut;
 
-            // Outer glow
-            ctx.fillStyle = "#FFF";
-            ctx.fillRect(beam.x - 3, beam.y - 3, beam.w + 6, beam.h + 6);
+            // Outer aura (wider than beam)
+            ctx.fillStyle = "rgba(255, 200, 0, 0.2)";
+            ctx.fillRect(beam.x - 5, beam.y - 5, beam.w + 10, beam.h + 10);
 
-            // Inner beam
-            ctx.fillStyle = "#FF0";
+            // Main beam — golden glow
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = "#FFAA00";
+            ctx.fillStyle = "rgba(255, 220, 50, " + (0.7 * pulse).toFixed(2) + ")";
             ctx.fillRect(beam.x, beam.y, beam.w, beam.h);
 
-            // Core
-            var coreOffset = 4;
-            ctx.fillStyle = "#FFF";
+            // Inner bright core
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = "#FFFFFF";
+            var coreOffset = 5;
+            ctx.fillStyle = "#FFFFFF";
             ctx.fillRect(
                 beam.x + (beam.horizontal ? 0 : coreOffset),
                 beam.y + (beam.horizontal ? coreOffset : 0),
                 beam.w - (beam.horizontal ? 0 : coreOffset * 2),
                 beam.h - (beam.horizontal ? coreOffset * 2 : 0));
+
+            // Ultra-bright center line
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = "rgba(255, 255, 220, 0.9)";
+            if (beam.horizontal) {
+                ctx.fillRect(beam.x, beam.y + beam.h / 2 - 1, beam.w, 2);
+            } else {
+                ctx.fillRect(beam.x + beam.w / 2 - 1, beam.y, 2, beam.h);
+            }
+            
+            // Edge sparks
+            ctx.shadowBlur = 0;
+            for (var s = 0; s < 6; s++) {
+                var sx, sy;
+                if (beam.horizontal) {
+                    sx = beam.x + Math.random() * beam.w;
+                    sy = beam.y + (Math.random() > 0.5 ? -1 : beam.h + 1) + (Math.random() - 0.5) * 4;
+                } else {
+                    sx = beam.x + (Math.random() > 0.5 ? -1 : beam.w + 1) + (Math.random() - 0.5) * 4;
+                    sy = beam.y + Math.random() * beam.h;
+                }
+                ctx.fillStyle = "rgba(255, 200, 50, " + (0.3 + Math.random() * 0.4).toFixed(2) + ")";
+                ctx.beginPath();
+                ctx.arc(sx, sy, 1 + Math.random(), 0, Math.PI * 2);
+                ctx.fill();
+            }
         }
         ctx.restore();
     }

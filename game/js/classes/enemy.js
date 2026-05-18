@@ -684,6 +684,21 @@ Enemy.prototype.drawSeraph = function(ctx) {
     ctx.ellipse(cx, cy - 45, 25, 8, 0, 0, Math.PI * 2);
     ctx.stroke();
     
+    // Floating divine light motes
+    ctx.shadowBlur = 0;
+    for (var m = 0; m < 8; m++) {
+        var mAngle = time * 0.5 + m * Math.PI / 4;
+        var mR = 60 + Math.sin(time * 1.5 + m * 2) * 25;
+        var mx = cx + Math.cos(mAngle) * mR;
+        var my = cy + Math.sin(mAngle * 0.7) * mR * 0.4 - 10;
+        var mAlpha = (0.25 + Math.sin(time * 2 + m) * 0.15).toFixed(2);
+        var mSize = 1.2 + Math.sin(time * 3 + m) * 0.5;
+        ctx.fillStyle = "rgba(255, 240, 180, " + mAlpha + ")";
+        ctx.beginPath();
+        ctx.arc(mx, my, mSize, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    
     ctx.restore();
 };
 
@@ -774,9 +789,19 @@ Enemy.prototype.drawThrone = function(ctx) {
     var time = this.timeCounter;
     ctx.save();
     
-    // Furious divine pressure — dark edges
-    ctx.fillStyle = "rgba(0, 0, 0, 0.15)";
+    // Furious divine pressure — vignette
+    var vigGrad = ctx.createRadialGradient(320, 150, 80, 320, 240, 380);
+    vigGrad.addColorStop(0, "rgba(0, 0, 0, 0)");
+    vigGrad.addColorStop(0.6, "rgba(0, 0, 0, 0.12)");
+    vigGrad.addColorStop(1, "rgba(0, 0, 0, 0.35)");
+    ctx.fillStyle = vigGrad;
     ctx.fillRect(0, 0, 640, 480);
+    
+    // Lightning flickers
+    if (Math.random() < 0.04) {
+        ctx.fillStyle = "rgba(255, 200, 100, 0.08)";
+        ctx.fillRect(0, 0, 640, 480);
+    }
     
     ctx.translate(320, 150);
     ctx.scale(1.35, 1.35);

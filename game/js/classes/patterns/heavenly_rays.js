@@ -94,27 +94,65 @@ HeavenlyRaysPattern.prototype.draw = function(ctx) {
         var r = this.rays[i];
         
         if (r.timer <= this.warningDuration) {
-            // Warning lines
-            var flash = Math.floor(r.timer * 12) % 2 === 0;
+            // Warning lines — pulsing red with inner highlight
+            var flash = Math.floor(r.timer * 14) % 2 === 0;
             ctx.globalAlpha = flash ? 0.4 : 0.1;
-            ctx.fillStyle = "#FF4444";
+            ctx.fillStyle = "#FF2200";
             ctx.fillRect(r.x, r.y, r.w, r.h);
+            // Inner warning line
+            ctx.globalAlpha = flash ? 0.5 : 0.15;
+            ctx.fillStyle = "#FF8800";
+            if (r.w > r.h) {
+                ctx.fillRect(r.x, r.y + r.h / 2 - 1, r.w, 2);
+            } else {
+                ctx.fillRect(r.x + r.w / 2 - 1, r.y, 2, r.h);
+            }
         } else if (r.timer <= this.warningDuration + this.activeDuration) {
-            // Active laser
+            // Active laser — multi-layered
             var life = r.timer - this.warningDuration;
             var alpha = 1 - (life / this.activeDuration);
             ctx.globalAlpha = alpha;
             
-            ctx.shadowBlur = 15;
-            ctx.shadowColor = "#FF2200";
+            // Outer crimson aura
+            ctx.fillStyle = "rgba(255, 50, 0, 0.25)";
+            ctx.fillRect(r.x - 3, r.y - 3, r.w + 6, r.h + 6);
             
-            // Core
+            // Main golden beam
+            ctx.shadowBlur = 18;
+            ctx.shadowColor = "#FF4400";
+            ctx.fillStyle = "rgba(255, 180, 0, 0.75)";
+            ctx.fillRect(r.x, r.y, r.w, r.h);
+            
+            // White-hot core
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = "#FFFFFF";
             ctx.fillStyle = "#FFFFFF";
             ctx.fillRect(r.x + 4, r.y + 4, r.w - 8, r.h - 8);
             
-            // Edges
-            ctx.fillStyle = "rgba(255, 200, 0, 0.8)";
-            ctx.fillRect(r.x, r.y, r.w, r.h);
+            // Center line
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = "rgba(255, 255, 220, 0.9)";
+            if (r.w > r.h) {
+                ctx.fillRect(r.x, r.y + r.h / 2 - 1, r.w, 2);
+            } else {
+                ctx.fillRect(r.x + r.w / 2 - 1, r.y, 2, r.h);
+            }
+            
+            // Edge sparks
+            for (var s = 0; s < 3; s++) {
+                var sx, sy;
+                if (r.w > r.h) {
+                    sx = r.x + Math.random() * r.w;
+                    sy = r.y + (Math.random() > 0.5 ? -2 : r.h + 2);
+                } else {
+                    sx = r.x + (Math.random() > 0.5 ? -2 : r.w + 2);
+                    sy = r.y + Math.random() * r.h;
+                }
+                ctx.fillStyle = "rgba(255, 200, 50, " + (0.3 + Math.random() * 0.4).toFixed(2) + ")";
+                ctx.beginPath();
+                ctx.arc(sx, sy, 1 + Math.random(), 0, Math.PI * 2);
+                ctx.fill();
+            }
         }
     }
     ctx.restore();
