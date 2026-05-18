@@ -8,12 +8,12 @@ var Writer = (function() {
 
     function init() {
         horizontalPositions = [
-            [100, 296], [356, 296],
-            [100, 328], [356, 328],
-            [100, 360], [356, 360]
+            [150, 396], [406, 396],
+            [150, 428], [406, 428],
+            [150, 460], [406, 460]
         ];
         verticalPositions = [
-            [100, 296], [100, 328], [100, 360]
+            [150, 396], [150, 428], [150, 460]
         ];
     }
 
@@ -63,7 +63,7 @@ var Writer = (function() {
         document.getElementById('cvs').style.letterSpacing = '-1.5px';
         ctx.font = "19pt Determination Mono";
         ctx.fillStyle = "#FFF";
-        var textXPos = 52, textYPos = 296;
+        var textXPos = 102, textYPos = 396;
         for (var i = 0; i < charCounter + 1; i++) {
             if (text.charAt(i) != "*" || text.charAt(i) != "|" || i < charCounter) {
                 ctx.fillText(text.charAt(i),
@@ -81,9 +81,9 @@ var Writer = (function() {
                     i += 2;
                 }
             } else if (text.charAt(i + 1) == "\n") {
-                textXPos = 70; textYPos += 32;
+                textXPos = 120; textYPos += 32;
             } else if (text.charAt(i + 1) == "*") {
-                textXPos = 52; textYPos += 32;
+                textXPos = 102; textYPos += 32;
             } else {
                 textXPos += ctx.measureText(text.charAt(i)).width + 2;
             }

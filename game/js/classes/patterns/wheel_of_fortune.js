@@ -17,8 +17,8 @@ WheelOfFortunePattern.prototype.generateBullets = function(battleBox) {
     var cx = (battleBox[0] + battleBox[2]) / 2, cy = (battleBox[1] + battleBox[3]) / 2;
     // Two wheels on opposite sides
     this.wheels = [
-        { x: cx - 60, y: cy - 40, rot: 0, speed: 1.8, eyes: 6, radius: 30, beamTimer: 0, beamInterval: 1.8 },
-        { x: cx + 60, y: cy + 40, rot: Math.PI, speed: -1.5, eyes: 5, radius: 25, beamTimer: 0.9, beamInterval: 2.0 }
+        { x: cx - 60, y: cy - 40, rot: 0, speed: 2.5, eyes: 6, radius: 30, beamTimer: 0, beamInterval: 0.8 },
+        { x: cx + 60, y: cy + 40, rot: Math.PI, speed: -2.0, eyes: 5, radius: 25, beamTimer: 0.4, beamInterval: 0.9 }
     ];
 };
 
@@ -40,8 +40,8 @@ WheelOfFortunePattern.prototype.update = function(dt) {
             var bAngle = Math.atan2(dy, dx);
             this.beams.push({
                 x: ex, y: ey, angle: bAngle,
-                length: 0, maxLength: 250, speed: 400,
-                thickness: 5, life: 1.5, maxLife: 1.5, growing: true
+                length: 0, maxLength: 350, speed: 700,
+                thickness: 6, life: 1.2, maxLife: 1.2, growing: true
             });
         }
     }

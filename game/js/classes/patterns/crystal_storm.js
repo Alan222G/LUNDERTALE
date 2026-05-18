@@ -6,7 +6,7 @@ var CrystalStormPattern = function(config) {
     this.damVal = config.damVal || 6;
     this.crystals = [];
     this.spawnTimer = 0;
-    this.spawnInterval = 0.25;
+    this.spawnInterval = 0.12;
     this.trails = [];
     this.battleBox = null;
 };
@@ -35,8 +35,8 @@ CrystalStormPattern.prototype.update = function(dt) {
         this.crystals.push({
             x: bb[0] + 25 + Math.random() * (bw - 50),
             y: bb[1] - 5,
-            vx: (Math.random() - 0.5) * 15,
-            vy: 60 + Math.random() * 50,
+            vx: (Math.random() - 0.5) * 25,
+            vy: 120 + Math.random() * 80,
             size: 5 + Math.random() * 4,
             rot: Math.random() * Math.PI * 2,
             rotSpeed: (Math.random() - 0.5) * 6,
@@ -62,7 +62,7 @@ CrystalStormPattern.prototype.update = function(dt) {
                 freezeDuration: 0.6 + Math.random() * 0.3,
                 frozen: true,
                 alive: true,
-                trackSpeed: 160 + Math.random() * 60,
+                trackSpeed: 250 + Math.random() * 100,
                 hue: 2 // indigo for tracking crystals
             });
         }

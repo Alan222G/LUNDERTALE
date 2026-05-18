@@ -6,7 +6,7 @@ var GravityWellPattern = function(config) {
     this.damVal = config.damVal || 6;
     this.wells = [];
     this.wellTimer = 0;
-    this.wellInterval = 1.5;
+    this.wellInterval = 0.8;
     this.orbs = [];
     this.battleBox = null;
 };
@@ -24,15 +24,15 @@ GravityWellPattern.prototype.update = function(dt) {
     this.elapsed += dt;
     var bb = this.battleBox;
     this.wellTimer += dt;
-    if (this.wellTimer >= this.wellInterval && this.elapsed < this.duration - 2 && this.wells.length < 4) {
+    if (this.wellTimer >= this.wellInterval && this.elapsed < this.duration - 2 && this.wells.length < 8) {
         this.wellTimer = 0;
         this.wells.push({
             x: bb[0] + 40 + Math.random() * (bb[2] - bb[0] - 80),
             y: bb[1] + 40 + Math.random() * (bb[3] - bb[1] - 80),
-            strength: 40 + Math.random() * 30,
-            radius: 50 + Math.random() * 20,
+            strength: 70 + Math.random() * 50,
+            radius: 80 + Math.random() * 40,
             life: 3.0 + Math.random(), maxLife: 4.0,
-            orbTimer: 0, orbInterval: 0.4
+            orbTimer: 0, orbInterval: 0.2
         });
     }
     // Apply gravity to soul
@@ -58,8 +58,8 @@ GravityWellPattern.prototype.update = function(dt) {
             this.orbs.push({
                 x: w.x + Math.cos(angle) * w.radius * 0.8,
                 y: w.y + Math.sin(angle) * w.radius * 0.8,
-                vx: Math.cos(angle) * 60, vy: Math.sin(angle) * 60,
-                size: 4 + Math.random() * 3, life: 2.0
+                vx: Math.cos(angle) * 100, vy: Math.sin(angle) * 100,
+                size: 5 + Math.random() * 4, life: 2.5
             });
         }
         if (w.life <= 0) this.wells.splice(i, 1);

@@ -106,6 +106,11 @@ Enemy.prototype.update = function(dt) {
 
 // Draw
 Enemy.prototype.draw = function(ctx) {
+    ctx.save();
+    ctx.translate(370, 200);
+    ctx.scale(1.25, 1.25);
+    ctx.translate(-370, -200);
+    
     if (this.renderType === "supermassive_blackhole") {
         this.drawSupermassiveBlackHole(ctx);
     } else if (this.renderType === "blackhole") {
@@ -132,6 +137,7 @@ Enemy.prototype.draw = function(ctx) {
             ctx.restore();
         }
     }
+    ctx.restore();
 };
 
 Enemy.prototype.drawBlackHole = function(ctx) {

@@ -6,9 +6,9 @@ var AnnihilationGridPattern = function(config) {
     this.damVal = config.damVal || 9;
     this.gridLines = [];
     this.gridSize = 0;
-    this.maxGridSize = 6;
+    this.maxGridSize = 12;
     this.buildTimer = 0;
-    this.buildInterval = 0.4;
+    this.buildInterval = 0.2;
     this.contracting = false;
     this.contractTimer = 0;
     this.battleBox = null;
@@ -61,7 +61,7 @@ AnnihilationGridPattern.prototype.update = function(dt) {
         // Contract grid toward center
         this.contractTimer += dt;
         var cx = (bb[0] + bb[2]) / 2, cy = (bb[1] + bb[3]) / 2;
-        var contractSpeed = 30 + this.contractTimer * 15;
+        var contractSpeed = 50 + this.contractTimer * 20;
         for (var i = 0; i < this.gridLines.length; i++) {
             var l = this.gridLines[i];
             if (l.type === "h") {

@@ -6,7 +6,7 @@ var DivineSigilPattern = function(config) {
     this.damVal = config.damVal || 6;
     this.sigils = [];
     this.sigilTimer = 0;
-    this.sigilInterval = 1.5;
+    this.sigilInterval = 0.6;
     this.battleBox = null;
 };
 DivineSigilPattern.prototype = Object.create(BulletPattern.prototype);
@@ -38,9 +38,9 @@ DivineSigilPattern.prototype.update = function(dt) {
         s.scale = Math.min(s.maxScale, s.timer / (s.chargeTime * 0.6));
         if (s.timer >= s.chargeTime && !s.fired) {
             s.fired = true;
-            var numBullets = 12;
+            var numBullets = 18;
             for (var b = 0; b < numBullets; b++) {
-                var angle = (b / numBullets) * Math.PI * 2;
+                var angle = (b / numBullets) * Math.PI * 2 + (Math.random() * 0.2);
                 this.bullets.push(new Bullet({
                     x: s.x - 5, y: s.y - 5, width: 10, height: 10,
                     speed: 0, damVal: this.damVal, rotation: 0, fadeSpeed: 0.8,

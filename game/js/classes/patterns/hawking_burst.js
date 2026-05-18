@@ -6,7 +6,7 @@ var HawkingBurstPattern = function(config) {
     this.damVal = config.damVal || 8;
     this.bursts = [];
     this.burstTimer = 0;
-    this.burstInterval = 1.2;
+    this.burstInterval = 0.8;
     this.particles = [];
     this.battleBox = null;
     this.centerX = 0; this.centerY = 0;
@@ -19,8 +19,8 @@ HawkingBurstPattern.prototype.generateBullets = function(battleBox) {
     this.bursts = [];
     this.particles = [];
     this.burstTimer = 0.5;
-    this.centerX = (battleBox[0] + battleBox[2]) / 2;
-    this.centerY = (battleBox[1] + battleBox[3]) / 2;
+    this.centerX = 370;
+    this.centerY = 200;
 };
 
 HawkingBurstPattern.prototype.update = function(dt) {
@@ -34,20 +34,20 @@ HawkingBurstPattern.prototype.update = function(dt) {
             this.bursts.push({
                 x: this.centerX + (Math.random() - 0.5) * 40,
                 y: this.centerY + (Math.random() - 0.5) * 40,
-                radius: 5, maxRadius: 120 + r * 30,
-                speed: 80 + r * 20, thickness: 8 - r * 2,
+                radius: 5, maxRadius: 260 + r * 40,
+                speed: 140 + r * 30, thickness: 10 - r * 2,
                 life: 1, gap: Math.random() * Math.PI * 2,
-                gapSize: 0.6 + Math.random() * 0.4 // gap opening in radians
+                gapSize: 0.5 + Math.random() * 0.3 // gap opening in radians
             });
         }
         // Scatter particles
-        for (var p = 0; p < 8; p++) {
+        for (var p = 0; p < 16; p++) {
             var angle = Math.random() * Math.PI * 2;
             this.particles.push({
                 x: this.centerX, y: this.centerY,
-                vx: Math.cos(angle) * (50 + Math.random() * 80),
-                vy: Math.sin(angle) * (50 + Math.random() * 80),
-                size: 2 + Math.random() * 2, life: 1.5 + Math.random(),
+                vx: Math.cos(angle) * (90 + Math.random() * 120),
+                vy: Math.sin(angle) * (90 + Math.random() * 120),
+                size: 2.5 + Math.random() * 2, life: 2.0 + Math.random(),
                 hue: Math.random() > 0.5 // true=purple, false=blue
             });
         }
