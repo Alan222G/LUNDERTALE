@@ -192,13 +192,13 @@ var Combat = (function() {
                     var dist = dir.getMagnitude();
                     if (dist > 10) {
                         dir = dir.getNorm();
-                        var pullStrength = 38.5; // Pixels per second pull
+                        var pullStrength = 41.6; // +8% pull (was 38.5)
                         soulPos.x += dir.x * pullStrength * dt;
                         soulPos.y += dir.y * pullStrength * dt;
                         Soul.setPos(soulPos.x, soulPos.y);
                     }
-                    // Contact damage: 1 HP/sec if directly on the center black hole
-                    if (dist < 18) {
+                    // Contact damage: 1 HP/sec if touching the edge of the mini black hole
+                    if (dist < 30) {
                         gravityDmgTimer += dt;
                         if (gravityDmgTimer >= 1.0) {
                             gravityDmgTimer -= 1.0;
@@ -366,13 +366,13 @@ var Combat = (function() {
                     var gwCX = 320, gwCY = 320;
                     
                     // Outer distortion halo
-                    var gwHaloGrad = ctx.createRadialGradient(gwCX, gwCY, 8, gwCX, gwCY, 38);
+                    var gwHaloGrad = ctx.createRadialGradient(gwCX, gwCY, 9, gwCX, gwCY, 41);
                     gwHaloGrad.addColorStop(0, "rgba(100, 0, 200, 0.2)");
                     gwHaloGrad.addColorStop(0.5, "rgba(40, 0, 80, 0.08)");
                     gwHaloGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
                     ctx.fillStyle = gwHaloGrad;
                     ctx.beginPath();
-                    ctx.arc(gwCX, gwCY, 38, 0, Math.PI * 2);
+                    ctx.arc(gwCX, gwCY, 41, 0, Math.PI * 2);
                     ctx.fill();
                     
                     // Mini accretion disk (tilted ellipse)
@@ -380,7 +380,7 @@ var Combat = (function() {
                     ctx.translate(gwCX, gwCY);
                     ctx.rotate(0.12);
                     ctx.scale(1, 0.3);
-                    var gwDiskR = 28 + Math.sin(gwTime * 2.5) * 2;
+                    var gwDiskR = 30 + Math.sin(gwTime * 2.5) * 2;
                     var gwDiskGrad = ctx.createRadialGradient(0, 0, 6, 0, 0, gwDiskR);
                     gwDiskGrad.addColorStop(0, "rgba(255, 255, 255, 0.7)");
                     gwDiskGrad.addColorStop(0.2, "rgba(255, 180, 60, 0.6)");
@@ -398,7 +398,7 @@ var Combat = (function() {
                         ctx.strokeStyle = ms % 2 === 0 ? "rgba(255, 180, 60, 0.4)" : "rgba(180, 80, 255, 0.3)";
                         ctx.lineWidth = 1;
                         ctx.beginPath();
-                        ctx.arc(0, 0, 10 + ms * 4, msOff, msOff + Math.PI * 0.5);
+                        ctx.arc(0, 0, 11 + ms * 4.3, msOff, msOff + Math.PI * 0.5);
                         ctx.stroke();
                     }
                     ctx.globalAlpha = 1;
@@ -407,37 +407,37 @@ var Combat = (function() {
                     // Event horizon (pure black core)
                     ctx.fillStyle = "#000000";
                     ctx.beginPath();
-                    ctx.arc(gwCX, gwCY, 8, 0, Math.PI * 2);
+                    ctx.arc(gwCX, gwCY, 9, 0, Math.PI * 2);
                     ctx.fill();
                     
                     // Photon ring (bright pulsing edge)
                     var gwPhoton = Math.sin(gwTime * 6) * 0.12 + 0.88;
-                    ctx.shadowBlur = 8;
+                    ctx.shadowBlur = 9;
                     ctx.shadowColor = "rgba(255, 180, 50, 0.6)";
                     ctx.strokeStyle = "rgba(255, 220, 120, " + gwPhoton.toFixed(2) + ")";
-                    ctx.lineWidth = 1.5;
+                    ctx.lineWidth = 1.6;
                     ctx.beginPath();
-                    ctx.arc(gwCX, gwCY, 8, 0, Math.PI * 2);
+                    ctx.arc(gwCX, gwCY, 9, 0, Math.PI * 2);
                     ctx.stroke();
                     ctx.shadowBlur = 0;
                     
                     // Secondary ring
                     ctx.strokeStyle = "rgba(200, 50, 255, 0.3)";
-                    ctx.lineWidth = 3;
+                    ctx.lineWidth = 3.2;
                     ctx.beginPath();
-                    ctx.arc(gwCX, gwCY, 12, 0, Math.PI * 2);
+                    ctx.arc(gwCX, gwCY, 13, 0, Math.PI * 2);
                     ctx.stroke();
                     
                     // Mini orbiting particles
                     for (var mp = 0; mp < 5; mp++) {
                         var mpAngle = gwTime * (2.0 + mp * 0.5) + mp * Math.PI * 2 / 5;
-                        var mpR = 14 + mp * 2;
+                        var mpR = 15 + mp * 2.2;
                         var mpx = gwCX + Math.cos(mpAngle) * mpR;
                         var mpy = gwCY + Math.sin(mpAngle) * mpR * 0.3;
                         var mpA = (0.5 + Math.sin(gwTime * 4 + mp) * 0.3).toFixed(2);
                         ctx.fillStyle = "rgba(255, 180, 80, " + mpA + ")";
                         ctx.beginPath();
-                        ctx.arc(mpx, mpy, 1, 0, Math.PI * 2);
+                        ctx.arc(mpx, mpy, 1.1, 0, Math.PI * 2);
                         ctx.fill();
                     }
                     
