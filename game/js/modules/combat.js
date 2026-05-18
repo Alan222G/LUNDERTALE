@@ -226,25 +226,46 @@ var Combat = (function() {
                 if (Player.getHPCur() <= 0) {
                     combatState = COMBAT_STATE.DEATH;
                     deathTimer = 0;
+                    selectStateOther = 0; // 0 = Try Again, 1 = Overworld
                 }
                 break;
 
             case COMBAT_STATE.DEATH:
                 deathTimer += dt;
-                // Restart on Z press (must wait 1 second to avoid accidental skip)
-                if (deathTimer > 1.0 && myKeys.keydown[myKeys.KEYBOARD.KEY_Z]) {
-                    deaths++;
-                    Player.init();
-                    Inventory.init();
-                    BossController.reset();
-                    init(Cgroup.getBossId());
-                    setup(main.ctx);
+                if (deathTimer > 1.0) {
+                    if (myKeys.keydown[myKeys.KEYBOARD.KEY_UP] || myKeys.keydown[myKeys.KEYBOARD.KEY_DOWN]) {
+                        selectStateOther = 1 - selectStateOther;
+                        Sound.playSound("button", true);
+                        myKeys.keydown = [];
+                    }
+                    if (myKeys.keydown[myKeys.KEYBOARD.KEY_Z]) {
+                        myKeys.keydown = [];
+                        if (selectStateOther === 0) {
+                            deaths++;
+                            Player.init();
+                            Inventory.init();
+                            BossController.reset();
+                            init(Cgroup.getBossId());
+                            setup(main.ctx);
+                        } else {
+                            // Return to overworld
+                            Player.init();
+                            Inventory.init();
+                            BossController.reset();
+                            Sound.playSound("flash", true);
+                            Transition.start("overworld", function() {
+                                main.gameState = main.GAME_STATE.OVERWORLD;
+                                Overworld.setup(main.ctx);
+                            });
+                        }
+                    }
                 }
                 break;
 
             case COMBAT_STATE.WIN:
                 Transition.start(function() {
                     main.gameState = main.GAME_STATE.OVERWORLD;
+                    Overworld.setup(main.ctx);
                 });
                 combatState = -1;
                 break;
@@ -371,10 +392,19 @@ var Combat = (function() {
                 ctx.font = "32pt Determination Mono";
                 ctx.fillStyle = "#F00";
                 ctx.textAlign = "center";
-                ctx.fillText("YOU DIED", 320, 240);
-                ctx.font = "16pt Determination Mono";
-                ctx.fillStyle = "#FFF";
-                ctx.fillText("Press Z to try again", 320, 290);
+                ctx.fillText("YOU DIED", 320, 200);
+                
+                if (deathTimer > 1.0) {
+                    ctx.font = "16pt Determination Mono";
+                    ctx.fillStyle = selectStateOther === 0 ? "#FF0" : "#FFF";
+                    ctx.fillText("Try Again", 320, 270);
+                    ctx.fillStyle = selectStateOther === 1 ? "#FF0" : "#FFF";
+                    ctx.fillText("Return to Overworld", 320, 310);
+                    // Draw mini soul next to selection
+                    ctx.globalAlpha = 1.0;
+                    var soulY = selectStateOther === 0 ? 263 : 303;
+                    Soul.drawAt(ctx, new Vect(210, soulY, 0));
+                }
                 ctx.restore();
                 break;
 

@@ -28,18 +28,24 @@ var Cgroup = (function() {
                 atk: 12,
                 def: 8,
                 defense: 1,
-                acts: ["Check", "Observe", "Resist"],
+                acts: ["Check", "Study", "Taunt", "Flee"],
                 actResponses: [
-                    "* SINGULARITY - ATK 12 DEF 8\n* A point of infinite density.\n* Science cannot explain its loneliness.",
-                    "* You stare into the void...\n* The void stares back.\n* It seems... curious about you.",
-                    "* You brace against the pull.\n* Singularity's gravity weakens slightly."
+                    "* SINGULARITY - ATK ?? DEF ??\n* A tear in the fabric of reality.\n* It consumes all.",
+                    "* You try to understand the anomaly.\n* Your mind aches.",
+                    "* You taunt the void.\n* It does not care.",
+                    "* You turn your back and run away..."
                 ],
                 actFunctions: [
                     function() { console.log("Checked Singularity"); },
-                    function() { console.log("Observed Singularity"); },
+                    function() { console.log("Studied Singularity"); },
+                    function() { console.log("Taunted Singularity"); },
                     function() {
-                        console.log("Resisted Singularity");
-                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 30);
+                        console.log("Fled Singularity");
+                        Sound.playSound("flash", true);
+                        Transition.start("overworld", function() {
+                            main.gameState = main.GAME_STATE.OVERWORLD;
+                            Overworld.setup(main.ctx);
+                        });
                     }
                 ],
                 texts: [
@@ -87,12 +93,13 @@ var Cgroup = (function() {
                 atk: 10,
                 def: 7,
                 defense: 1,
-                acts: ["Check", "Pray", "Sing", "Defy"],
+                acts: ["Check", "Pray", "Sing", "Defy", "Flee"],
                 actResponses: [
-                    "* SERAPHINA VEX - ATK 10 DEF 7\n* An Eywing Rey. Mistaken for a\n* biblically accurate angel.",
-                    "* You kneel and pray.\n* Seraphina's gaze softens.\n* She seems to appreciate the gesture.",
-                    "* You hum a gentle melody.\n* The golden rings slow their spin.\n* Seraphina listens, transfixed.",
-                    "* You stare defiantly at the central eye.\n* Seraphina's wings bristle.\n* \"Bold. Very bold.\""
+                    "* SERAPHINA VEX - ATK 10 DEF 5\n* The eyes judge your every sin.\n* The rings are unyielding.",
+                    "* You kneel and offer a prayer.\n* The golden glow softens slightly.",
+                    "* You hum a gentle melody.\n* The wings flutter to the rhythm.",
+                    "* You stare directly into the central eye.\n* It narrows in anger.",
+                    "* You turn your back and run away..."
                 ],
                 actFunctions: [
                     function() { console.log("Checked Seraphina"); },
@@ -107,6 +114,14 @@ var Cgroup = (function() {
                     function() {
                         console.log("Defied Seraphina");
                         enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 5);
+                    },
+                    function() {
+                        console.log("Fled Seraphina");
+                        Sound.playSound("flash", true);
+                        Transition.start("overworld", function() {
+                            main.gameState = main.GAME_STATE.OVERWORLD;
+                            Overworld.setup(main.ctx);
+                        });
                     }
                 ],
                 texts: [

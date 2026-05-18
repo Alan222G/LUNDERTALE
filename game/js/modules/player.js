@@ -6,7 +6,7 @@ var Player = (function() {
     function init() {
         weapon = {};
         armor = {};
-        hpMax = 100;
+        hpMax = 120;
         hpCur = hpMax;
         buffSpd = 1.0;
         buffDef = 1.0;
