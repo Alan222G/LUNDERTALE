@@ -12,7 +12,7 @@ var Cattack = (function() {
     function init() { attackBox = document.getElementById("attack_box"); }
 
     function setup() {
-        attackBars = [37, 0 - Math.random() * 75];
+        attackBars = [87, 0 - Math.random() * 75];
         attackBars.push(attackBars[1] - 30 - Math.random() * 75);
         attackFades = [];
         attackState = ATTACK_STATE.HIT;
@@ -33,9 +33,9 @@ var Cattack = (function() {
     function update(dt) {
         switch (attackState) {
             case ATTACK_STATE.HIT:
-                if (myKeys.keydown[myKeys.KEYBOARD.KEY_Z]) {
+                if (myKeys.isConfirm()) {
                     var hit = attackBars[0];
-                    var damage = Math.max(0, 282 - Math.abs(hit - 312));
+                    var damage = Math.max(0, 282 - Math.abs(hit - 370));
                     if (damage > 280) {
                         damage *= 1.5;
                         attackFades.push([hit, 1, 1]);
@@ -52,7 +52,7 @@ var Cattack = (function() {
                         Sound.playSound(damage < 280 ? "hit_2" : "hit_2_crit", true);
                     }
                 }
-                if (attackBars.length < 1 || attackBars[attackBars.length - 1] > 640) {
+                if (attackBars.length < 1 || attackBars[attackBars.length - 1] > 740) {
                     durationCounter = 0; duration = 1.2;
                     attackState = ATTACK_STATE.SMASH;
                 }
@@ -113,7 +113,7 @@ var Cattack = (function() {
     function draw(ctx) {
         ctx.save();
         ctx.globalAlpha = attackBoxOpacity;
-        ctx.drawImage(attackBox, 37, 255);
+        ctx.drawImage(attackBox, 87, 355);
         ctx.restore();
         ctx.save();
         switch (attackState) {
@@ -123,7 +123,7 @@ var Cattack = (function() {
                     if (i) { ctx.strokeStyle = "#FFF"; ctx.fillStyle = "#000"; }
                     else { ctx.strokeStyle = "#000"; ctx.fillStyle = "#FFF"; }
                     ctx.beginPath();
-                    ctx.rect(attackBars[i], 258, 14, 125);
+                    ctx.rect(attackBars[i], 358, 14, 125);
                     ctx.fill(); ctx.stroke();
                 }
                 break;
@@ -166,7 +166,7 @@ var Cattack = (function() {
             }
             ctx.beginPath();
             ctx.rect(attackFades[i][0] - (1 - attackFades[i][2]) * 5,
-                258 - (1 - attackFades[i][2]) * 40,
+                358 - (1 - attackFades[i][2]) * 40,
                 14 + (1 - attackFades[i][2]) * 10,
                 125 + (1 - attackFades[i][2]) * 80);
             ctx.fill(); ctx.restore();

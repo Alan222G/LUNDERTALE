@@ -8,8 +8,8 @@ var deaths = 0;
 var seriousMode = false;
 
 var main = {
-    WIDTH: 640,
-    HEIGHT: 480,
+    WIDTH: 740,
+    HEIGHT: 580,
     canvas: undefined,
     ctx: undefined,
     lastTime: 0,
@@ -77,15 +77,16 @@ var main = {
             case this.GAME_STATE.TITLE:
                 this.titleTimer += dt;
                 if (this.titleTimer > 0.5) this.titleReady = true;
-                if (this.titleReady && (myKeys.keydown[myKeys.KEYBOARD.KEY_Z] || myKeys.keydown[myKeys.KEYBOARD.KEY_ENTER])) {
+                // Start game with Z or Enter (handled by isConfirm)
+                if (this.titleReady && myKeys.isConfirm()) {
                     this.gameState = this.GAME_STATE.OVERWORLD;
                     Overworld.setup(this.ctx);
                     myKeys.keydown = [];
                 }
                 // Toggle debug
-                if (myKeys.keydown[myKeys.KEYBOARD.KEY_D]) {
+                if (myKeys.keydown[myKeys.KEYBOARD.KEY_C]) {
                     this.debug = !this.debug;
-                    myKeys.keydown[myKeys.KEYBOARD.KEY_D] = false;
+                    myKeys.keydown[myKeys.KEYBOARD.KEY_C] = false;
                 }
                 break;
             case this.GAME_STATE.OVERWORLD:
@@ -150,19 +151,19 @@ var main = {
         // Glow effect
         var glow = Math.sin(time * 2) * 0.3 + 0.7;
         ctx.fillStyle = "rgba(100,0,255," + (glow * 0.3) + ")";
-        ctx.fillText("LUNDERTALE", 322, 152);
+        ctx.fillText("LUNDERTALE", 372, 202);
         ctx.fillStyle = "#FFF";
-        ctx.fillText("LUNDERTALE", 320, 150);
+        ctx.fillText("LUNDERTALE", 370, 200);
 
         // Subtitle
         ctx.font = "14pt Determination Mono";
         ctx.fillStyle = "#888";
-        ctx.fillText("A  T A L E  F R O M  T H E  V O I D", 320, 200);
+        ctx.fillText("A  T A L E  F R O M  T H E  V O I D", 370, 250);
 
         // Player name
         ctx.font = "16pt Determination Mono";
         ctx.fillStyle = "#FF0";
-        ctx.fillText('"' + plyrName + '"', 320, 260);
+        ctx.fillText('"' + plyrName + '"', 370, 310);
 
         // Prompt
         if (this.titleReady) {
@@ -170,7 +171,7 @@ var main = {
             ctx.globalAlpha = alpha;
             ctx.font = "16pt Determination Mono";
             ctx.fillStyle = "#FFF";
-            ctx.fillText("Press Z to begin", 320, 340);
+            ctx.fillText("Press Z or Enter to begin", 370, 390);
         }
 
         // Controls manual
@@ -178,18 +179,18 @@ var main = {
         ctx.font = "10pt Determination Mono";
         ctx.textAlign = "center";
         ctx.fillStyle = "#0FF";
-        ctx.fillText("— CONTROLS —", 320, 385);
+        ctx.fillText("— CONTROLS —", 370, 435);
         ctx.fillStyle = "#CCC";
-        ctx.fillText("Arrow Keys = Move / Navigate", 320, 402);
-        ctx.fillText("Z = Confirm / Advance", 320, 417);
-        ctx.fillText("X = Cancel / Go Back", 320, 432);
-        ctx.fillText("D = Toggle Debug Info", 320, 447);
+        ctx.fillText("WASD / Arrows = Move / Navigate", 370, 452);
+        ctx.fillText("Z / Enter = Confirm / Advance", 370, 467);
+        ctx.fillText("X = Cancel / Go Back", 370, 482);
+        ctx.fillText("C = Toggle Debug Info", 370, 497);
 
         // Version
         ctx.globalAlpha = 0.4;
         ctx.font = "10pt Determination Mono";
         ctx.fillStyle = "#666";
-        ctx.fillText("v0.1 — Built with Under-Ground-Engine & UBE", 320, 470);
+        ctx.fillText("v0.1 — Built with Under-Ground-Engine & UBE", 370, 520);
 
         ctx.restore();
     },

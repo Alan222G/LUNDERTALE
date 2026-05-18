@@ -212,7 +212,7 @@ ParticleBeamPattern.prototype.draw = function(ctx) {
         auraGrad.addColorStop(0.7, "rgba(30, 100, 255, 0.3)");
         auraGrad.addColorStop(1, "rgba(0, 50, 255, 0)");
         ctx.fillStyle = auraGrad;
-        ctx.fillRect(this.beamX - halfW * 1.6, bb[1], halfW * 3.2, bb[3] - bb[1]);
+        ctx.fillRect(this.beamX - halfW * 1.6, bb[1] - 100, halfW * 3.2, bb[3] - bb[1] + 150);
         ctx.globalAlpha = 1;
 
         // Main beam body (blue electric gradient)
@@ -225,7 +225,7 @@ ParticleBeamPattern.prototype.draw = function(ctx) {
         bodyGrad.addColorStop(0.85, "rgba(30, 80, 255, 0.75)");
         bodyGrad.addColorStop(1, "rgba(0, 30, 180, 0.5)");
         ctx.fillStyle = bodyGrad;
-        ctx.fillRect(this.beamX - halfW, bb[1], this.beamWidth, bb[3] - bb[1]);
+        ctx.fillRect(this.beamX - halfW, bb[1] - 100, this.beamWidth, bb[3] - bb[1] + 150);
 
         // Inner core (white-cyan, intense)
         ctx.shadowBlur = 15;
@@ -236,12 +236,12 @@ ParticleBeamPattern.prototype.draw = function(ctx) {
         coreGrad.addColorStop(0.5, "rgba(255, 255, 255, 0.95)");
         coreGrad.addColorStop(1, "rgba(150, 220, 255, 0.6)");
         ctx.fillStyle = coreGrad;
-        ctx.fillRect(this.beamX - coreW / 2, bb[1], coreW, bb[3] - bb[1]);
+        ctx.fillRect(this.beamX - coreW / 2, bb[1] - 100, coreW, bb[3] - bb[1] + 150);
 
         // Ultra-bright center line
         ctx.shadowBlur = 0;
         ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
-        ctx.fillRect(this.beamX - 1.5, bb[1], 3, bb[3] - bb[1]);
+        ctx.fillRect(this.beamX - 1.5, bb[1] - 100, 3, bb[3] - bb[1] + 150);
 
         // Beam edge energy lines (flickering)
         for (var side = -1; side <= 1; side += 2) {
@@ -250,8 +250,8 @@ ParticleBeamPattern.prototype.draw = function(ctx) {
             ctx.strokeStyle = "rgba(100, 200, 255, " + edgeAlpha + ")";
             ctx.lineWidth = 1.5;
             ctx.beginPath();
-            ctx.moveTo(edgeX, bb[1]);
-            ctx.lineTo(edgeX, bb[3]);
+            ctx.moveTo(edgeX, bb[1] - 100);
+            ctx.lineTo(edgeX, bb[3] + 50);
             ctx.stroke();
         }
 

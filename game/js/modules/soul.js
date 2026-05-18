@@ -109,7 +109,7 @@ var Soul = (function() {
 
         // Slow mode with X key
         var spdMult = Player.getBuffSpd ? Player.getBuffSpd() : 1.0;
-        if (myKeys.keydown[88]) speed = 65 * spdMult;
+        if (myKeys.isCancel()) speed = 65 * spdMult;
         else speed = 130 * spdMult;
 
         return false;
@@ -207,33 +207,28 @@ var Soul = (function() {
     }
 
     function moveNormal(dt) {
-        if (myKeys.keydown[myKeys.KEYBOARD.KEY_UP]) pos.y -= speed * dt;
-        if (myKeys.keydown[myKeys.KEYBOARD.KEY_RIGHT]) pos.x += speed * dt;
-        if (myKeys.keydown[myKeys.KEYBOARD.KEY_DOWN]) pos.y += speed * dt;
-        if (myKeys.keydown[myKeys.KEYBOARD.KEY_LEFT]) pos.x -= speed * dt;
+        if (myKeys.isUp()) pos.y -= speed * dt;
+        if (myKeys.isRight()) pos.x += speed * dt;
+        if (myKeys.isDown()) pos.y += speed * dt;
+        if (myKeys.isLeft()) pos.x -= speed * dt;
     }
 
     function moveBlue(dt) {
-        // Horizontal movement
-        if (myKeys.keydown[myKeys.KEYBOARD.KEY_RIGHT]) pos.x += speed * dt;
-        if (myKeys.keydown[myKeys.KEYBOARD.KEY_LEFT]) pos.x -= speed * dt;
-
-        // Gravity
+        if (myKeys.isRight()) pos.x += speed * dt;
+        if (myKeys.isLeft()) pos.x -= speed * dt;
         blueVelY += GRAVITY * dt;
         pos.y += blueVelY * dt;
-
-        // Jump (only when on ground)
-        if (myKeys.keydown[myKeys.KEYBOARD.KEY_UP] && onGround) {
+        if (myKeys.isUp() && onGround) {
             blueVelY = JUMP_FORCE;
             onGround = false;
         }
     }
 
     function moveInverse(dt) {
-        if (myKeys.keydown[myKeys.KEYBOARD.KEY_DOWN]) pos.y -= speed * dt;
-        if (myKeys.keydown[myKeys.KEYBOARD.KEY_LEFT]) pos.x += speed * dt;
-        if (myKeys.keydown[myKeys.KEYBOARD.KEY_UP]) pos.y += speed * dt;
-        if (myKeys.keydown[myKeys.KEYBOARD.KEY_RIGHT]) pos.x -= speed * dt;
+        if (myKeys.isDown()) pos.y -= speed * dt;
+        if (myKeys.isLeft()) pos.x += speed * dt;
+        if (myKeys.isUp()) pos.y += speed * dt;
+        if (myKeys.isRight()) pos.x -= speed * dt;
     }
 
     function limit(bound) {

@@ -59,17 +59,17 @@ var Combat = (function() {
             case COMBAT_STATE.MAIN:
                 if (Cbbox.update(dt)) {
                     Writer.update(dt);
-                    if (myKeys.keydown[myKeys.KEYBOARD.KEY_RIGHT]) {
+                    if (myKeys.isRight()) {
                         menuState++;
                         if (menuState > MENU_STATE.MERCY) menuState = MENU_STATE.FIGHT;
                         Sound.playSound("button", true);
                     }
-                    if (myKeys.keydown[myKeys.KEYBOARD.KEY_LEFT]) {
+                    if (myKeys.isLeft()) {
                         menuState--;
                         if (menuState < MENU_STATE.FIGHT) menuState = MENU_STATE.MERCY;
                         Sound.playSound("button", true);
                     }
-                    if (myKeys.keydown[myKeys.KEYBOARD.KEY_Z]) {
+                    if (myKeys.isConfirm()) {
                         switch (menuState) {
                             case MENU_STATE.FIGHT:
                             case MENU_STATE.ACT:
@@ -111,11 +111,11 @@ var Combat = (function() {
                 break;
 
             case COMBAT_STATE.ACT:
-                if (myKeys.keydown[myKeys.KEYBOARD.KEY_X]) {
+                if (myKeys.isCancel()) {
                     combatState = COMBAT_STATE.NAME;
                     Sound.playSound("button", true);
                 }
-                if (myKeys.keydown[myKeys.KEYBOARD.KEY_Z]) {
+                if (myKeys.isConfirm()) {
                     Writer.setupText(Cgroup.getRes(selectStateEnemy, selectStateOther));
                     combatState = COMBAT_STATE.EFFECT;
                 }
@@ -123,13 +123,13 @@ var Combat = (function() {
                 break;
 
             case COMBAT_STATE.ITEM:
-                if (myKeys.keydown[myKeys.KEYBOARD.KEY_Z]) {
+                if (myKeys.isConfirm()) {
                     Writer.setupText(Inventory.getText(selectStateOther));
                     Inventory.activate(selectStateOther);
                     Inventory.removeItem(selectStateOther);
                     combatState = COMBAT_STATE.EFFECT;
                 }
-                if (myKeys.keydown[myKeys.KEYBOARD.KEY_X]) {
+                if (myKeys.isCancel()) {
                     combatState = COMBAT_STATE.MAIN;
                     Writer.reset();
                     Sound.playSound("button", true);
@@ -138,11 +138,11 @@ var Combat = (function() {
                 break;
 
             case COMBAT_STATE.MERCY:
-                if (myKeys.keydown[myKeys.KEYBOARD.KEY_X]) {
+                if (myKeys.isCancel()) {
                     combatState = COMBAT_STATE.MAIN;
                     Writer.reset();
                     Sound.playSound("button", true);
-                } else if (myKeys.keydown[myKeys.KEYBOARD.KEY_Z]) {
+                } else if (myKeys.isConfirm()) {
                     Sound.playSound("button", true);
                     if (selectStateOther === 0) { // Spare
                         var em = Cgroup.getEnemy(0); // target first enemy
@@ -163,7 +163,7 @@ var Combat = (function() {
 
             case COMBAT_STATE.EFFECT:
                 Writer.update(dt);
-                if (myKeys.keydown[myKeys.KEYBOARD.KEY_Z]) {
+                if (myKeys.isConfirm()) {
                     combatState = COMBAT_STATE.RESPOND;
                     Cbubble.setup();
                     Writer.setupText(Cgroup.getText());
@@ -172,7 +172,7 @@ var Combat = (function() {
                 break;
 
             case COMBAT_STATE.RESPOND:
-                if (Cbbox.update(dt) && Cbubble.update(dt) && myKeys.keydown[myKeys.KEYBOARD.KEY_Z]) {
+                if (Cbbox.update(dt) && Cbubble.update(dt) && myKeys.isConfirm()) {
                     combatState = COMBAT_STATE.DEFEND;
                     // Start boss attack
                     var enemy = Cgroup.getEnemy(selectStateEnemy);
@@ -237,12 +237,12 @@ var Combat = (function() {
             case COMBAT_STATE.DEATH:
                 deathTimer += dt;
                 if (deathTimer > 1.0) {
-                    if (myKeys.keydown[myKeys.KEYBOARD.KEY_UP] || myKeys.keydown[myKeys.KEYBOARD.KEY_DOWN]) {
+                    if (myKeys.isUp() || myKeys.isDown()) {
                         selectStateOther = 1 - selectStateOther;
                         Sound.playSound("button", true);
                         myKeys.keydown = [];
                     }
-                    if (myKeys.keydown[myKeys.KEYBOARD.KEY_Z]) {
+                    if (myKeys.isConfirm()) {
                         myKeys.keydown = [];
                         if (selectStateOther === 0) {
                             deaths++;
@@ -275,11 +275,11 @@ var Combat = (function() {
                 break;
 
             case COMBAT_STATE.NAME:
-                if (myKeys.keydown[myKeys.KEYBOARD.KEY_Z]) {
+                if (myKeys.isConfirm()) {
                     combatState = menuState;
                     Sound.playSound("button", true);
                 }
-                if (myKeys.keydown[myKeys.KEYBOARD.KEY_X]) {
+                if (myKeys.isCancel()) {
                     combatState = COMBAT_STATE.MAIN;
                     Writer.reset();
                     Sound.playSound("button", true);
@@ -458,18 +458,18 @@ var Combat = (function() {
                 ctx.font = "32pt Determination Mono";
                 ctx.fillStyle = "#F00";
                 ctx.textAlign = "center";
-                ctx.fillText("YOU DIED", 320, 200);
+                ctx.fillText("YOU DIED", 370, 250);
                 
                 if (deathTimer > 1.0) {
                     ctx.font = "16pt Determination Mono";
                     ctx.fillStyle = selectStateOther === 0 ? "#FF0" : "#FFF";
-                    ctx.fillText("Try Again", 320, 270);
+                    ctx.fillText("Try Again", 370, 320);
                     ctx.fillStyle = selectStateOther === 1 ? "#FF0" : "#FFF";
-                    ctx.fillText("Return to Overworld", 320, 310);
+                    ctx.fillText("Return to Overworld", 370, 360);
                     // Draw mini soul next to selection
                     ctx.globalAlpha = 1.0;
-                    var soulY = selectStateOther === 0 ? 263 : 303;
-                    Soul.drawAt(ctx, new Vect(210, soulY, 0));
+                    var soulY = selectStateOther === 0 ? 313 : 353;
+                    Soul.drawAt(ctx, new Vect(260, soulY, 0));
                 }
                 ctx.restore();
                 break;
@@ -491,26 +491,26 @@ var Combat = (function() {
     function getSelectStateEnemy() { return selectStateEnemy; }
 
     function detectHorizontalSelect(options, state) {
-        if (myKeys.keydown[myKeys.KEYBOARD.KEY_LEFT]) {
+        if (myKeys.isLeft()) {
             if (state % 2) { state--; Sound.playSound("button", true); }
         }
-        if (myKeys.keydown[myKeys.KEYBOARD.KEY_RIGHT]) {
+        if (myKeys.isRight()) {
             if ((state + 1) % 2 && state < options.length - 1) { state++; Sound.playSound("button", true); }
         }
-        if (myKeys.keydown[myKeys.KEYBOARD.KEY_UP]) {
+        if (myKeys.isUp()) {
             if (state > 1) { state -= 2; Sound.playSound("button", true); }
         }
-        if (myKeys.keydown[myKeys.KEYBOARD.KEY_DOWN]) {
+        if (myKeys.isDown()) {
             if (state < options.length - 2) { state += 2; Sound.playSound("button", true); }
         }
         return state;
     }
 
     function detectVerticalSelect(options, state) {
-        if (myKeys.keydown[myKeys.KEYBOARD.KEY_UP]) {
+        if (myKeys.isUp()) {
             if (state > 0) { state--; Sound.playSound("button", true); }
         }
-        if (myKeys.keydown[myKeys.KEYBOARD.KEY_DOWN]) {
+        if (myKeys.isDown()) {
             if (state < options.length - 1) { state++; Sound.playSound("button", true); }
         }
         return state;

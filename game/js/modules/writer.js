@@ -28,7 +28,7 @@ var Writer = (function() {
     }
 
     function update(dt) {
-        if (myKeys.keydown[myKeys.KEYBOARD.KEY_X]) skip();
+        if (myKeys.isCancel()) skip();
 
         timeCounter += dt;
         if (timeCounter > timeCheck && charCounter < text.length) {

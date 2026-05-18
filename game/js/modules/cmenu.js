@@ -16,10 +16,10 @@ var Cmenu = (function() {
 
     function draw(ctx, menuState, selectState) {
         ctx.save();
-        ctx.drawImage(menuState == selectState.FIGHT ? buttonFightOver : buttonFight, 32, 432);
-        ctx.drawImage(menuState == selectState.ACT ? buttonActOver : buttonAct, 185, 432);
-        ctx.drawImage(menuState == selectState.ITEM ? buttonItemOver : buttonItem, 345, 432);
-        ctx.drawImage(menuState == selectState.MERCY ? buttonMercyOver : buttonMercy, 500, 432);
+        ctx.drawImage(menuState == selectState.FIGHT ? buttonFightOver : buttonFight, 82, 532);
+        ctx.drawImage(menuState == selectState.ACT ? buttonActOver : buttonAct, 235, 532);
+        ctx.drawImage(menuState == selectState.ITEM ? buttonItemOver : buttonItem, 395, 532);
+        ctx.drawImage(menuState == selectState.MERCY ? buttonMercyOver : buttonMercy, 550, 532);
         ctx.restore();
     }
 

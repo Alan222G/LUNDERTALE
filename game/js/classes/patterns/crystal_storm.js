@@ -33,9 +33,9 @@ CrystalStormPattern.prototype.update = function(dt) {
 
         // Regular falling crystal
         this.crystals.push({
-            x: bb[0] + 15 + Math.random() * (bw - 30),
-            y: bb[1] - 10,
-            vx: (Math.random() - 0.5) * 30,
+            x: bb[0] + 25 + Math.random() * (bw - 50),
+            y: bb[1] - 5,
+            vx: (Math.random() - 0.5) * 15,
             vy: 60 + Math.random() * 50,
             size: 5 + Math.random() * 4,
             rot: Math.random() * Math.PI * 2,
@@ -50,8 +50,8 @@ CrystalStormPattern.prototype.update = function(dt) {
         // Every 3rd crystal: freezing/tracking crystal
         if (Math.random() < 0.3) {
             this.crystals.push({
-                x: bb[0] + 20 + Math.random() * (bw - 40),
-                y: bb[1] + 10 + Math.random() * (bb[3] - bb[1] - 40),
+                x: bb[0] + 30 + Math.random() * (bw - 60),
+                y: bb[1] + 20 + Math.random() * (bb[3] - bb[1] - 60),
                 vx: 0,
                 vy: 0,
                 size: 7 + Math.random() * 3,
@@ -107,7 +107,7 @@ CrystalStormPattern.prototype.update = function(dt) {
         }
 
         // Remove if out of bounds
-        if (c.x < bb[0] - 30 || c.x > bb[2] + 30 || c.y > bb[3] + 30 || c.y < bb[1] - 40) {
+        if (c.x < bb[0] - 50 || c.x > bb[2] + 50 || c.y > bb[3] + 80 || c.y < bb[1] - 50) {
             this.crystals.splice(i, 1);
         }
     }

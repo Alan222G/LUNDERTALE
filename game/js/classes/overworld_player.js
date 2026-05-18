@@ -50,10 +50,10 @@ OverworldPlayer.prototype.update = function(dt, map) {
     var dx = 0, dy = 0;
     this.moving = false;
 
-    if (myKeys.keydown[myKeys.KEYBOARD.KEY_UP]) { dy = -this.speed * dt; this.dir = 1; this.moving = true; }
-    else if (myKeys.keydown[myKeys.KEYBOARD.KEY_DOWN]) { dy = this.speed * dt; this.dir = 0; this.moving = true; }
-    else if (myKeys.keydown[myKeys.KEYBOARD.KEY_LEFT]) { dx = -this.speed * dt; this.dir = 2; this.moving = true; }
-    else if (myKeys.keydown[myKeys.KEYBOARD.KEY_RIGHT]) { dx = this.speed * dt; this.dir = 3; this.moving = true; }
+    if (myKeys.isUp()) { dy = -this.speed * dt; this.dir = 1; this.moving = true; }
+    else if (myKeys.isDown()) { dy = this.speed * dt; this.dir = 0; this.moving = true; }
+    else if (myKeys.isLeft()) { dx = -this.speed * dt; this.dir = 2; this.moving = true; }
+    else if (myKeys.isRight()) { dx = this.speed * dt; this.dir = 3; this.moving = true; }
 
     // Collision detection (simple AABB vs map bounds for now)
     var nx = this.x + dx;

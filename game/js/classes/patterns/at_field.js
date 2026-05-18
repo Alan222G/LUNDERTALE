@@ -35,10 +35,9 @@ ATFieldPattern.prototype.spawnWave = function() {
 
     // Directions: 0=left, 1=right, 2=top, 3=bottom
     var dirs = [];
-    if (this.waveCount === 0) dirs = [0, 1];          // Horizontal crush
-    else if (this.waveCount === 1) dirs = [2, 3];      // Vertical crush
-    else if (this.waveCount === 2) dirs = [0, 1, 2, 3]; // All sides
-    else dirs = [0, 1, 2, 3];                           // All sides (faster)
+    if (this.waveCount === 0) dirs = [0, 1];           // Left+Right crush
+    else if (this.waveCount === 1) dirs = [2, 3];       // Top+Bottom crush
+    else dirs = [0, 1, 2, 3];                           // All four sides
 
     for (var d = 0; d < dirs.length; d++) {
         var dir = dirs[d];

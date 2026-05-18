@@ -35,7 +35,7 @@ var Enemy = function(config) {
     // Visual
     this.spriteId = config.spriteId || null;
     this.damageVel = config.damageVel || 120;
-    this.damagePos = config.damagePos || new Vect(320, 220, 0);
+    this.damagePos = config.damagePos || new Vect(370, 270, 0);
     this.bubblePos = config.bubblePos || this.damagePos.getAdd(new Vect(0, -160, 0));
     this.bubbleOff = config.bubbleOff || 30;
 
@@ -135,8 +135,8 @@ Enemy.prototype.draw = function(ctx) {
 };
 
 Enemy.prototype.drawBlackHole = function(ctx) {
-    var centerX = 320;
-    var centerY = 160;
+    var centerX = 370;
+    var centerY = 190;
     if (this.jitterEnabled) {
         centerX += Math.sin(this.timeCounter * 50) * 1.5;
         centerY += Math.cos(this.timeCounter * 60) * 1.5;
@@ -262,8 +262,8 @@ Enemy.prototype.drawBlackHole = function(ctx) {
 };
 
 Enemy.prototype.drawSupermassiveBlackHole = function(ctx) {
-    var centerX = 320;
-    var centerY = 160;
+    var centerX = 370;
+    var centerY = 190;
     if (this.jitterEnabled) {
         centerX += Math.sin(this.timeCounter * 40) * 1.5;
         centerY += Math.cos(this.timeCounter * 50) * 1.5;
@@ -278,7 +278,7 @@ Enemy.prototype.drawSupermassiveBlackHole = function(ctx) {
     vigGrad.addColorStop(0.7, "rgba(0, 0, 0, 0.1)");
     vigGrad.addColorStop(1, "rgba(0, 0, 0, 0.35)");
     ctx.fillStyle = vigGrad;
-    ctx.fillRect(0, 0, 640, 480);
+    ctx.fillRect(0, 0, 740, 580);
     
     // 0. Deep space distortion halo (outermost glow) — intensified
     var haloAlpha = (0.2 + Math.sin(time * 1.5) * 0.06).toFixed(3);
@@ -634,7 +634,7 @@ Enemy.prototype.drawGoldenRing = function(ctx, cx, cy, radiusX, radiusY, rotatio
 Enemy.prototype.drawSeraph = function(ctx) {
     var time = this.timeCounter;
     ctx.save();
-    ctx.translate(320, 130);
+    ctx.translate(370, 160);
     ctx.scale(1.35, 1.35);
     var cx = 0, cy = 0;
     
@@ -713,7 +713,7 @@ Enemy.prototype.drawSeraph = function(ctx) {
 Enemy.prototype.drawOphanim = function(ctx) {
     var time = this.timeCounter;
     ctx.save();
-    ctx.translate(320, 140);
+    ctx.translate(370, 170);
     ctx.scale(1.35, 1.35);
     var cx = 0, cy = 0;
     
@@ -796,20 +796,20 @@ Enemy.prototype.drawThrone = function(ctx) {
     ctx.save();
     
     // Furious divine pressure — vignette
-    var vigGrad = ctx.createRadialGradient(320, 150, 80, 320, 240, 380);
+    var vigGrad = ctx.createRadialGradient(370, 160, 80, 370, 290, 380);
     vigGrad.addColorStop(0, "rgba(0, 0, 0, 0)");
     vigGrad.addColorStop(0.6, "rgba(0, 0, 0, 0.12)");
     vigGrad.addColorStop(1, "rgba(0, 0, 0, 0.35)");
     ctx.fillStyle = vigGrad;
-    ctx.fillRect(0, 0, 640, 480);
+    ctx.fillRect(0, 0, 740, 580);
     
     // Lightning flickers
     if (Math.random() < 0.04) {
         ctx.fillStyle = "rgba(255, 200, 100, 0.08)";
-        ctx.fillRect(0, 0, 640, 480);
+        ctx.fillRect(0, 0, 740, 580);
     }
     
-    ctx.translate(320, 150);
+    ctx.translate(370, 170);
     ctx.scale(1.35, 1.35);
     var cx = 0, cy = 0;
     
@@ -927,7 +927,7 @@ Enemy.prototype.drawOctahedron = function(ctx, cx, cy, size, rotation, colors) {
 
     var topY = -size;
     var botY = size;
-    var midW = size * 0.7;
+    var midW = size * 0.9;
 
     // Main body gradient
     var bodyGrad = ctx.createLinearGradient(-midW, topY, midW, botY);
@@ -985,7 +985,7 @@ Enemy.prototype.drawOctahedron = function(ctx, cx, cy, size, rotation, colors) {
 Enemy.prototype.drawRamielCrystal = function(ctx) {
     var time = this.timeCounter;
     ctx.save();
-    var cx = 320, cy = 150;
+    var cx = 370, cy = 170;
 
     // Soft blue aura
     var auraAlpha = (0.1 + Math.sin(time * 1.2) * 0.04).toFixed(3);
@@ -1037,14 +1037,14 @@ Enemy.prototype.drawRamielCrystal = function(ctx) {
     ctx.lineWidth = 1;
     // Horizontal refraction
     ctx.beginPath();
-    ctx.moveTo(-42 * 0.7, 0);
-    ctx.lineTo(42 * 0.7, 0);
+    ctx.moveTo(-42 * 0.9, 0);
+    ctx.lineTo(42 * 0.9, 0);
     ctx.stroke();
     // Diagonal refractions
     for (var r = 0; r < 3; r++) {
         var ry = -30 + r * 30;
         ctx.beginPath();
-        var rw = 42 * (1 - Math.abs(ry) / 60) * 0.7;
+        var rw = 42 * (1 - Math.abs(ry) / 60) * 0.9;
         ctx.moveTo(-rw, ry);
         ctx.lineTo(rw, ry);
         ctx.stroke();
@@ -1076,7 +1076,7 @@ Enemy.prototype.drawRamielCrystal = function(ctx) {
 Enemy.prototype.drawRamielMorph = function(ctx) {
     var time = this.timeCounter;
     ctx.save();
-    var cx = 320, cy = 150;
+    var cx = 370, cy = 200;
 
     // Distortion vignette
     var vigGrad = ctx.createRadialGradient(cx, cy, 80, cx, cy, 340);
@@ -1084,7 +1084,7 @@ Enemy.prototype.drawRamielMorph = function(ctx) {
     vigGrad.addColorStop(0.7, "rgba(0, 0, 30, 0.08)");
     vigGrad.addColorStop(1, "rgba(0, 0, 50, 0.2)");
     ctx.fillStyle = vigGrad;
-    ctx.fillRect(0, 0, 640, 480);
+    ctx.fillRect(0, 0, 740, 580);
 
     // Intense pulsing aura
     var auraAlpha = (0.15 + Math.sin(time * 2) * 0.06).toFixed(3);
@@ -1192,7 +1192,7 @@ Enemy.prototype.drawRamielMorph = function(ctx) {
 Enemy.prototype.drawRamielBerserk = function(ctx) {
     var time = this.timeCounter;
     ctx.save();
-    var cx = 320, cy = 150;
+    var cx = 370, cy = 200;
 
     // Heavy vignette (dread)
     var vigGrad = ctx.createRadialGradient(cx, cy, 60, cx, cy, 350);
@@ -1200,12 +1200,12 @@ Enemy.prototype.drawRamielBerserk = function(ctx) {
     vigGrad.addColorStop(0.5, "rgba(0, 0, 20, 0.1)");
     vigGrad.addColorStop(1, "rgba(0, 0, 0, 0.35)");
     ctx.fillStyle = vigGrad;
-    ctx.fillRect(0, 0, 640, 480);
+    ctx.fillRect(0, 0, 740, 580);
 
     // Lightning flickers
     if (Math.random() < 0.05) {
         ctx.fillStyle = "rgba(100, 150, 255, 0.08)";
-        ctx.fillRect(0, 0, 640, 480);
+        ctx.fillRect(0, 0, 740, 580);
     }
 
     // Raging aura (red-violet)

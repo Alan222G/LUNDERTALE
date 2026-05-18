@@ -4,7 +4,7 @@ var Cbbox = (function() {
     var pos, width, height, speed, newWidth, newHeight;
 
     function init() {
-        pos = new Vect(320, 320, 0);
+        pos = new Vect(370, 360, 0);
         speed = 600;
     }
 

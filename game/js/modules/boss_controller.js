@@ -34,6 +34,18 @@ var BossController = (function() {
             "atField": function(cfg) { return new ATFieldPattern(cfg || { damVal: 8, duration: 7 }); },
             "geometricDrill": function(cfg) { return new GeometricDrillPattern(cfg || { damVal: 9, duration: 7 }); },
             "crystalStorm": function(cfg) { return new CrystalStormPattern(cfg || { damVal: 6, duration: 7 }); },
+            "resonanceWave": function(cfg) { return new ResonanceWavePattern(cfg || { damVal: 7, duration: 7 }); },
+            "prismRefract": function(cfg) { return new PrismRefractPattern(cfg || { damVal: 7, duration: 7 }); },
+            "geometryShift": function(cfg) { return new GeometryShiftPattern(cfg || { damVal: 8, duration: 7 }); },
+            "vortexPull": function(cfg) { return new VortexPullPattern(cfg || { damVal: 8, duration: 7 }); },
+            "annihilationGrid": function(cfg) { return new AnnihilationGridPattern(cfg || { damVal: 9, duration: 8 }); },
+            "fractureExplosion": function(cfg) { return new FractureExplosionPattern(cfg || { damVal: 8, duration: 7 }); },
+            "divineSigil": function(cfg) { return new DivineSigilPattern(cfg || { damVal: 6, duration: 7 }); },
+            "angelicChains": function(cfg) { return new AngelicChainsPattern(cfg || { damVal: 5, duration: 7 }); },
+            "wheelOfFortune": function(cfg) { return new WheelOfFortunePattern(cfg || { damVal: 7, duration: 8 }); },
+            "celestialJudgment": function(cfg) { return new CelestialJudgmentPattern(cfg || { damVal: 10, duration: 7 }); },
+            "gravityWell": function(cfg) { return new GravityWellPattern(cfg || { damVal: 6, duration: 7 }); },
+            "hawkingBurst": function(cfg) { return new HawkingBurstPattern(cfg || { damVal: 8, duration: 8 }); },
         };
     }
 
@@ -74,7 +86,29 @@ var BossController = (function() {
         } else if (patternName === "geometricDrill") {
             w = 260; h = 300; // Tall for drill descent
         } else if (patternName === "crystalStorm") {
-            w = 300; h = 280; // Wide for crystal rain
+            w = 300; h = 280;
+        } else if (patternName === "resonanceWave" || patternName === "prismRefract") {
+            w = 280; h = 280;
+        } else if (patternName === "geometryShift") {
+            w = 300; h = 280;
+        } else if (patternName === "vortexPull") {
+            w = 280; h = 280;
+        } else if (patternName === "annihilationGrid") {
+            w = 280; h = 280;
+        } else if (patternName === "fractureExplosion") {
+            w = 300; h = 300;
+        } else if (patternName === "divineSigil") {
+            w = 260; h = 260;
+        } else if (patternName === "angelicChains") {
+            w = 300; h = 250;
+        } else if (patternName === "wheelOfFortune") {
+            w = 300; h = 280;
+        } else if (patternName === "celestialJudgment") {
+            w = 300; h = 300;
+        } else if (patternName === "gravityWell") {
+            w = 280; h = 280;
+        } else if (patternName === "hawkingBurst") {
+            w = 300; h = 300;
         }
 
         return { patternName: patternName, width: w, height: h };

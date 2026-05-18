@@ -114,9 +114,10 @@ var Overworld = (function() {
             }
         }
 
-        // Check Interactions (Z key)
-        if (myKeys.keydown[myKeys.KEYBOARD.KEY_Z]) {
+        // Check Interactions (Z/Enter key)
+        if (myKeys.isConfirm()) {
             myKeys.keydown[myKeys.KEYBOARD.KEY_Z] = false;
+            myKeys.keydown[myKeys.KEYBOARD.KEY_ENTER] = false;
             var interactBox = { x: pbox.x, y: pbox.y, w: pbox.w, h: pbox.h };
             if (player.dir === 0) { interactBox.y += 20; interactBox.h = 20; }
             if (player.dir === 1) { interactBox.y -= 20; interactBox.h = 20; }
