@@ -1,0 +1,270 @@
+// soul.js — Player soul module with Soul Modes for LUNDERTALE
+var spx, spy;
+
+var Soul = (function() {
+    var pos;
+    var sprite, spriteDmg, spriteOver;
+    var speed;
+    var colData;
+
+    // Soul mode system
+    var soulMode;
+    var SOUL_MODE = Object.freeze({
+        RED: 0,       // Normal free movement
+        BLUE: 1,      // Gravity mode (platformer)
+        YELLOW: 2,    // Can shoot projectiles
+        INVERSE: 3,   // Inverted controls
+    });
+
+    // Blue mode physics
+    var blueVelY = 0;
+    var GRAVITY = 600;
+    var JUMP_FORCE = -280;
+    var onGround = false;
+
+    // State
+    var state;
+    var STATE = Object.freeze({
+        OKAY: 0,
+        DAMAGED: 1,
+        FLASH: 2,
+        TRANSITION: 3,
+        FADEIN: 4,
+    });
+
+    var duration, durationCounter;
+    var soulWidth = 16, soulHeight = 16;
+
+    function init() {
+        sprite = document.getElementById("heart");
+        spriteDmg = document.getElementById("heart_dmg");
+        spriteOver = document.getElementById("heart_over");
+        if (sprite) {
+            soulWidth = sprite.width;
+            soulHeight = sprite.height;
+        }
+    }
+
+    function setup(_pos) {
+        pos = _pos;
+        state = STATE.FLASH;
+        durationCounter = 0;
+        duration = 0.4;
+        speed = 150;
+        soulMode = SOUL_MODE.RED;
+        blueVelY = 0;
+        Sound.playSound("flash", true);
+        Sound.playSound("bgm", true);
+    }
+
+    function reset() {
+        pos = new Vect(310, 309, 0);
+        state = STATE.OKAY;
+    }
+
+    function setSoulMode(mode) {
+        soulMode = mode;
+        if (mode === SOUL_MODE.BLUE) {
+            blueVelY = 0;
+            onGround = false;
+        }
+    }
+
+    function getSoulMode() { return soulMode; }
+
+    function update(dt) {
+        switch (state) {
+            case STATE.DAMAGED:
+                durationCounter += dt;
+                if (durationCounter > duration) {
+                    state = STATE.OKAY;
+                }
+                break;
+            case STATE.FLASH:
+                durationCounter += dt;
+                if (durationCounter > duration) {
+                    durationCounter = 0;
+                    duration = 2;
+                    state = STATE.TRANSITION;
+                }
+                break;
+            case STATE.TRANSITION:
+                durationCounter += dt;
+                pos.add(pos.getSub(new Vect(40, 446, 0)).getNorm().getMult(-400 * dt));
+                if (pos.x < 40) {
+                    pos = new Vect(310, 309, 0);
+                    durationCounter = 0;
+                    duration = 0.5;
+                    state = STATE.FADEIN;
+                    return true;
+                }
+                break;
+            case STATE.FADEIN:
+                durationCounter += dt;
+                if (durationCounter > duration) {
+                    state = STATE.OKAY;
+                }
+                return true;
+        }
+
+        // Slow mode with X key
+        var spdMult = Player.getBuffSpd ? Player.getBuffSpd() : 1.0;
+        if (myKeys.keydown[88]) speed = 65 * spdMult;
+        else speed = 130 * spdMult;
+
+        return false;
+    }
+
+    function getOpacity() {
+        return durationCounter * 4;
+    }
+
+    function draw(ctx) {
+        ctx.save();
+        switch (state) {
+            case STATE.OKAY:
+                ctx.drawImage(sprite, pos.x, pos.y);
+                break;
+            case STATE.DAMAGED:
+                if (Math.floor(durationCounter * 5) % 2) {
+                    ctx.drawImage(spriteDmg, pos.x, pos.y);
+                } else {
+                    ctx.drawImage(sprite, pos.x, pos.y);
+                }
+                break;
+            case STATE.FLASH:
+                if (Math.floor(durationCounter * 50) % 5 > 2) break;
+                // Fall through
+            case STATE.TRANSITION:
+                ctx.drawImage(spriteOver, pos.x, pos.y);
+                break;
+        }
+
+        // Draw soul mode indicator (colored border)
+        if (state === STATE.OKAY || state === STATE.DAMAGED) {
+            if (soulMode === SOUL_MODE.BLUE) {
+                ctx.strokeStyle = "#00F";
+                ctx.lineWidth = 1;
+                ctx.strokeRect(pos.x - 1, pos.y - 1, soulWidth + 2, soulHeight + 2);
+            } else if (soulMode === SOUL_MODE.YELLOW) {
+                ctx.strokeStyle = "#FF0";
+                ctx.lineWidth = 1;
+                ctx.strokeRect(pos.x - 1, pos.y - 1, soulWidth + 2, soulHeight + 2);
+            } else if (soulMode === SOUL_MODE.INVERSE) {
+                ctx.strokeStyle = "#F0F";
+                ctx.lineWidth = 1;
+                ctx.strokeRect(pos.x - 1, pos.y - 1, soulWidth + 2, soulHeight + 2);
+            }
+        }
+        ctx.restore();
+    }
+
+    function drawAt(ctx, posForced) {
+        ctx.save();
+        ctx.globalAlpha = 1;
+        ctx.drawImage(sprite, posForced.x, posForced.y);
+        ctx.restore();
+    }
+
+    function getCollision(ctx) {
+        // Disabled: getImageData crashes on file:// protocol in Chrome.
+        // New engine uses AABB collision in BossController.
+    }
+
+    function takeDamage() {
+        if (state === STATE.OKAY) {
+            durationCounter = 0;
+            duration = 1.5;
+            state = STATE.DAMAGED;
+            triggerShake(4, 200);
+            return true;
+        }
+        return false;
+    }
+
+    function checkCollision(ctx) {
+        // Disabled: replaced by BossController.update() collision checks.
+    }
+
+    // Move based on soul mode
+    function move(dt) {
+        switch (soulMode) {
+            case SOUL_MODE.RED:
+                moveNormal(dt);
+                break;
+            case SOUL_MODE.BLUE:
+                moveBlue(dt);
+                break;
+            case SOUL_MODE.YELLOW:
+                moveNormal(dt);
+                break;
+            case SOUL_MODE.INVERSE:
+                moveInverse(dt);
+                break;
+        }
+        spx = pos.x;
+        spy = pos.y;
+    }
+
+    function moveNormal(dt) {
+        if (myKeys.keydown[myKeys.KEYBOARD.KEY_UP]) pos.y -= speed * dt;
+        if (myKeys.keydown[myKeys.KEYBOARD.KEY_RIGHT]) pos.x += speed * dt;
+        if (myKeys.keydown[myKeys.KEYBOARD.KEY_DOWN]) pos.y += speed * dt;
+        if (myKeys.keydown[myKeys.KEYBOARD.KEY_LEFT]) pos.x -= speed * dt;
+    }
+
+    function moveBlue(dt) {
+        // Horizontal movement
+        if (myKeys.keydown[myKeys.KEYBOARD.KEY_RIGHT]) pos.x += speed * dt;
+        if (myKeys.keydown[myKeys.KEYBOARD.KEY_LEFT]) pos.x -= speed * dt;
+
+        // Gravity
+        blueVelY += GRAVITY * dt;
+        pos.y += blueVelY * dt;
+
+        // Jump (only when on ground)
+        if (myKeys.keydown[myKeys.KEYBOARD.KEY_UP] && onGround) {
+            blueVelY = JUMP_FORCE;
+            onGround = false;
+        }
+    }
+
+    function moveInverse(dt) {
+        if (myKeys.keydown[myKeys.KEYBOARD.KEY_DOWN]) pos.y -= speed * dt;
+        if (myKeys.keydown[myKeys.KEYBOARD.KEY_LEFT]) pos.x += speed * dt;
+        if (myKeys.keydown[myKeys.KEYBOARD.KEY_UP]) pos.y += speed * dt;
+        if (myKeys.keydown[myKeys.KEYBOARD.KEY_RIGHT]) pos.x -= speed * dt;
+    }
+
+    function limit(bound) {
+        if (pos.x < bound[0]) pos.x = bound[0];
+        if (pos.y < bound[1]) pos.y = bound[1];
+        if (pos.x + soulWidth > bound[2]) pos.x = bound[2] - soulWidth;
+        if (pos.y + soulHeight > bound[3]) {
+            pos.y = bound[3] - soulHeight;
+            if (soulMode === SOUL_MODE.BLUE) {
+                blueVelY = 0;
+                onGround = true;
+            }
+        }
+    }
+
+    function getPos() { return pos; }
+    function setPos(x, y) { pos.x = x; pos.y = y; }
+    function getWidth() { return soulWidth; }
+    function getHeight() { return soulHeight; }
+    function getState() { return state; }
+    function isOkay() { return state === STATE.OKAY; }
+
+    return {
+        init: init, setup: setup, reset: reset,
+        setSoulMode: setSoulMode, getSoulMode: getSoulMode,
+        SOUL_MODE: SOUL_MODE,
+        update: update, getOpacity: getOpacity,
+        draw: draw, drawAt: drawAt,
+        getCollision: getCollision, checkCollision: checkCollision,
+        move: move, limit: limit,
+        getPos: getPos, setPos: setPos, getWidth: getWidth, getHeight: getHeight,
+        getState: getState, isOkay: isOkay, takeDamage: takeDamage,
+    };
+}());

@@ -1,0 +1,35 @@
+{
+    "image_id" : "napstablook",
+    "length" : 2000,
+    "zindex" : 3,
+    "rotate" : [
+        {
+            "time" : 0,
+            "move" : 0
+        }
+    ],
+    "scale" : [
+        {
+            "time" : 0,
+            "move" : [2.3, 2.3]
+        },
+        {
+            "time" : 2000,
+            "move" : [2.3, 2.3]
+        }
+    ],
+    "translate" : [
+        {
+            "time" : 0,
+            "move" : [-30, -70]
+        },
+        {
+            "time" : 1000,
+            "move" : [-30, -65]
+        },
+        {
+            "time":2000,
+            "move":[-30,-70]
+        }
+    ]
+}

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>LUNDERTALE — A Tale From The Void</title>
+    <meta name="description" content="LUNDERTALE - An Undertale-inspired fan game built with Under-Ground-Engine and UBE" />
+    <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
+    <style>
+        @font-face {
+            font-family: "Determination Mono";
+            src: url("assets/fonts/dtm_mono.ttf");
+        }
+        @font-face {
+            font-family: "Mars Needs Cunnilingus";
+            src: url("assets/fonts/mnc.ttf");
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background-color: #000;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        canvas {
+            display: block;
+            background: #000;
+            letter-spacing: -1.5px;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+        #cvsdiv {
+            border: 4px solid #333;
+            display: block;
+            width: 640px;
+            height: 480px;
+            overflow: hidden;
+            box-shadow: 0 0 40px rgba(100, 0, 255, 0.15), 0 0 80px rgba(0, 0, 0, 0.8);
+        }
+        #images, #audio {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="cvsdiv">
+        <canvas id="cvs">
+            Your browser does not support canvas.
+        </canvas>
+    </div>
+
+    <div id="images">
+        <!-- Heart/Soul sprites -->
+        <img id="heart" src="assets/heart/heart.png" alt="img" />
+        <img id="heart_dmg" src="assets/heart/heart_dmg.png" alt="img" />
+        <img id="heart_over" src="assets/heart/heart_over.png" alt="img" />
+
+        <!-- UI Buttons -->
+        <img id="button_fight" src="assets/ui/btns/button_fight.gif" alt="img" />
+        <img id="button_act" src="assets/ui/btns/button_act.gif" alt="img" />
+        <img id="button_item" src="assets/ui/btns/button_item.gif" alt="img" />
+        <img id="button_mercy" src="assets/ui/btns/button_mercy.gif" alt="img" />
+        <img id="button_fight_over" src="assets/ui/btns/button_fight_over.gif" alt="img" />
+        <img id="button_act_over" src="assets/ui/btns/button_act_over.gif" alt="img" />
+        <img id="button_item_over" src="assets/ui/btns/button_item_over.gif" alt="img" />
+        <img id="button_mercy_over" src="assets/ui/btns/button_mercy_over.gif" alt="img" />
+
+        <!-- UI figures -->
+        <img id="guide" src="assets/guide.png" alt="img" />
+        <img id="hp" src="assets/ui/fig/hp.png" alt="img" />
+        <img id="attack_box" src="assets/ui/fig/attack_box.png" alt="img" />
+
+        <!-- Damage numbers -->
+        <img id="d0" src="assets/ui/dnum/d0.png" alt="img" />
+        <img id="d1" src="assets/ui/dnum/d1.png" alt="img" />
+        <img id="d2" src="assets/ui/dnum/d2.png" alt="img" />
+        <img id="d3" src="assets/ui/dnum/d3.png" alt="img" />
+        <img id="d4" src="assets/ui/dnum/d4.png" alt="img" />
+        <img id="d5" src="assets/ui/dnum/d5.png" alt="img" />
+        <img id="d6" src="assets/ui/dnum/d6.png" alt="img" />
+        <img id="d7" src="assets/ui/dnum/d7.png" alt="img" />
+        <img id="d8" src="assets/ui/dnum/d8.png" alt="img" />
+        <img id="d9" src="assets/ui/dnum/d9.png" alt="img" />
+        <img id="miss" src="assets/ui/dnum/miss.png" alt="img" />
+
+        <!-- Character sprites (placeholder: using UGE originals) -->
+        <img id="asriel" src="assets/sprites/asriel.png" alt="img" />
+        <img id="mettaton" src="assets/sprites/mettaton.png" alt="img" />
+        <img id="napstablook" src="assets/sprites/napstablook.png" alt="img" />
+    </div>
+
+    <div id="audio">
+        <audio id="flash" src="assets/snd/flash.wav" controls></audio>
+        <audio id="heal" src="assets/snd/heal.wav" controls></audio>
+        <audio id="button" src="assets/snd/button.wav" controls></audio>
+        <audio id="text" src="assets/snd/text.wav" controls loop></audio>
+        <audio id="hit_1" src="assets/snd/hit_1.wav" controls></audio>
+        <audio id="hit_1_crit" src="assets/snd/hit_1_crit.wav" controls></audio>
+        <audio id="hit_2" src="assets/snd/hit_2.wav" controls></audio>
+        <audio id="hit_2_crit" src="assets/snd/hit_2_crit.wav" controls></audio>
+        <audio id="impact" src="assets/snd/impact.wav" controls></audio>
+        <audio id="damage" src="assets/snd/damage.wav" controls></audio>
+        <audio id="bgm" src="assets/mus/bgm.mp3" controls></audio>
+    </div>
+
+    <!-- Classes -->
+    <script src='js/classes/vect.js'></script>
+    <script src='js/classes/animation.js'></script>
+    <script src='js/classes/item.js'></script>
+    <script src='js/classes/bullet.js'></script>
+    <script src='js/classes/enemy.js?v=3'></script>
+
+    <!-- Bullet Patterns -->
+    <script src='js/classes/patterns/bullet_pattern.js'></script>
+    <script src='js/classes/patterns/bullet_rain.js'></script>
+    <script src='js/classes/patterns/walls_o_bullet.js'></script>
+    <script src='js/classes/patterns/closing_walls.js'></script>
+    <script src='js/classes/patterns/crusher.js'></script>
+    <script src='js/classes/patterns/spiral_shot.js'></script>
+    <script src='js/classes/patterns/gaster_blaster.js'></script>
+    <script src='js/classes/patterns/bone_wave.js'></script>
+    <script src='js/classes/patterns/pulsar_beam.js'></script>
+    <script src='js/classes/patterns/event_horizon.js'></script>
+    <script src='js/classes/patterns/holy_lance.js'></script>
+    <script src='js/classes/patterns/divine_pillars.js'></script>
+    <script src='js/classes/patterns/feather_storm.js'></script>
+    <script src='js/classes/patterns/judgment_rings.js'></script>
+    <script src='js/classes/patterns/heavenly_rays.js'></script>
+
+    <!-- Tools -->
+    <script src='js/utilities.js'></script>
+    <script src='js/keys.js'></script>
+    <script src='js/effects.js'></script>
+
+    <!-- Modules -->
+    <script src='js/modules/flash.js'></script>
+    <script src='js/modules/cbbox.js'></script>
+    <script src='js/modules/sound.js'></script>
+    <script src='js/modules/player.js'></script>
+    <script src='js/modules/cgroup.js'></script>
+    <script src='js/modules/chp.js'></script>
+    <script src='js/modules/cmenu.js'></script>
+    <script src='js/modules/cattack.js'></script>
+    <script src='js/modules/cbubble.js'></script>
+    <script src='js/modules/writer.js'></script>
+    <script src='js/modules/inventory.js'></script>
+    <script src='js/modules/soul.js'></script>
+    <script src='js/modules/boss_controller.js'></script>
+    <script src='js/modules/combat.js'></script>
+    <script src='js/modules/transition.js'></script>
+    <script src='js/classes/overworld_player.js'></script>
+    <script src='js/modules/overworld.js'></script>
+
+    <!-- Main -->
+    <script src='js/main.js'></script>
+    <script src='js/loader.js'></script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+{
+    "image_id" : "mettaton",
+    "length" : 1200,
+    "zindex" : 3,
+    "rotate" : [
+        {
+            "time" : 0,
+            "move" : 0
+        },
+        {
+            "time" : 300,
+            "move" : 20
+        },
+        {
+            "time" : 600,
+            "move" : 0
+        },
+        {
+            "time" : 900,
+            "move" : -20
+        },
+        {
+            "time" : 1200,
+            "move" : 0
+        }
+    ],
+    "scale" : [
+        {
+            "time" : 0,
+            "move" : [2, 2]
+        },
+        {
+            "time" : 1200,
+            "move" : [2, 2]
+        }
+    ],
+    "translate" : [
+        {
+            "time" : 0,
+            "move" : [-30, -60]
+        },
+        {
+            "time" : 300,
+            "move" : [-30, -58.5]
+        },
+        {
+            "time" : 600,
+            "move" : [-30, -60]
+        },
+        {
+            "time" : 900,
+            "move" : [-30, -58.5]
+        },
+        {
+            "time":1200,
+            "move":[-30,-60]
+        }
+    ]
+}
