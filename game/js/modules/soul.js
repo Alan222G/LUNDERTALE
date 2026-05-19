@@ -122,9 +122,15 @@ var Soul = (function() {
     function applySoulFilter(ctx) {
         if (!Player || !Player.getSoulClass) return;
         var sClass = Player.getSoulClass();
-        if (sClass === 1) ctx.filter = "hue-rotate(120deg) saturate(1.5)";
-        else if (sClass === 2) ctx.filter = "hue-rotate(60deg) saturate(2)";
-        else if (sClass === 3) ctx.filter = "hue-rotate(270deg)";
+        if (sClass === 1) ctx.filter = "hue-rotate(120deg) saturate(1.5)"; // Green
+        else if (sClass === 2) ctx.filter = "hue-rotate(60deg) saturate(2)"; // Yellow
+        else if (sClass === 3) ctx.filter = "hue-rotate(270deg)"; // Purple
+        else if (sClass === 4) ctx.filter = "hue-rotate(210deg) saturate(1.2)"; // Blue
+        else if (sClass === 5) ctx.filter = "hue-rotate(30deg) saturate(1.5)"; // Orange
+        else if (sClass === 6) ctx.filter = "hue-rotate(180deg) saturate(1.5)"; // Cyan
+        else if (sClass === 7) ctx.filter = "hue-rotate(300deg) saturate(1.5)"; // Pink
+        else if (sClass === 8) ctx.filter = "hue-rotate(285deg) saturate(0.8)"; // Dark Purple
+        else if (sClass === 9) ctx.filter = "grayscale(100%) brightness(1.5)"; // White
     }
 
     function draw(ctx) {

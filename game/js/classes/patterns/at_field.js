@@ -57,16 +57,16 @@ ATFieldPattern.prototype.spawnWave = function() {
         // Set starting position and size based on direction
         if (dir === 0) { // Left wall moving right
             wall.x = bb[0]; wall.y = bb[1]; wall.w = 16; wall.h = bh;
-            wall.targetX = cx - 20; wall.targetY = bb[1];
+            wall.targetX = cx - 51; wall.targetY = bb[1];
         } else if (dir === 1) { // Right wall moving left
             wall.x = bb[2] - 16; wall.y = bb[1]; wall.w = 16; wall.h = bh;
-            wall.targetX = cx + 4; wall.targetY = bb[1];
+            wall.targetX = cx + 35; wall.targetY = bb[1];
         } else if (dir === 2) { // Top wall moving down
             wall.x = bb[0]; wall.y = bb[1]; wall.w = bw; wall.h = 16;
-            wall.targetX = bb[0]; wall.targetY = cy - 20;
+            wall.targetX = bb[0]; wall.targetY = cy - 51;
         } else { // Bottom wall moving up
             wall.x = bb[0]; wall.y = bb[3] - 16; wall.w = bw; wall.h = 16;
-            wall.targetX = bb[0]; wall.targetY = cy + 4;
+            wall.targetX = bb[0]; wall.targetY = cy + 35;
         }
 
         // Generate hexagon positions on the wall

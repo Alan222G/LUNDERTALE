@@ -22,7 +22,7 @@ var Cgroup = (function() {
     function setupSingularity() {
         enemies = [
             new Enemy({
-                name: "Singularity",
+                name: "Anti-gravity",
                 checkText: "A collapsed star... its pull is inescapable.",
                 maxHP: 3600,
                 curHP: 3600,
@@ -32,7 +32,7 @@ var Cgroup = (function() {
                 defense: 1,
                 acts: ["Check", "Study", "Taunt", "Flee"],
                 actResponses: [
-                    "* SINGULARITY - ATK ?? DEF ??\n* A tear in the fabric of reality.\n* It consumes all.",
+                    "* ANTI-GRAVITY - ATK ?? DEF ??\n* A tear in the fabric of reality.\n* It consumes all.",
                     "* You try to understand the anomaly.\n* Your mind aches.",
                     "* You taunt the void.\n* It does not care.",
                     "* You turn your back and run away..."
@@ -51,9 +51,9 @@ var Cgroup = (function() {
                     }
                 ],
                 texts: [
-                    "* Singularity distorts the space around you.",
+                    "* Anti-gravity distorts the space around you.",
                     "* The air hums with gravitational waves.",
-                    "* Light bends. Time slows. Singularity watches.",
+                    "* Light bends. Time slows. Anti-gravity watches.",
                     "* You feel the pull of something ancient."
                 ],
                 speech: [

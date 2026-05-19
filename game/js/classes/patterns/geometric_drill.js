@@ -1,14 +1,12 @@
-// geometric_drill.js — Ramiel's Geometric Drill: descending drill with seismic waves
+// geometric_drill.js — Ramiel's Geometric Drill: two descending/ascending drills with seismic waves
 var GeometricDrillPattern = function(config) {
     BulletPattern.call(this, config);
     this.duration = config.duration || 7;
     this.elapsed = 0;
     this.damVal = config.damVal || 9;
-    this.drillY = 0;
-    this.drillX = 0;
+    this.drills = [];
     this.drillSpeed = 55;
     this.drillWidth = 30;
-    this.drillRotation = 0;
     this.seismicWaves = [];
     this.waveTimer = 0;
     this.waveInterval = 0.6;
@@ -24,9 +22,11 @@ GeometricDrillPattern.prototype = Object.create(BulletPattern.prototype);
 GeometricDrillPattern.prototype.generateBullets = function(battleBox) {
     this.battleBox = battleBox;
     this.elapsed = 0;
-    this.drillX = (battleBox[0] + battleBox[2]) / 2;
-    this.drillY = battleBox[1] - 10;
-    this.drillRotation = 0;
+    var cx = (battleBox[0] + battleBox[2]) / 2;
+    this.drills = [
+        { x: cx, y: battleBox[1] - 10, rot: 0, dir: 1, startY: battleBox[1] },
+        { x: cx, y: battleBox[3] + 10, rot: Math.PI, dir: -1, startY: battleBox[3] }
+    ];
     this.seismicWaves = [];
     this.waveTimer = 0;
     this.exploded = false;
@@ -40,62 +40,75 @@ GeometricDrillPattern.prototype.update = function(dt) {
     var bb = Cbbox.getBound();
 
     if (!this.exploded) {
-        // Drill descends
-        this.drillY += this.drillSpeed * dt;
-        this.drillRotation += 6.0 * dt; // Spin
+        // Drills move
+        for (var d = 0; d < this.drills.length; d++) {
+            var drill = this.drills[d];
+            drill.y += this.drillSpeed * drill.dir * dt;
+            drill.rot += 6.0 * dt * drill.dir; // Spin
+        }
 
         // Generate seismic wave bullets periodically
         this.waveTimer += dt;
-        if (this.waveTimer >= this.waveInterval && this.drillY > bb[1] + 20) {
-            this.waveTimer = 0;
-            // Spawn horizontal bullets from drill position going left and right
-            var numPerSide = 3;
-            for (var side = -1; side <= 1; side += 2) {
-                for (var j = 0; j < numPerSide; j++) {
-                    var spreadAngle = side * (0.1 + j * 0.25);
-                    var speed = 90 + j * 20;
-                    this.seismicWaves.push({
-                        x: this.drillX,
-                        y: this.drillY + 10,
-                        vx: Math.cos(spreadAngle) * speed * side,
-                        vy: Math.sin(spreadAngle) * speed * 0.3,
-                        size: 6 + j * 2,
-                        life: 2.5,
-                        maxLife: 2.5,
-                        rot: Math.random() * Math.PI
-                    });
-                }
-            }
+        if (this.waveTimer >= this.waveInterval) {
+            // Check if drills are sufficiently inside to spawn waves
+            var inside = false;
+            if (this.drills[0].y > bb[1] + 20) inside = true;
 
-            // Spawn debris particles
-            for (var d = 0; d < 6; d++) {
-                this.debris.push({
-                    x: this.drillX + (Math.random() - 0.5) * 30,
-                    y: this.drillY + 15,
-                    vx: (Math.random() - 0.5) * 80,
-                    vy: -20 - Math.random() * 60,
-                    size: 1 + Math.random() * 3,
-                    life: 0.8 + Math.random() * 0.5,
-                    gravity: 120
-                });
+            if (inside) {
+                this.waveTimer = 0;
+                for (var d = 0; d < this.drills.length; d++) {
+                    var drill = this.drills[d];
+                    // Spawn horizontal bullets from drill position going left and right
+                    var numPerSide = 3;
+                    for (var side = -1; side <= 1; side += 2) {
+                        for (var j = 0; j < numPerSide; j++) {
+                            var spreadAngle = side * (0.1 + j * 0.25);
+                            var speed = 90 + j * 20;
+                            this.seismicWaves.push({
+                                x: drill.x,
+                                y: drill.y + 10 * drill.dir,
+                                vx: Math.cos(spreadAngle) * speed * side,
+                                vy: Math.sin(spreadAngle) * speed * 0.3 * drill.dir,
+                                size: 6 + j * 2,
+                                life: 2.5,
+                                maxLife: 2.5,
+                                rot: Math.random() * Math.PI
+                            });
+                        }
+                    }
+
+                    // Spawn debris particles
+                    for (var deb = 0; deb < 6; deb++) {
+                        this.debris.push({
+                            x: drill.x + (Math.random() - 0.5) * 30,
+                            y: drill.y + 15 * drill.dir,
+                            vx: (Math.random() - 0.5) * 80,
+                            vy: (-20 - Math.random() * 60) * drill.dir,
+                            size: 1 + Math.random() * 3,
+                            life: 0.8 + Math.random() * 0.5,
+                            gravity: 120 * drill.dir
+                        });
+                    }
+                }
             }
         }
 
-        // Check if drill reached bottom
-        if (this.drillY >= bb[3] - 20) {
+        // Check if drills meet in the middle
+        var cy = (bb[1] + bb[3]) / 2;
+        if (this.drills[0].y >= cy - 10) {
             this.exploded = true;
             this.explosionTime = 0;
             // Create massive explosion
-            var numExplosion = 24;
+            var numExplosion = 36;
             for (var i = 0; i < numExplosion; i++) {
                 var angle = (i / numExplosion) * Math.PI * 2;
-                var speed = 100 + Math.random() * 80;
+                var speed = 120 + Math.random() * 100;
                 this.explosionParticles.push({
-                    x: this.drillX,
-                    y: bb[3] - 15,
+                    x: this.drills[0].x,
+                    y: cy,
                     vx: Math.cos(angle) * speed,
                     vy: Math.sin(angle) * speed,
-                    size: 4 + Math.random() * 5,
+                    size: 4 + Math.random() * 6,
                     life: 1.5 + Math.random() * 0.5,
                     maxLife: 2.0,
                     rot: Math.random() * Math.PI,
@@ -145,83 +158,89 @@ GeometricDrillPattern.prototype.draw = function(ctx) {
     ctx.save();
 
     if (!this.exploded) {
-        // Draw drill body
-        ctx.save();
-        ctx.translate(this.drillX, this.drillY);
-
-        // Drill column (extending upward from drill tip)
-        var columnHeight = this.drillY - bb[1] + 20;
-        var colGrad = ctx.createLinearGradient(-this.drillWidth / 2, -columnHeight, this.drillWidth / 2, 0);
-        colGrad.addColorStop(0, "rgba(30, 60, 180, 0.3)");
-        colGrad.addColorStop(0.5, "rgba(50, 100, 220, 0.6)");
-        colGrad.addColorStop(1, "rgba(80, 150, 255, 0.8)");
-        ctx.fillStyle = colGrad;
-        ctx.fillRect(-this.drillWidth / 3, -columnHeight, this.drillWidth * 2 / 3, columnHeight);
-
-        // Spiral rings on column
-        ctx.strokeStyle = "rgba(150, 200, 255, 0.4)";
-        ctx.lineWidth = 1.5;
-        var ringSpacing = 18;
-        var numRings = Math.floor(columnHeight / ringSpacing);
-        for (var r = 0; r < numRings; r++) {
-            var ry = -r * ringSpacing;
-            var rOffset = (this.drillRotation * 2 + r * 0.8) % (Math.PI * 2);
-            var rAlpha = (0.3 + Math.sin(rOffset) * 0.2).toFixed(2);
-            ctx.strokeStyle = "rgba(150, 200, 255, " + rAlpha + ")";
-            ctx.beginPath();
-            ctx.ellipse(0, ry, this.drillWidth / 3, 5, 0, 0, Math.PI * 2);
-            ctx.stroke();
-        }
-
-        // Rotating drill tip (cone shape)
-        ctx.save();
-        ctx.rotate(this.drillRotation);
-
-        // Drill cone
-        var tipGrad = ctx.createLinearGradient(0, 0, 0, 35);
-        tipGrad.addColorStop(0, "rgba(80, 150, 255, 0.9)");
-        tipGrad.addColorStop(0.7, "rgba(200, 230, 255, 0.95)");
-        tipGrad.addColorStop(1, "rgba(255, 255, 255, 1)");
-        ctx.fillStyle = tipGrad;
-        ctx.beginPath();
-        ctx.moveTo(-this.drillWidth / 2, 0);
-        ctx.lineTo(this.drillWidth / 2, 0);
-        ctx.lineTo(0, 35);
-        ctx.closePath();
-        ctx.fill();
-
-        // Drill tip glow
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = "#88CCFF";
-        ctx.fillStyle = "#FFFFFF";
-        ctx.beginPath();
-        ctx.arc(0, 30, 4, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Side blades (rotating geometric extensions)
-        for (var blade = 0; blade < 4; blade++) {
+        for (var d = 0; d < this.drills.length; d++) {
+            var drill = this.drills[d];
             ctx.save();
-            ctx.rotate(blade * Math.PI / 2);
-            ctx.fillStyle = "rgba(60, 130, 255, 0.6)";
+            ctx.translate(drill.x, drill.y);
+            // Apply base rotation for bottom drill so it points UP
+            if (drill.dir === -1) {
+                ctx.rotate(Math.PI);
+            }
+
+            // Drill column (extending upward from drill tip)
+            var columnHeight = Math.abs(drill.y - drill.startY) + 20;
+            var colGrad = ctx.createLinearGradient(-this.drillWidth / 2, -columnHeight, this.drillWidth / 2, 0);
+            colGrad.addColorStop(0, "rgba(30, 60, 180, 0.3)");
+            colGrad.addColorStop(0.5, "rgba(50, 100, 220, 0.6)");
+            colGrad.addColorStop(1, "rgba(80, 150, 255, 0.8)");
+            ctx.fillStyle = colGrad;
+            ctx.fillRect(-this.drillWidth / 3, -columnHeight, this.drillWidth * 2 / 3, columnHeight);
+
+            // Spiral rings on column
+            ctx.strokeStyle = "rgba(150, 200, 255, 0.4)";
+            ctx.lineWidth = 1.5;
+            var ringSpacing = 18;
+            var numRings = Math.floor(columnHeight / ringSpacing);
+            for (var r = 0; r < numRings; r++) {
+                var ry = -r * ringSpacing;
+                var rOffset = (drill.rot * 2 + r * 0.8) % (Math.PI * 2);
+                var rAlpha = (0.3 + Math.sin(rOffset) * 0.2).toFixed(2);
+                ctx.strokeStyle = "rgba(150, 200, 255, " + rAlpha + ")";
+                ctx.beginPath();
+                ctx.ellipse(0, ry, this.drillWidth / 3, 5, 0, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            // Rotating drill tip (cone shape)
+            ctx.save();
+            ctx.rotate(drill.rot * drill.dir); // Relative spin
+
+            // Drill cone
+            var tipGrad = ctx.createLinearGradient(0, 0, 0, 35);
+            tipGrad.addColorStop(0, "rgba(80, 150, 255, 0.9)");
+            tipGrad.addColorStop(0.7, "rgba(200, 230, 255, 0.95)");
+            tipGrad.addColorStop(1, "rgba(255, 255, 255, 1)");
+            ctx.fillStyle = tipGrad;
             ctx.beginPath();
-            ctx.moveTo(this.drillWidth / 2, -3);
-            ctx.lineTo(this.drillWidth / 2 + 12, 0);
-            ctx.lineTo(this.drillWidth / 2, 3);
+            ctx.moveTo(-this.drillWidth / 2, 0);
+            ctx.lineTo(this.drillWidth / 2, 0);
+            ctx.lineTo(0, 35);
             ctx.closePath();
             ctx.fill();
-            ctx.restore();
-        }
 
-        ctx.restore(); // undo rotation
-        ctx.restore(); // undo translate
+            // Drill tip glow
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = "#88CCFF";
+            ctx.fillStyle = "#FFFFFF";
+            ctx.beginPath();
+            ctx.arc(0, 30, 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Side blades (rotating geometric extensions)
+            for (var blade = 0; blade < 4; blade++) {
+                ctx.save();
+                ctx.rotate(blade * Math.PI / 2);
+                ctx.fillStyle = "rgba(60, 130, 255, 0.6)";
+                ctx.beginPath();
+                ctx.moveTo(this.drillWidth / 2, -3);
+                ctx.lineTo(this.drillWidth / 2 + 12, 0);
+                ctx.lineTo(this.drillWidth / 2, 3);
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+            }
+
+            ctx.restore(); // undo rotation
+            ctx.restore(); // undo translate
+        }
 
         // Draw debris particles
         for (var i = 0; i < this.debris.length; i++) {
-            var d = this.debris[i];
-            var dAlpha = (d.life / 1.3).toFixed(2);
+            var deb = this.debris[i];
+            var dAlpha = (deb.life / 1.3).toFixed(2);
             ctx.fillStyle = "rgba(150, 180, 220, " + dAlpha + ")";
             ctx.beginPath();
-            ctx.arc(d.x, d.y, d.size, 0, Math.PI * 2);
+            ctx.arc(deb.x, deb.y, deb.size, 0, Math.PI * 2);
             ctx.fill();
         }
     }
@@ -307,13 +326,16 @@ GeometricDrillPattern.prototype.checkCollision = function(sx, sy, sw, sh) {
 
     // Drill body collision
     if (!this.exploded) {
-        var drillLeft = this.drillX - this.drillWidth / 2;
-        var drillRight = this.drillX + this.drillWidth / 2;
-        var drillTop = Cbbox.getBound()[1];
-        var drillBottom = this.drillY + 35;
-        if (soulCX + sw / 2 > drillLeft && soulCX - sw / 2 < drillRight &&
-            soulCY + sh / 2 > drillTop && soulCY - sh / 2 < drillBottom) {
-            return this.damVal;
+        for (var d = 0; d < this.drills.length; d++) {
+            var drill = this.drills[d];
+            var drillLeft = drill.x - this.drillWidth / 2;
+            var drillRight = drill.x + this.drillWidth / 2;
+            var drillTop = drill.dir === 1 ? drill.startY : drill.y - 35;
+            var drillBottom = drill.dir === 1 ? drill.y + 35 : drill.startY;
+            if (soulCX + sw / 2 > drillLeft && soulCX - sw / 2 < drillRight &&
+                soulCY + sh / 2 > drillTop && soulCY - sh / 2 < drillBottom) {
+                return this.damVal;
+            }
         }
     }
 

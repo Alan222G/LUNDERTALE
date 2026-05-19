@@ -68,11 +68,11 @@ var BossController = (function() {
         } else if (patternName === "pulsarBeam" || patternName === "eventHorizon") {
             w = 340; h = 340; // Large square for epic attacks
         } else if (patternName === "holyLance") {
-            w = 180; h = 180; // Tight box for micro-dodging
+            w = 260; h = 260; // Expanded box for dodging
         } else if (patternName === "divinePillars") {
             w = 450; h = 100; // Wide and extremely short
         } else if (patternName === "featherStorm") {
-            w = 200; h = 200; // Small claustrophobic box
+            w = 260; h = 260; // Expanded box for dodging
         } else if (patternName === "judgmentRings") {
             w = 280; h = 280; // Enough space for expanding rings
         } else if (patternName === "heavenlyRays") {
@@ -80,7 +80,7 @@ var BossController = (function() {
         } else if (patternName === "accretionSpiral") {
             w = 300; h = 300; // Large square for spiral chaos
         } else if (patternName === "particleBeam") {
-            w = 300; h = 300; // Wide for beam sweep
+            w = 420; h = 300; // Extra wide for beam sweep
         } else if (patternName === "atField") {
             w = 280; h = 280; // Square for compression
         } else if (patternName === "geometricDrill") {

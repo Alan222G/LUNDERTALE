@@ -21,6 +21,18 @@ var Player = (function() {
                 hpMax = 80; buffSpd = 1.3; buffAtk = 1.4; buffDef = 0.7; break;
             case 3: // Morado (Ágil)
                 hpMax = 100; buffSpd = 1.5; buffAtk = 1.0; buffDef = 1.0; break;
+            case 4: // Azul (Gravedad/Salto)
+                hpMax = 120; buffSpd = 1.2; buffAtk = 1.0; buffDef = 1.0; break;
+            case 5: // Naranja (Dash)
+                hpMax = 110; buffSpd = 1.6; buffAtk = 1.1; buffDef = 0.8; break;
+            case 6: // Celeste (Inmóvil)
+                hpMax = 140; buffSpd = 0.9; buffAtk = 1.0; buffDef = 1.2; break;
+            case 7: // Rosa (Rebote magnético)
+                hpMax = 100; buffSpd = 1.4; buffAtk = 1.2; buffDef = 0.9; break;
+            case 8: // Púrpura Oscura (Gravedad Inversa)
+                hpMax = 130; buffSpd = 1.0; buffAtk = 1.0; buffDef = 1.1; break;
+            case 9: // Blanco (Curación evasiva)
+                hpMax = 90; buffSpd = 1.2; buffAtk = 0.9; buffDef = 0.8; break;
         }
         hpCur = hpMax;
     }

@@ -18,12 +18,12 @@ PrismRefractPattern.prototype.generateBullets = function(battleBox) {
     this.beams = [];
     this.prisms = [];
     this.beamTimer = 0.8;
-    var bb = battleBox;
-    // Place 3-4 prism nodes
+    var bb = Cbbox.getBound();
+    // Place 4 prism nodes inside the box
     for (var i = 0; i < 4; i++) {
         this.prisms.push({
-            x: bb[0] + 40 + Math.random() * (bb[2] - bb[0] - 80),
-            y: bb[1] + 40 + Math.random() * (bb[3] - bb[1] - 80),
+            x: bb[0] + 30 + Math.random() * (bb[2] - bb[0] - 60),
+            y: bb[1] + 30 + Math.random() * (bb[3] - bb[1] - 60),
             rot: Math.random() * Math.PI * 2,
             rotSpeed: (Math.random() - 0.5) * 2
         });
@@ -54,22 +54,17 @@ PrismRefractPattern.prototype.update = function(dt) {
         var cx = sx, cy = sy, cAngle = angle;
         segments.push({ x1: cx, y1: cy, x2: cx, y2: cy, progress: 0 });
         var speed = 200;
-        for (var b = 0; b < 3; b++) {
-            // Find nearest prism in beam direction
-            var bestDist = 9999, bestP = null;
-            for (var p = 0; p < this.prisms.length; p++) {
-                var dx = this.prisms[p].x - cx, dy = this.prisms[p].y - cy;
-                var d = Math.sqrt(dx * dx + dy * dy);
-                if (d < bestDist && d > 20) { bestDist = d; bestP = this.prisms[p]; }
-            }
-            if (bestP) {
-                segments.push({
-                    x1: cx, y1: cy, x2: bestP.x, y2: bestP.y,
-                    progress: 0, delay: b * 0.2, speed: speed
-                });
-                cx = bestP.x; cy = bestP.y;
-                cAngle += Math.PI / 3 + Math.random() * Math.PI / 3;
-            }
+        var unvisited = this.prisms.slice();
+        unvisited.sort(function() { return Math.random() - 0.5; }); // Shuffle
+        
+        for (var b = 0; b < unvisited.length; b++) {
+            var bestP = unvisited[b];
+            segments.push({
+                x1: cx, y1: cy, x2: bestP.x, y2: bestP.y,
+                progress: 0, delay: b * 0.2, speed: speed
+            });
+            cx = bestP.x; cy = bestP.y;
+            cAngle += Math.PI / 3 + Math.random() * Math.PI / 3;
         }
         // Final segment exits
         var exitDist = 150;
