@@ -312,46 +312,75 @@ var Overworld = (function() {
         
         // Draw Catalog UI Overlay
         if (catalogActive) {
-            ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+            ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
             ctx.fillRect(0, 0, main.WIDTH, main.HEIGHT);
             
             ctx.strokeStyle = "#FFF";
             ctx.lineWidth = 4;
             ctx.fillStyle = "#000";
-            ctx.fillRect(50, 50, main.WIDTH - 100, main.HEIGHT - 100);
-            ctx.strokeRect(50, 50, main.WIDTH - 100, main.HEIGHT - 100);
+            ctx.fillRect(50, 40, main.WIDTH - 100, main.HEIGHT - 80);
+            ctx.strokeRect(50, 40, main.WIDTH - 100, main.HEIGHT - 80);
             
-            ctx.font = "24pt Determination Mono";
+            ctx.font = "20pt Determination Mono";
             ctx.fillStyle = "#FFF";
             ctx.textAlign = "center";
-            ctx.fillText("CHARACTER CUSTOMIZATION", main.WIDTH/2, 90);
+            ctx.fillText("CHARACTER CUSTOMIZATION", main.WIDTH/2, 78);
             
-            ctx.font = "16pt Determination Mono";
-            ctx.textAlign = "left";
-            for (var i = 0; i < catalogOptions.length; i++) {
-                var yPos = 160 + i * 80;
-                if (i === catalogIndex) {
-                    ctx.fillStyle = "#FF0";
-                    ctx.fillText("> " + catalogOptions[i].name, 80, yPos);
-                } else {
-                    ctx.fillStyle = "#FFF";
-                    ctx.fillText("  " + catalogOptions[i].name, 80, yPos);
-                }
-                ctx.fillStyle = "#CCC";
+            // Scrollable list - show 5 items at a time
+            var maxVisible = 5;
+            var itemHeight = 72;
+            var startY = 120;
+            
+            // Calculate scroll offset so selected item is always visible
+            if (typeof catalogScrollOffset === "undefined") catalogScrollOffset = 0;
+            if (catalogIndex < catalogScrollOffset) catalogScrollOffset = catalogIndex;
+            if (catalogIndex >= catalogScrollOffset + maxVisible) catalogScrollOffset = catalogIndex - maxVisible + 1;
+            
+            // Scroll indicators
+            if (catalogScrollOffset > 0) {
+                ctx.fillStyle = "#888";
                 ctx.font = "12pt Determination Mono";
-                ctx.fillText(catalogOptions[i].desc, 110, yPos + 25);
-                ctx.font = "16pt Determination Mono"; // reset for next item
+                ctx.textAlign = "center";
+                ctx.fillText("▲ More above ▲", main.WIDTH/2, startY - 5);
             }
             
-            ctx.textAlign = "center";
-            ctx.fillStyle = "#888";
-            ctx.font = "12pt Determination Mono";
-            ctx.fillText("Use UP/DOWN to select. Press ENTER to equip. Press X to close.", main.WIDTH/2, main.HEIGHT - 70);
+            ctx.textAlign = "left";
+            var endIdx = Math.min(catalogOptions.length, catalogScrollOffset + maxVisible);
+            for (var i = catalogScrollOffset; i < endIdx; i++) {
+                var yPos = startY + (i - catalogScrollOffset) * itemHeight;
+                ctx.font = "14pt Determination Mono";
+                if (i === catalogIndex) {
+                    ctx.fillStyle = "#FF0";
+                    ctx.fillText("> " + catalogOptions[i].name, 80, yPos + 20);
+                } else {
+                    ctx.fillStyle = "#FFF";
+                    ctx.fillText("  " + catalogOptions[i].name, 80, yPos + 20);
+                }
+                ctx.fillStyle = "#AAA";
+                ctx.font = "10pt Determination Mono";
+                ctx.fillText(catalogOptions[i].desc, 110, yPos + 42);
+            }
             
-            // Draw current equipped
+            if (endIdx < catalogOptions.length) {
+                ctx.fillStyle = "#888";
+                ctx.font = "12pt Determination Mono";
+                ctx.textAlign = "center";
+                ctx.fillText("▼ More below ▼", main.WIDTH/2, startY + maxVisible * itemHeight + 5);
+            }
+            
+            // Footer info
+            ctx.textAlign = "center";
             ctx.fillStyle = "#0F0";
+            ctx.font = "11pt Determination Mono";
             var currentName = catalogOptions[Player.getSoulClass()].name;
-            ctx.fillText("Current: " + currentName, main.WIDTH/2, main.HEIGHT - 100);
+            ctx.fillText("Equipped: " + currentName, main.WIDTH/2, main.HEIGHT - 85);
+            
+            ctx.fillStyle = "#888";
+            ctx.font = "10pt Determination Mono";
+            ctx.fillText("UP/DOWN to select. ENTER to equip. X to close.", main.WIDTH/2, main.HEIGHT - 60);
+            
+            ctx.fillStyle = "#555";
+            ctx.fillText("[" + (catalogIndex + 1) + "/" + catalogOptions.length + "]", main.WIDTH/2, main.HEIGHT - 45);
         }
 
         ctx.restore();

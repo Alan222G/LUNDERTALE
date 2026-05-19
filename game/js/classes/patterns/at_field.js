@@ -131,13 +131,19 @@ ATFieldPattern.prototype.update = function(dt) {
         }
     }
 
-    // Update fragments
+    // Update fragments — keep them INSIDE the battle box
+    var bb = Cbbox.getBound();
     for (var i = this.fragments.length - 1; i >= 0; i--) {
         var f = this.fragments[i];
         f.x += f.vx * dt;
         f.y += f.vy * dt;
         f.life -= dt;
         f.rot += f.rotSpeed * dt;
+        // Bounce off battle box walls
+        if (f.x - f.size < bb[0]) { f.x = bb[0] + f.size; f.vx = Math.abs(f.vx) * 0.6; }
+        if (f.x + f.size > bb[2]) { f.x = bb[2] - f.size; f.vx = -Math.abs(f.vx) * 0.6; }
+        if (f.y - f.size < bb[1]) { f.y = bb[1] + f.size; f.vy = Math.abs(f.vy) * 0.6; }
+        if (f.y + f.size > bb[3]) { f.y = bb[3] - f.size; f.vy = -Math.abs(f.vy) * 0.6; }
         if (f.life <= 0) this.fragments.splice(i, 1);
     }
 };
@@ -145,18 +151,24 @@ ATFieldPattern.prototype.update = function(dt) {
 ATFieldPattern.prototype.explodeWall = function(wall) {
     var cx = wall.x + wall.w / 2;
     var cy = wall.y + wall.h / 2;
-    var numFrags = 12;
+    var bb = Cbbox.getBound();
+    var numFrags = 8;
     for (var i = 0; i < numFrags; i++) {
         var angle = (i / numFrags) * Math.PI * 2 + (Math.random() - 0.5) * 0.3;
-        var speed = 80 + Math.random() * 120;
+        var speed = 40 + Math.random() * 50;
+        var fx = cx + (Math.random() - 0.5) * wall.w;
+        var fy = cy + (Math.random() - 0.5) * wall.h;
+        // Clamp initial position inside box
+        fx = Math.max(bb[0] + 5, Math.min(bb[2] - 5, fx));
+        fy = Math.max(bb[1] + 5, Math.min(bb[3] - 5, fy));
         this.fragments.push({
-            x: cx + (Math.random() - 0.5) * wall.w,
-            y: cy + (Math.random() - 0.5) * wall.h,
+            x: fx,
+            y: fy,
             vx: Math.cos(angle) * speed,
             vy: Math.sin(angle) * speed,
-            size: 5 + Math.random() * 6,
-            life: 1.5 + Math.random() * 0.5,
-            maxLife: 2.0,
+            size: 4 + Math.random() * 4,
+            life: 1.0 + Math.random() * 0.3,
+            maxLife: 1.3,
             rot: Math.random() * Math.PI,
             rotSpeed: (Math.random() - 0.5) * 8,
             damaging: true
