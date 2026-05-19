@@ -93,9 +93,9 @@ var main = {
                 Overworld.update(dt);
                 Transition.update(dt);
                 // Toggle debug
-                if (myKeys.keydown[myKeys.KEYBOARD.KEY_D]) {
+                if (myKeys.keydown[myKeys.KEYBOARD.KEY_SPACE]) {
                     this.debug = !this.debug;
-                    myKeys.keydown[myKeys.KEYBOARD.KEY_D] = false;
+                    myKeys.keydown[myKeys.KEYBOARD.KEY_SPACE] = false;
                 }
                 break;
             case this.GAME_STATE.FLASH:
@@ -105,9 +105,9 @@ var main = {
                 Combat.update(dt);
                 Transition.update(dt);
                 // Toggle debug during combat
-                if (myKeys.keydown[myKeys.KEYBOARD.KEY_D]) {
+                if (myKeys.keydown[myKeys.KEYBOARD.KEY_SPACE]) {
                     this.debug = !this.debug;
-                    myKeys.keydown[myKeys.KEYBOARD.KEY_D] = false;
+                    myKeys.keydown[myKeys.KEYBOARD.KEY_SPACE] = false;
                 }
                 break;
         }

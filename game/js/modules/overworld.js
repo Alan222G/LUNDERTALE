@@ -6,6 +6,15 @@ var Overworld = (function() {
     var triggerList = [];
     var mapData = null;
 
+    var catalogActive = false;
+    var catalogIndex = 0;
+    var catalogOptions = [
+        { name: "Corazón Rojo", desc: "Equilibrado. HP:120, VEL:Normal, ATK:Normal" },
+        { name: "Corazón Verde", desc: "Tanque. HP:180, VEL:-20%, ATK:-20%, DEF:+30%" },
+        { name: "Corazón Amarillo", desc: "Agresivo. HP:80, VEL:+30%, ATK:+40%, DEF:-30%" },
+        { name: "Corazón Morado", desc: "Ágil. HP:100, VEL:+50%, ATK:Normal, DEF:Normal" }
+    ];
+
     var bgImage = new Image();
     bgImage.src = "Resources/Fondo del overworld Best.png";
     
@@ -18,11 +27,10 @@ var Overworld = (function() {
     function init() {
         player = new OverworldPlayer();
 
-        // Create a test NPC
+        // Create Catalog Interactable (floating star/heart area)
         npcList.push({
-            x: 100, y: 150, w: 20, h: 30, color: "#00FF00",
-            lines: ["* Space is cold.", "* But determination is warm."],
-            interacted: false
+            x: 80, y: 150, w: 40, h: 40, color: "rgba(255, 255, 0, 0.8)",
+            isCatalog: true
         });
 
         // Singularity battle trigger (top-right area)
@@ -102,6 +110,34 @@ var Overworld = (function() {
     function update(dt) {
         if (!active || Transition.isActive()) return;
         animTimer += dt;
+        
+        if (catalogActive) {
+            // Handle Catalog Input
+            if (myKeys.isUp()) {
+                myKeys.keydown[myKeys.KEYBOARD.KEY_UP] = false;
+                myKeys.keydown[myKeys.KEYBOARD.KEY_W] = false;
+                catalogIndex--;
+                if (catalogIndex < 0) catalogIndex = catalogOptions.length - 1;
+                Sound.playSound("select", true);
+            } else if (myKeys.isDown()) {
+                myKeys.keydown[myKeys.KEYBOARD.KEY_DOWN] = false;
+                myKeys.keydown[myKeys.KEYBOARD.KEY_S] = false;
+                catalogIndex++;
+                if (catalogIndex >= catalogOptions.length) catalogIndex = 0;
+                Sound.playSound("select", true);
+            } else if (myKeys.isConfirm()) {
+                myKeys.keydown[myKeys.KEYBOARD.KEY_Z] = false;
+                myKeys.keydown[myKeys.KEYBOARD.KEY_ENTER] = false;
+                Player.setSoulClass(catalogIndex);
+                catalogActive = false;
+                Sound.playSound("heal", true);
+            } else if (myKeys.isCancel()) {
+                myKeys.keydown[myKeys.KEYBOARD.KEY_X] = false;
+                catalogActive = false;
+            }
+            return; // Skip player movement while in catalog
+        }
+
         player.update(dt, null);
 
         // Check Triggers
@@ -127,7 +163,10 @@ var Overworld = (function() {
             for (var i = 0; i < npcList.length; i++) {
                 var npc = npcList[i];
                 if (rectsOverlap(interactBox.x, interactBox.y, interactBox.w, interactBox.h, npc.x, npc.y, npc.w, npc.h)) {
-                    console.log("Interact with NPC!");
+                    if (npc.isCatalog) {
+                        catalogActive = true;
+                        catalogIndex = Player.getSoulClass();
+                    }
                 }
             }
         }
@@ -245,12 +284,69 @@ var Overworld = (function() {
 
         // Draw NPCs
         for (var i = 0; i < npcList.length; i++) {
-            ctx.fillStyle = npcList[i].color;
-            ctx.fillRect(npcList[i].x, npcList[i].y, npcList[i].w, npcList[i].h);
+            var npc = npcList[i];
+            if (npc.isCatalog) {
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = "#FFD700";
+                ctx.fillStyle = npc.color;
+                ctx.fillRect(npc.x, npc.y, npc.w, npc.h);
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = "#FFF";
+                ctx.font = "10pt Determination Mono";
+                ctx.textAlign = "center";
+                ctx.fillText("SOUL CATALOG", npc.x + npc.w/2, npc.y - 5);
+            } else {
+                ctx.fillStyle = npc.color;
+                ctx.fillRect(npc.x, npc.y, npc.w, npc.h);
+            }
         }
 
         // Draw Player
         player.draw(ctx);
+        
+        // Draw Catalog UI Overlay
+        if (catalogActive) {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+            ctx.fillRect(0, 0, main.WIDTH, main.HEIGHT);
+            
+            ctx.strokeStyle = "#FFF";
+            ctx.lineWidth = 4;
+            ctx.fillStyle = "#000";
+            ctx.fillRect(50, 50, main.WIDTH - 100, main.HEIGHT - 100);
+            ctx.strokeRect(50, 50, main.WIDTH - 100, main.HEIGHT - 100);
+            
+            ctx.font = "24pt Determination Mono";
+            ctx.fillStyle = "#FFF";
+            ctx.textAlign = "center";
+            ctx.fillText("CHARACTER CUSTOMIZATION", main.WIDTH/2, 90);
+            
+            ctx.font = "16pt Determination Mono";
+            ctx.textAlign = "left";
+            for (var i = 0; i < catalogOptions.length; i++) {
+                var yPos = 160 + i * 80;
+                if (i === catalogIndex) {
+                    ctx.fillStyle = "#FF0";
+                    ctx.fillText("> " + catalogOptions[i].name, 80, yPos);
+                } else {
+                    ctx.fillStyle = "#FFF";
+                    ctx.fillText("  " + catalogOptions[i].name, 80, yPos);
+                }
+                ctx.fillStyle = "#CCC";
+                ctx.font = "12pt Determination Mono";
+                ctx.fillText(catalogOptions[i].desc, 110, yPos + 25);
+                ctx.font = "16pt Determination Mono"; // reset for next item
+            }
+            
+            ctx.textAlign = "center";
+            ctx.fillStyle = "#888";
+            ctx.font = "12pt Determination Mono";
+            ctx.fillText("Use UP/DOWN to select. Press ENTER to equip. Press X to close.", main.WIDTH/2, main.HEIGHT - 70);
+            
+            // Draw current equipped
+            ctx.fillStyle = "#0F0";
+            var currentName = catalogOptions[Player.getSoulClass()].name;
+            ctx.fillText("Current: " + currentName, main.WIDTH/2, main.HEIGHT - 100);
+        }
 
         ctx.restore();
     }

@@ -119,8 +119,17 @@ var Soul = (function() {
         return durationCounter * 4;
     }
 
+    function applySoulFilter(ctx) {
+        if (!Player || !Player.getSoulClass) return;
+        var sClass = Player.getSoulClass();
+        if (sClass === 1) ctx.filter = "hue-rotate(120deg) saturate(1.5)";
+        else if (sClass === 2) ctx.filter = "hue-rotate(60deg) saturate(2)";
+        else if (sClass === 3) ctx.filter = "hue-rotate(270deg)";
+    }
+
     function draw(ctx) {
         ctx.save();
+        applySoulFilter(ctx);
         switch (state) {
             case STATE.OKAY:
                 ctx.drawImage(sprite, pos.x, pos.y);
@@ -162,6 +171,7 @@ var Soul = (function() {
     function drawAt(ctx, posForced) {
         ctx.save();
         ctx.globalAlpha = 1;
+        applySoulFilter(ctx);
         ctx.drawImage(sprite, posForced.x, posForced.y);
         ctx.restore();
     }

@@ -2,16 +2,30 @@
 var Player = (function() {
     var weapon, armor, hpCur, hpMax;
     var buffSpd = 1.0, buffDef = 1.0, buffAtk = 1.0;
+    var soulClass = 0; // 0=Red, 1=Green, 2=Yellow, 3=Purple
 
     function init() {
         weapon = {};
         armor = {};
-        hpMax = 120;
-        hpCur = hpMax;
-        buffSpd = 1.0;
-        buffDef = 1.0;
-        buffAtk = 1.0;
+        setSoulClass(0); // Default to Red
     }
+
+    function setSoulClass(classId) {
+        soulClass = classId;
+        switch (classId) {
+            case 0: // Rojo (Equilibrado)
+                hpMax = 120; buffSpd = 1.0; buffAtk = 1.0; buffDef = 1.0; break;
+            case 1: // Verde (Tanque)
+                hpMax = 180; buffSpd = 0.8; buffAtk = 0.8; buffDef = 1.3; break;
+            case 2: // Amarillo (Agresivo)
+                hpMax = 80; buffSpd = 1.3; buffAtk = 1.4; buffDef = 0.7; break;
+            case 3: // Morado (Ágil)
+                hpMax = 100; buffSpd = 1.5; buffAtk = 1.0; buffDef = 1.0; break;
+        }
+        hpCur = hpMax;
+    }
+    
+    function getSoulClass() { return soulClass; }
 
     function getWeapon() { return weapon; }
     function getArmor() { return armor; }
@@ -87,6 +101,8 @@ var Player = (function() {
         getBuffDef: function() { return buffDef; },
         addBuffDef: function(val) { buffDef += val; },
         getBuffAtk: function() { return buffAtk; },
-        addBuffAtk: function(val) { buffAtk += val; }
+        addBuffAtk: function(val) { buffAtk += val; },
+        setSoulClass: setSoulClass,
+        getSoulClass: getSoulClass
     };
 }());

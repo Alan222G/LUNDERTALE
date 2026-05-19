@@ -3,8 +3,7 @@
 
 var myKeys = {};
 
-// Control scheme: "arrows" (default) or "wasd"
-myKeys.controlScheme = "arrows";
+// Control scheme: unified (both arrows and wasd work simultaneously)
 
 myKeys.KEYBOARD = Object.freeze({
     "KEY_LEFT": 37,
@@ -14,38 +13,33 @@ myKeys.KEYBOARD = Object.freeze({
     "KEY_Z": 90,
     "KEY_X": 88,
     "KEY_C": 67,
-    "KEY_D": 68,
+    "KEY_SPACE": 32,
     "KEY_ENTER": 13,
     // WASD keys
     "KEY_W": 87,
     "KEY_A": 65,
     "KEY_S": 83,
-    "KEY_D_KEY": 68, // same as D toggle, handled separately
+    "KEY_D": 68,
 });
 
 // Key daemon — sparse array tracking which keys are currently pressed
 myKeys.keydown = [];
 
-// Helper functions that respect control scheme
+// Helper functions combining arrows and WASD
 myKeys.isUp = function() {
-    if (myKeys.controlScheme === "wasd") return myKeys.keydown[87]; // W
-    return myKeys.keydown[38]; // Arrow Up
+    return myKeys.keydown[38] || myKeys.keydown[87]; // Arrow Up or W
 };
 myKeys.isDown = function() {
-    if (myKeys.controlScheme === "wasd") return myKeys.keydown[83]; // S
-    return myKeys.keydown[40]; // Arrow Down
+    return myKeys.keydown[40] || myKeys.keydown[83]; // Arrow Down or S
 };
 myKeys.isLeft = function() {
-    if (myKeys.controlScheme === "wasd") return myKeys.keydown[65]; // A
-    return myKeys.keydown[37]; // Arrow Left
+    return myKeys.keydown[37] || myKeys.keydown[65]; // Arrow Left or A
 };
 myKeys.isRight = function() {
-    if (myKeys.controlScheme === "wasd") return myKeys.keydown[68]; // D
-    return myKeys.keydown[39]; // Arrow Right
+    return myKeys.keydown[39] || myKeys.keydown[68]; // Arrow Right or D
 };
 myKeys.isConfirm = function() {
-    if (myKeys.controlScheme === "wasd") return myKeys.keydown[13]; // Enter
-    return myKeys.keydown[90]; // Z
+    return myKeys.keydown[90] || myKeys.keydown[13]; // Z or Enter
 };
 myKeys.isCancel = function() {
     return myKeys.keydown[88]; // X always
@@ -54,8 +48,8 @@ myKeys.isCancel = function() {
 // Event listeners
 window.addEventListener("keydown", function(e) {
     myKeys.keydown[e.keyCode] = true;
-    // Prevent arrow keys, WASD, Z/X and Enter from scrolling the page
-    if ([37, 38, 39, 40, 90, 88, 87, 65, 83, 13].indexOf(e.keyCode) > -1) {
+    // Prevent arrow keys, WASD, Z/X/Space and Enter from scrolling the page
+    if ([37, 38, 39, 40, 90, 88, 87, 65, 83, 68, 13, 32].indexOf(e.keyCode) > -1) {
         e.preventDefault();
     }
 });
