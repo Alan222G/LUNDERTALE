@@ -4,7 +4,7 @@ var Cbbox = (function() {
     var pos, width, height, speed, newWidth, newHeight;
 
     function init() {
-        pos = new Vect(370, 490, 0); // pos.y is now the fixed BOTTOM edge
+        pos = new Vect(370, 475, 0); // pos.y is now the fixed BOTTOM edge
         speed = 600;
     }
 

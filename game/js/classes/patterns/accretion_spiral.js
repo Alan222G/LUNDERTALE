@@ -32,6 +32,9 @@ AccretionSpiralPattern.prototype.update = function(dt) {
     this.elapsed += dt;
     this.spawnTimer += dt;
     this.burstTimer += dt;
+    var bb = Cbbox.getBound();
+    this.centerX = (bb[0] + bb[2]) / 2;
+    this.centerY = (bb[1] + bb[3]) / 2;
 
     // Spawn spiraling orbs that move inward
     if (this.spawnTimer >= this.spawnInterval && this.elapsed < this.duration - 2) {
@@ -75,7 +78,7 @@ AccretionSpiralPattern.prototype.update = function(dt) {
 };
 
 AccretionSpiralPattern.prototype.spawnSpiralOrb = function() {
-    var bb = this.battleBox;
+    var bb = Cbbox.getBound();
     var angle = this.elapsed * 2.5 + Math.random() * 0.5;
     var maxR = Math.min(bb[2] - bb[0], bb[3] - bb[1]) / 2;
     var radius = maxR * (0.7 + Math.random() * 0.3);

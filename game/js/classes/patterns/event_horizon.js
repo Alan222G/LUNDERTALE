@@ -43,7 +43,7 @@ EventHorizonPattern.prototype.update = function(dt) {
     // Update exploding bullets
     BulletPattern.prototype.update.call(this, dt);
 
-    var bb = this.battleBox;
+    var bb = Cbbox.getBound();
     for (var i = this.bullets.length - 1; i >= 0; i--) {
         if (this.bullets[i].isOutOfBounds([bb[0] - 100, bb[1] - 100, bb[2] + 100, bb[3] + 100])) {
             this.bullets.splice(i, 1);
@@ -52,7 +52,7 @@ EventHorizonPattern.prototype.update = function(dt) {
 };
 
 EventHorizonPattern.prototype.spawnWell = function() {
-    var bb = this.battleBox;
+    var bb = Cbbox.getBound();
     this.wells.push({
         x: bb[0] + 30 + Math.random() * (bb[2] - bb[0] - 60),
         y: bb[1] + 30 + Math.random() * (bb[3] - bb[1] - 60),

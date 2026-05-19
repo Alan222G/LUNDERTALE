@@ -24,6 +24,9 @@ ResonanceWavePattern.prototype.generateBullets = function(battleBox) {
 
 ResonanceWavePattern.prototype.update = function(dt) {
     this.elapsed += dt;
+    var bb = Cbbox.getBound();
+    this.centerX = (bb[0] + bb[2]) / 2;
+    this.centerY = (bb[1] + bb[3]) / 2;
     this.ringTimer += dt;
     if (this.ringTimer >= this.ringInterval && this.elapsed < this.duration - 1.5) {
         this.ringTimer = 0;

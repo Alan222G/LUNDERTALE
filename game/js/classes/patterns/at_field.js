@@ -27,7 +27,7 @@ ATFieldPattern.prototype.generateBullets = function(battleBox) {
 
 ATFieldPattern.prototype.spawnWave = function() {
     if (this.waveCount >= this.maxWaves) return;
-    var bb = this.battleBox;
+    var bb = Cbbox.getBound();
     var cx = (bb[0] + bb[2]) / 2;
     var cy = (bb[1] + bb[3]) / 2;
     var bw = bb[2] - bb[0];

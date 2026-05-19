@@ -191,7 +191,8 @@ var Combat = (function() {
                 // Gravity Pull Mechanic for Phase 2 (Singularity ONLY)
                 if (Cgroup.getBossId() === "singularity" && enemy && enemy.currentPhase === 1) {
                     var soulPos = Soul.getPos();
-                    var center = new Vect(320, 320, 0); // Center of the Battle Box
+                    var _bb = Cbbox.getBound();
+                    var center = new Vect((_bb[0]+_bb[2])/2, (_bb[1]+_bb[3])/2, 0);
                     var dir = center.getSub(soulPos);
                     var dist = dir.getMagnitude();
                     if (dist > 10) {
@@ -305,10 +306,10 @@ var Combat = (function() {
                 Cmenu.draw(ctx, menuState, MENU_STATE);
                 Writer.drawText(ctx);
                 switch (menuState) {
-                    case MENU_STATE.FIGHT: Soul.drawAt(ctx, new Vect(90, 546, 0)); break;
-                    case MENU_STATE.ACT: Soul.drawAt(ctx, new Vect(243, 546, 0)); break;
-                    case MENU_STATE.ITEM: Soul.drawAt(ctx, new Vect(403, 546, 0)); break;
-                    case MENU_STATE.MERCY: Soul.drawAt(ctx, new Vect(558, 546, 0)); break;
+                    case MENU_STATE.FIGHT: Soul.drawAt(ctx, new Vect(90, 531, 0)); break;
+                    case MENU_STATE.ACT: Soul.drawAt(ctx, new Vect(243, 531, 0)); break;
+                    case MENU_STATE.ITEM: Soul.drawAt(ctx, new Vect(403, 531, 0)); break;
+                    case MENU_STATE.MERCY: Soul.drawAt(ctx, new Vect(558, 531, 0)); break;
                 }
                 ctx.restore();
                 break;
@@ -367,7 +368,8 @@ var Combat = (function() {
                 if (Cgroup.getBossId() === "singularity" && defEnemy && defEnemy.currentPhase === 1) {
                     ctx.save();
                     var gwTime = defEnemy.timeCounter || 0;
-                    var gwCX = 320, gwCY = 320;
+                    var _gwBB = Cbbox.getBound();
+                    var gwCX = (_gwBB[0]+_gwBB[2])/2, gwCY = (_gwBB[1]+_gwBB[3])/2;
                     
                     // Outer distortion halo
                     var gwHaloGrad = ctx.createRadialGradient(gwCX, gwCY, 9, gwCX, gwCY, 41);
@@ -463,12 +465,12 @@ var Combat = (function() {
                 if (deathTimer > 1.0) {
                     ctx.font = "16pt Determination Mono";
                     ctx.fillStyle = selectStateOther === 0 ? "#FF0" : "#FFF";
-                    ctx.fillText("Try Again", 370, 320);
+                    ctx.fillText("Try Again", 370, 290);
                     ctx.fillStyle = selectStateOther === 1 ? "#FF0" : "#FFF";
-                    ctx.fillText("Return to Overworld", 370, 360);
+                    ctx.fillText("Return to Overworld", 370, 330);
                     // Draw mini soul next to selection
                     ctx.globalAlpha = 1.0;
-                    var soulY = selectStateOther === 0 ? 313 : 353;
+                    var soulY = selectStateOther === 0 ? 283 : 323;
                     Soul.drawAt(ctx, new Vect(260, soulY, 0));
                 }
                 ctx.restore();

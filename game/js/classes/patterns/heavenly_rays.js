@@ -22,7 +22,7 @@ HeavenlyRaysPattern.prototype.generateBullets = function(battleBox) {
 };
 
 HeavenlyRaysPattern.prototype.spawnGrid = function() {
-    var bb = this.battleBox;
+    var bb = Cbbox.getBound();
     var bbW = bb[2] - bb[0];
     var bbH = bb[3] - bb[1];
     

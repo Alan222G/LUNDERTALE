@@ -40,7 +40,7 @@ PrismRefractPattern.prototype.update = function(dt) {
     // Spawn beams that bounce between prisms
     if (this.beamTimer >= this.beamInterval && this.elapsed < this.duration - 1.5) {
         this.beamTimer = 0;
-        var bb = this.battleBox;
+        var bb = Cbbox.getBound();
         // Pick entry edge
         var side = Math.floor(Math.random() * 4);
         var sx, sy, angle;

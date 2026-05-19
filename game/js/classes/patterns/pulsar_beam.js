@@ -25,6 +25,9 @@ PulsarBeamPattern.prototype.generateBullets = function(battleBox) {
 
 PulsarBeamPattern.prototype.update = function(dt) {
     this.elapsed += dt;
+    var bb = Cbbox.getBound();
+    this.centerX = (bb[0] + bb[2]) / 2;
+    this.centerY = (bb[1] + bb[3]) / 2;
     if (this.elapsed < this.warningTime) {
         this.fadeTick = this.elapsed / this.warningTime;
     } else {

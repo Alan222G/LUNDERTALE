@@ -61,7 +61,7 @@ HolyLancePattern.prototype.update = function(dt) {
     BulletPattern.prototype.update.call(this, dt);
 
     // Remove out-of-bounds
-    var bb = this.battleBox;
+    var bb = Cbbox.getBound();
     for (var i = this.bullets.length - 1; i >= 0; i--) {
         if (this.bullets[i].isOutOfBounds([bb[0] - 60, bb[1] - 60, bb[2] + 60, bb[3] + 60])) {
             this.bullets.splice(i, 1);
@@ -70,7 +70,7 @@ HolyLancePattern.prototype.update = function(dt) {
 };
 
 HolyLancePattern.prototype.spawnLance = function() {
-    var bb = this.battleBox;
+    var bb = Cbbox.getBound();
     var bbW = bb[2] - bb[0];
     var bbH = bb[3] - bb[1];
     var fromLeft = Math.random() > 0.5;

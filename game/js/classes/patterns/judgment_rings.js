@@ -29,7 +29,7 @@ JudgmentRingsPattern.prototype.update = function(dt) {
         this.spawnRing();
     }
 
-    var bb = this.battleBox;
+    var bb = Cbbox.getBound();
     var maxRadius = 400; // Big enough to clear the screen
     for (var i = this.rings.length - 1; i >= 0; i--) {
         this.rings[i].radius += this.ringSpeed * dt;
@@ -40,7 +40,7 @@ JudgmentRingsPattern.prototype.update = function(dt) {
 };
 
 JudgmentRingsPattern.prototype.spawnRing = function() {
-    var bb = this.battleBox;
+    var bb = Cbbox.getBound();
     // Spawn mostly near the center but with some variation
     var cx = (bb[0] + bb[2]) / 2 + (Math.random() - 0.5) * 80;
     var cy = (bb[1] + bb[3]) / 2 + (Math.random() - 0.5) * 80;

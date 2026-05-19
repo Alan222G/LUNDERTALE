@@ -40,7 +40,9 @@ VortexPullPattern.prototype.generateBullets = function(battleBox) {
 VortexPullPattern.prototype.update = function(dt) {
     this.elapsed += dt;
     this.vortexAngle += 2.5 * dt;
-    var bb = this.battleBox;
+    var bb = Cbbox.getBound();
+    this.vortexX = (bb[0] + bb[2]) / 2;
+    this.vortexY = (bb[1] + bb[3]) / 2;
     // Ramp up pull strength
     if (this.elapsed < 1.0) this.pullStrength = (this.elapsed / 1.0) * this.maxPull;
     else if (this.elapsed > this.duration - 1.0) this.pullStrength = Math.max(0, this.maxPull * (1 - (this.elapsed - (this.duration - 1.0))));

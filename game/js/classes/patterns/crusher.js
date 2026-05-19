@@ -26,7 +26,7 @@ CrusherPattern.prototype.update = function(dt) {
 
     BulletPattern.prototype.update.call(this, dt);
 
-    var bb = this.battleBox;
+    var bb = Cbbox.getBound();
     for (var i = this.bullets.length - 1; i >= 0; i--) {
         if (this.bullets[i].isOutOfBounds([bb[0] - 300, bb[1] - 300, bb[2] + 300, bb[3] + 300])) {
             this.bullets.splice(i, 1);
@@ -35,7 +35,7 @@ CrusherPattern.prototype.update = function(dt) {
 };
 
 CrusherPattern.prototype.spawnCrusher = function() {
-    var bb = this.battleBox;
+    var bb = Cbbox.getBound();
     var bw = this.bulletWidth;
     var bh = this.bulletHeight;
     var dir = this.rotation;

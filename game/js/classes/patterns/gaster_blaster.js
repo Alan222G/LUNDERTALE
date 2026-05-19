@@ -51,7 +51,7 @@ GasterBlasterPattern.prototype.update = function(dt) {
 };
 
 GasterBlasterPattern.prototype.spawnBeam = function() {
-    var bb = this.battleBox;
+    var bb = Cbbox.getBound();
     var horizontal = Math.random() > 0.5;
     var bbWidth = bb[2] - bb[0];
     var bbHeight = bb[3] - bb[1];

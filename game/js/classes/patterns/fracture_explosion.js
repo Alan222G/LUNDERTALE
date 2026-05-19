@@ -22,7 +22,7 @@ FractureExplosionPattern.prototype.generateBullets = function(battleBox) {
 
 FractureExplosionPattern.prototype.update = function(dt) {
     this.elapsed += dt;
-    var bb = this.battleBox;
+    var bb = Cbbox.getBound();
     this.spawnTimer += dt;
     if (this.spawnTimer >= this.spawnInterval && this.elapsed < this.duration - 2) {
         this.spawnTimer = 0;

@@ -31,7 +31,7 @@ WallsOBulletPattern.prototype.update = function(dt) {
     BulletPattern.prototype.update.call(this, dt);
 
     // Remove out-of-bounds bullets
-    var bb = this.battleBox;
+    var bb = Cbbox.getBound();
     for (var i = this.bullets.length - 1; i >= 0; i--) {
         if (this.bullets[i].isOutOfBounds([bb[0] - 200, bb[1] - 200, bb[2] + 200, bb[3] + 200])) {
             this.bullets.splice(i, 1);
@@ -40,7 +40,7 @@ WallsOBulletPattern.prototype.update = function(dt) {
 };
 
 WallsOBulletPattern.prototype.spawnWave = function() {
-    var bb = this.battleBox;
+    var bb = Cbbox.getBound();
     var dir = this.rotation;
     var bw = this.bulletWidth;
     var bh = this.bulletHeight;

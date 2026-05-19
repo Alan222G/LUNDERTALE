@@ -49,7 +49,7 @@ DivinePillarsPattern.prototype.update = function(dt) {
 };
 
 DivinePillarsPattern.prototype.spawnPillar = function() {
-    var bb = this.battleBox;
+    var bb = Cbbox.getBound();
     var x = randomRange(bb[0] + 10, bb[2] - this.pillarWidth - 10);
     this.pillars.push({
         x: x,

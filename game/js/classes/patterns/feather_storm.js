@@ -30,7 +30,7 @@ FeatherStormPattern.prototype.update = function(dt) {
 
     BulletPattern.prototype.update.call(this, dt);
 
-    var bb = this.battleBox;
+    var bb = Cbbox.getBound();
     for (var i = this.bullets.length - 1; i >= 0; i--) {
         if (this.bullets[i].isOutOfBounds([bb[0] - 40, bb[1] - 40, bb[2] + 40, bb[3] + 40])) {
             this.bullets.splice(i, 1);
@@ -39,7 +39,7 @@ FeatherStormPattern.prototype.update = function(dt) {
 };
 
 FeatherStormPattern.prototype.spawnFeather = function() {
-    var bb = this.battleBox;
+    var bb = Cbbox.getBound();
     var bbW = bb[2] - bb[0];
     var bbH = bb[3] - bb[1];
     var side = Math.floor(Math.random() * 4); // 0=top, 1=bottom, 2=left, 3=right

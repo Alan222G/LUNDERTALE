@@ -25,7 +25,7 @@ ClosingWallsPattern.prototype.update = function(dt) {
         this.waveCount++;
     }
     BulletPattern.prototype.update.call(this, dt);
-    var bb = this.battleBox;
+    var bb = Cbbox.getBound();
     for (var i = this.bullets.length - 1; i >= 0; i--) {
         if (this.bullets[i].isOutOfBounds([bb[0] - 200, bb[1] - 200, bb[2] + 200, bb[3] + 200])) {
             this.bullets.splice(i, 1);
@@ -34,7 +34,7 @@ ClosingWallsPattern.prototype.update = function(dt) {
 };
 
 ClosingWallsPattern.prototype.spawnWave = function() {
-    var bb = this.battleBox;
+    var bb = Cbbox.getBound();
     var bw = this.bulletWidth;
     var bh = this.bulletHeight;
     var dir = this.rotation;

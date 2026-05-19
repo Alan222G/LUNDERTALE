@@ -22,7 +22,7 @@ CelestialJudgmentPattern.prototype.generateBullets = function(battleBox) {
 
 CelestialJudgmentPattern.prototype.update = function(dt) {
     this.elapsed += dt;
-    var bb = this.battleBox;
+    var bb = Cbbox.getBound();
     this.hammerTimer += dt;
     if (this.hammerTimer >= this.hammerInterval && this.elapsed < this.duration - 2) {
         this.hammerTimer = 0;
@@ -70,7 +70,7 @@ CelestialJudgmentPattern.prototype.update = function(dt) {
 
 CelestialJudgmentPattern.prototype.draw = function(ctx) {
     ctx.save();
-    var bb = this.battleBox;
+    var bb = Cbbox.getBound();
     // Draw warning zones
     for (var i = 0; i < this.hammers.length; i++) {
         var h = this.hammers[i];

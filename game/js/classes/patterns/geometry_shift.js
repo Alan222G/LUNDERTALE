@@ -23,7 +23,7 @@ GeometryShiftPattern.prototype.generateBullets = function(battleBox) {
 GeometryShiftPattern.prototype.update = function(dt) {
     this.elapsed += dt;
     this.shapeTimer += dt;
-    var bb = this.battleBox;
+    var bb = Cbbox.getBound();
     // Spawn shapes
     if (this.shapeTimer >= this.shapeInterval && this.elapsed < this.duration - 2) {
         this.shapeTimer = 0;

@@ -37,7 +37,7 @@ GeometricDrillPattern.prototype.generateBullets = function(battleBox) {
 
 GeometricDrillPattern.prototype.update = function(dt) {
     this.elapsed += dt;
-    var bb = this.battleBox;
+    var bb = Cbbox.getBound();
 
     if (!this.exploded) {
         // Drill descends
@@ -141,7 +141,7 @@ GeometricDrillPattern.prototype.update = function(dt) {
 };
 
 GeometricDrillPattern.prototype.draw = function(ctx) {
-    var bb = this.battleBox;
+    var bb = Cbbox.getBound();
     ctx.save();
 
     if (!this.exploded) {
@@ -309,7 +309,7 @@ GeometricDrillPattern.prototype.checkCollision = function(sx, sy, sw, sh) {
     if (!this.exploded) {
         var drillLeft = this.drillX - this.drillWidth / 2;
         var drillRight = this.drillX + this.drillWidth / 2;
-        var drillTop = this.battleBox[1];
+        var drillTop = Cbbox.getBound()[1];
         var drillBottom = this.drillY + 35;
         if (soulCX + sw / 2 > drillLeft && soulCX - sw / 2 < drillRight &&
             soulCY + sh / 2 > drillTop && soulCY - sh / 2 < drillBottom) {
