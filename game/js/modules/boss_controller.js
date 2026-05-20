@@ -46,6 +46,11 @@ var BossController = (function() {
             "celestialJudgment": function(cfg) { return new CelestialJudgmentPattern(cfg || { damVal: 10, duration: 7 }); },
             "gravityWell": function(cfg) { return new GravityWellPattern(cfg || { damVal: 6, duration: 7 }); },
             "hawkingBurst": function(cfg) { return new HawkingBurstPattern(cfg || { damVal: 8, duration: 8 }); },
+            "sandStream": function(cfg) { return new SandStreamPattern(cfg || { damVal: 6, duration: 7 }); },
+            "clockworkGears": function(cfg) { return new ClockworkGearsPattern(cfg || { damVal: 7, duration: 8 }); },
+            "pendulumSwing": function(cfg) { return new PendulumSwingPattern(cfg || { damVal: 8, duration: 7 }); },
+            "timeReverse": function(cfg) { return new TimeReversePattern(cfg || { damVal: 7, duration: 8 }); },
+            "temporalCollapse": function(cfg) { return new TemporalCollapsePattern(cfg || { damVal: 9, duration: 8 }); },
         };
     }
 
@@ -109,6 +114,16 @@ var BossController = (function() {
             w = 280; h = 280;
         } else if (patternName === "hawkingBurst") {
             w = 300; h = 300;
+        } else if (patternName === "sandStream") {
+            w = 260; h = 280;
+        } else if (patternName === "clockworkGears") {
+            w = 300; h = 300;
+        } else if (patternName === "pendulumSwing") {
+            w = 350; h = 240;
+        } else if (patternName === "timeReverse") {
+            w = 300; h = 300;
+        } else if (patternName === "temporalCollapse") {
+            w = 320; h = 320;
         }
 
         return { patternName: patternName, width: w, height: h };

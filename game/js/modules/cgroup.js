@@ -14,6 +14,8 @@ var Cgroup = (function() {
             setupSeraphina();
         } else if (currentBossId === "ramiel") {
             setupRamiel();
+        } else if (currentBossId === "paradox") {
+            setupParadox();
         } else {
             setupSingularity();
         }
@@ -234,6 +236,78 @@ var Cgroup = (function() {
                 mercyHP: 100,
                 xpReward: 400,
                 goldReward: 250,
+            })
+        ];
+        enemies[0].bubblePos = enemies[0].damagePos.getAdd(new Vect(60, -160, 0));
+        mercies = ["Spare", "Flee"];
+        defends = [];
+    }
+
+    function setupParadox() {
+        enemies = [
+            new Enemy({
+                name: "Paradoja",
+                checkText: "Una anomalía temporal con forma de reloj. Contiene toda la arena del tiempo.",
+                maxHP: 2500,
+                curHP: 2500,
+                renderType: "hourglass",
+                atk: 11,
+                def: 8,
+                defense: 1.0,
+                acts: ["Check", "Observe", "Wait", "Break"],
+                actResponses: [
+                    "* PARADOJA - ATK 11 DEF 8\n* El tiempo se dobla a su alrededor.",
+                    "* Observas el flujo de las partículas.\n* El patrón se graba en tu mente.",
+                    "* Te quedas completamente quieto.\n* El tiempo parece detenerse.\n* Paradoja se intriga.",
+                    "* Golpeas el cristal del reloj.\n* Una grieta aparece.\n* Paradoja grita en agonía temporal."
+                ],
+                actFunctions: [
+                    function() { console.log("Checked Paradox"); },
+                    function() {
+                        console.log("Observed Paradox");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 15);
+                    },
+                    function() {
+                        console.log("Waited for Paradox");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 25);
+                    },
+                    function() {
+                        console.log("Broke Paradox");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 5);
+                        // Maybe enrage later
+                    }
+                ],
+                texts: [
+                    "* El reloj de arena late con un ritmo ancestral.",
+                    "* Las partículas fluyen... pero ¿hacia arriba o abajo?",
+                    "* El tiempo se siente distorsionado a tu alrededor.",
+                    "* Escuchas el tic-tac de un reloj invisible."
+                ],
+                speech: [
+                    "EL TIEMPO\nNO PERDONA.",
+                    "¿CREES QUE\nEL PASADO\nES SEGURO?",
+                    "TODO SE\nREPITE.\nSIEMPRE.",
+                    "YO HE VISTO\nTU FINAL."
+                ],
+                spriteId: "asriel",
+                attacks: ["sandStream"],
+                phases: [
+                    { patterns: ["sandStream", "clockworkGears", "pendulumSwing"], soulMode: "red", renderType: "hourglass",
+                      speech: ["EL TIEMPO\nNO PERDONA.", "TODO SE\nREPITE.\nSIEMPRE."] },
+                    { patterns: ["timeReverse", "clockworkGears", "sandStream", "pendulumSwing"], soulMode: "red", renderType: "hourglass_inverted",
+                      speech: ["¿CREES QUE\nEL PASADO\nES SEGURO?", "LA GRAVEDAD\nES UNA\nILUSION."] },
+                    { patterns: ["temporalCollapse", "sandStream", "timeReverse", "pendulumSwing", "clockworkGears"], soulMode: "red", renderType: "hourglass_shattered",
+                      speech: ["YO HE VISTO\nTU FINAL.", "EL CICLO\nSE ROMPE.", "NO HAY\nFUTURO."] }
+                ],
+                phaseHP: [2500, 3200, 4000],
+                karmaEnabled: false,
+                jitterEnabled: false,
+                damagePos: new Vect(370, 320, 0),
+                damageVel: 120,
+                bubbleOff: 30,
+                mercyHP: 100,
+                xpReward: 300,
+                goldReward: 200,
             })
         ];
         enemies[0].bubblePos = enemies[0].damagePos.getAdd(new Vect(60, -160, 0));

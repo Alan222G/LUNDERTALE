@@ -127,6 +127,12 @@ Enemy.prototype.draw = function(ctx) {
         this.drawRamielMorph(ctx);
     } else if (this.renderType === "ramiel_berserk") {
         this.drawRamielBerserk(ctx);
+    } else if (this.renderType === "hourglass") {
+        this.drawHourglass(ctx, 1);
+    } else if (this.renderType === "hourglass_inverted") {
+        this.drawHourglass(ctx, -1);
+    } else if (this.renderType === "hourglass_shattered") {
+        this.drawHourglassShattered(ctx);
     } else if (this.active) {
         for (var i = 0; i < this.animations.length; i++) {
             ctx.save();
@@ -1340,6 +1346,195 @@ Enemy.prototype.drawRamielBerserk = function(ctx) {
     ctx.beginPath();
     ctx.arc(cx, cy, 18, 0, Math.PI * 2);
     ctx.fill();
+
+    ctx.restore();
+};
+
+Enemy.prototype.drawHourglass = function(ctx, gravityDir) {
+    var time = this.timeCounter;
+    var cx = 370;
+    var cy = 180 + Math.sin(time * 1.5) * 10; // Floating
+    var size = 60;
+    
+    ctx.save();
+    
+    // Rotation if inverted
+    if (gravityDir === -1) {
+        ctx.translate(cx, cy);
+        ctx.rotate(Math.PI);
+        ctx.translate(-cx, -cy);
+    }
+
+    // Temporal distortion glow
+    var distAlpha = (0.2 + Math.sin(time * 3) * 0.1).toFixed(2);
+    var distGrad = ctx.createRadialGradient(cx, cy, 10, cx, cy, 120);
+    distGrad.addColorStop(0, "rgba(255, 200, 50, " + distAlpha + ")");
+    if (gravityDir === -1) {
+        distGrad.addColorStop(0, "rgba(50, 200, 255, " + distAlpha + ")");
+    }
+    distGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+    ctx.fillStyle = distGrad;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 120, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Orbital rings (clock hands)
+    var primaryColor = gravityDir === 1 ? "rgba(255, 220, 100, 0.7)" : "rgba(100, 220, 255, 0.7)";
+    ctx.strokeStyle = primaryColor;
+    for(var r=0; r<2; r++) {
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(time * (1 + r * 0.5) * (r % 2 === 0 ? 1 : -1));
+        ctx.scale(1, 0.3);
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(0, 0, 80 + r * 20, 0, Math.PI * 2);
+        ctx.stroke();
+        // Clock tick marks
+        for(var t=0; t<12; t++) {
+            ctx.beginPath();
+            var a = (t/12) * Math.PI * 2;
+            ctx.moveTo(Math.cos(a) * (80 + r * 20), Math.sin(a) * (80 + r * 20));
+            ctx.lineTo(Math.cos(a) * (85 + r * 20), Math.sin(a) * (85 + r * 20));
+            ctx.stroke();
+        }
+        ctx.restore();
+    }
+
+    // Sand particles (procedural)
+    ctx.fillStyle = primaryColor;
+    for(var i=0; i<30; i++) {
+        // Particles fall from top triangle to bottom
+        var pTime = (time * 0.8 + i * 0.1) % 1.0; 
+        var px = cx + (Math.random() - 0.5) * (1 - pTime) * size * 1.5;
+        var py = cy - size + pTime * size * 2;
+        
+        // Squeeze through center
+        if (Math.abs(py - cy) < 5) {
+            px = cx + (Math.random() - 0.5) * 4;
+        }
+
+        ctx.beginPath();
+        ctx.arc(px, py, 1.5, 0, Math.PI*2);
+        ctx.fill();
+    }
+
+    // Top Triangle
+    ctx.strokeStyle = primaryColor;
+    ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(cx - size, cy - size);
+    ctx.lineTo(cx + size, cy - size);
+    ctx.lineTo(cx, cy);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Bottom Triangle
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx - size, cy + size);
+    ctx.lineTo(cx + size, cy + size);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Central eye
+    var eyeBlink = Math.sin(time * 4) > 0.8 ? 0.1 : 1.0;
+    ctx.fillStyle = gravityDir === 1 ? "rgba(255, 50, 50, 0.9)" : "rgba(200, 50, 255, 0.9)";
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, 10, 4 * eyeBlink, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#fff";
+    ctx.beginPath();
+    ctx.arc(cx, cy, 2 * eyeBlink, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+};
+
+Enemy.prototype.drawHourglassShattered = function(ctx) {
+    var time = this.timeCounter;
+    var cx = 370;
+    var cy = 180 + Math.sin(time * 3) * 5; // Erratic floating
+    var size = 60;
+    
+    ctx.save();
+
+    // Glitch temporal glow
+    var distAlpha = (0.3 + Math.sin(time * 10) * 0.2).toFixed(2);
+    var distGrad = ctx.createRadialGradient(cx, cy, 10, cx, cy, 140);
+    distGrad.addColorStop(0, "rgba(255, 255, 255, " + distAlpha + ")");
+    distGrad.addColorStop(0.5, "rgba(255, 0, 0, " + (distAlpha * 0.5) + ")");
+    distGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+    ctx.fillStyle = distGrad;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 140, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Shattered fragments
+    var primaryColor = "rgba(255, 255, 255, 0.8)";
+    ctx.strokeStyle = primaryColor;
+    ctx.fillStyle = "rgba(20, 0, 0, 0.8)";
+    ctx.lineWidth = 2;
+
+    var frags = [
+        {x: -size*0.8, y: -size*0.8, rot: time},
+        {x: size*0.8, y: -size*0.8, rot: -time*1.2},
+        {x: 0, y: -size*0.3, rot: time*0.5},
+        {x: -size*0.8, y: size*0.8, rot: -time},
+        {x: size*0.8, y: size*0.8, rot: time*1.5},
+        {x: 0, y: size*0.3, rot: -time*0.8}
+    ];
+
+    for(var f=0; f<frags.length; f++) {
+        var frag = frags[f];
+        // Erradic movement
+        var fx = cx + frag.x + Math.sin(time * 5 + f) * 10;
+        var fy = cy + frag.y + Math.cos(time * 6 + f) * 10;
+        
+        ctx.save();
+        ctx.translate(fx, fy);
+        ctx.rotate(frag.rot);
+        ctx.beginPath();
+        ctx.moveTo(-15, -15);
+        ctx.lineTo(20, -5);
+        ctx.lineTo(5, 20);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    // Chaotic sand particles in all directions
+    ctx.fillStyle = "rgba(255, 200, 50, 0.8)";
+    for(var i=0; i<40; i++) {
+        var angle = i * Math.PI * 2 / 40 + time;
+        var r = (time * 50 + i * 15) % 120;
+        var px = cx + Math.cos(angle) * r;
+        var py = cy + Math.sin(angle) * r;
+        
+        ctx.beginPath();
+        ctx.arc(px, py, 1.5, 0, Math.PI*2);
+        ctx.fill();
+    }
+
+    // Multiple erratic eyes
+    for(var e=0; e<3; e++) {
+        var eyeX = cx + Math.cos(time * 2 + e * 2) * 30;
+        var eyeY = cy + Math.sin(time * 3 + e * 2) * 30;
+        
+        var eyeBlink = Math.sin(time * (5+e)) > 0.5 ? 0.1 : 1.0;
+        ctx.fillStyle = "rgba(255, 0, 0, 0.9)";
+        ctx.beginPath();
+        ctx.ellipse(eyeX, eyeY, 8, 3 * eyeBlink, time*e, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#fff";
+        ctx.beginPath();
+        ctx.arc(eyeX, eyeY, 1.5 * eyeBlink, 0, Math.PI * 2);
+        ctx.fill();
+    }
 
     ctx.restore();
 };

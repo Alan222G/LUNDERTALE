@@ -90,6 +90,23 @@ var Overworld = (function() {
             }
         });
         
+        // Paradox battle trigger (top-middle area)
+        triggerList.push({
+            x: 285, y: 85, w: 90, h: 90,
+            triggered: false,
+            bossId: "paradox",
+            label: "PARADOJA",
+            color: "rgba(255, 200, 50, 0.5)",
+            action: function() {
+                var self = this;
+                Transition.start(function() {
+                    main.gameState = main.GAME_STATE.COMBAT;
+                    Combat.init(self.bossId);
+                    Combat.setup(main.ctx);
+                });
+            }
+        });
+        
         // Load boss animations
         singFrames = [
             loadImg("Resources/Agujero negro Boss Map 1.PNG"),
