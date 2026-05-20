@@ -51,6 +51,12 @@ var BossController = (function() {
             "pendulumSwing": function(cfg) { return new PendulumSwingPattern(cfg || { damVal: 8, duration: 7 }); },
             "timeReverse": function(cfg) { return new TimeReversePattern(cfg || { damVal: 7, duration: 8 }); },
             "temporalCollapse": function(cfg) { return new TemporalCollapsePattern(cfg || { damVal: 9, duration: 8 }); },
+            "timeMines": function(cfg) { return new TimeMinesPattern(cfg || { damVal: 6, duration: 8 }); },
+            "sandWhirlwind": function(cfg) { return new SandWhirlwindPattern(cfg || { damVal: 6, duration: 8 }); },
+            "echoStrike": function(cfg) { return new EchoStrikePattern(cfg || { damVal: 8, duration: 8 }); },
+            "timeReverseWave": function(cfg) { return new TimeReverseWavePattern(cfg || { damVal: 7, duration: 9 }); },
+            "shatteredGlass": function(cfg) { return new ShatteredGlassPattern(cfg || { damVal: 8, duration: 8 }); },
+            "glitchWalls": function(cfg) { return new GlitchWallsPattern(cfg || { damVal: 9, duration: 8 }); },
         };
     }
 
@@ -124,6 +130,18 @@ var BossController = (function() {
             w = 300; h = 300;
         } else if (patternName === "temporalCollapse") {
             w = 320; h = 320;
+        } else if (patternName === "timeMines") {
+            w = 280; h = 280;
+        } else if (patternName === "sandWhirlwind") {
+            w = 320; h = 320;
+        } else if (patternName === "echoStrike") {
+            w = 280; h = 240;
+        } else if (patternName === "timeReverseWave") {
+            w = 340; h = 340;
+        } else if (patternName === "shatteredGlass") {
+            w = 360; h = 220;
+        } else if (patternName === "glitchWalls") {
+            w = 300; h = 300;
         }
 
         return { patternName: patternName, width: w, height: h };

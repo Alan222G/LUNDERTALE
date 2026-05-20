@@ -55,14 +55,14 @@ TemporalCollapsePattern.prototype.update = function(dt) {
     
     // Move safe zone
     if (this.moveTimer <= 0 && this.collapseProgress >= 1) {
-        this.moveTimer = 1.5;
+        this.moveTimer = 2.5; // Wait longer between moves
         this.targetSafeX = bb[0] + this.safeSize/2 + Math.random() * (bb[2] - bb[0] - this.safeSize);
         this.targetSafeY = bb[1] + this.safeSize/2 + Math.random() * (bb[3] - bb[1] - this.safeSize);
     }
     
-    // Lerp safe zone
-    this.safeX += (this.targetSafeX - this.safeX) * dt * 3;
-    this.safeY += (this.targetSafeY - this.safeY) * dt * 3;
+    // Lerp safe zone (slower, smoother)
+    this.safeX += (this.targetSafeX - this.safeX) * dt * 1.5;
+    this.safeY += (this.targetSafeY - this.safeY) * dt * 1.5;
     
     // Add glitches
     if (Math.random() < 0.2) {
@@ -85,7 +85,6 @@ TemporalCollapsePattern.prototype.draw = function(ctx) {
     var bb = Cbbox.getBound();
     ctx.save();
     
-    // Calculate wall edges based on safe zone and progress
     var l = bb[0] + (this.safeX - this.safeSize/2 - bb[0]) * this.collapseProgress;
     var r = bb[2] - (bb[2] - (this.safeX + this.safeSize/2)) * this.collapseProgress;
     var t = bb[1] + (this.safeY - this.safeSize/2 - bb[1]) * this.collapseProgress;
@@ -105,10 +104,23 @@ TemporalCollapsePattern.prototype.draw = function(ctx) {
     // Bottom wall
     ctx.fillRect(l, b, r - l, bb[3] - b);
     
-    // Inner border
+    // Inner border (Current Safe Zone)
     ctx.strokeStyle = "#FFF";
     ctx.lineWidth = 2;
     ctx.strokeRect(l, t, r - l, b - t);
+    
+    // Draw telegraph for TARGET safe zone if it's far away
+    if (this.collapseProgress >= 1) {
+        var dist = Math.sqrt(Math.pow(this.targetSafeX - this.safeX, 2) + Math.pow(this.targetSafeY - this.safeY, 2));
+        if (dist > 10) {
+            ctx.strokeStyle = "rgba(255, 200, 50, " + (0.3 + Math.sin(this.elapsed * 10) * 0.2) + ")"; // Pulsing gold
+            ctx.setLineDash([5, 5]);
+            var tl = this.targetSafeX - this.safeSize/2;
+            var tt = this.targetSafeY - this.safeSize/2;
+            ctx.strokeRect(tl, tt, this.safeSize, this.safeSize);
+            ctx.setLineDash([]);
+        }
+    }
     
     // Draw glitches
     ctx.shadowBlur = 0;

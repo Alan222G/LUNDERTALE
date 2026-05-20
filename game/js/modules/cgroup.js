@@ -292,11 +292,11 @@ var Cgroup = (function() {
                 spriteId: "asriel",
                 attacks: ["sandStream"],
                 phases: [
-                    { patterns: ["sandStream", "clockworkGears", "pendulumSwing"], soulMode: "red", renderType: "hourglass",
+                    { patterns: ["sandStream", "clockworkGears", "pendulumSwing", "timeMines", "sandWhirlwind"], soulMode: "red", renderType: "hourglass",
                       speech: ["EL TIEMPO\nNO PERDONA.", "TODO SE\nREPITE.\nSIEMPRE."] },
-                    { patterns: ["timeReverse", "clockworkGears", "sandStream", "pendulumSwing"], soulMode: "red", renderType: "hourglass_inverted",
+                    { patterns: ["timeReverse", "clockworkGears", "sandStream", "pendulumSwing", "echoStrike", "timeReverseWave"], soulMode: "red", renderType: "hourglass_inverted",
                       speech: ["¿CREES QUE\nEL PASADO\nES SEGURO?", "LA GRAVEDAD\nES UNA\nILUSION."] },
-                    { patterns: ["temporalCollapse", "sandStream", "timeReverse", "pendulumSwing", "clockworkGears"], soulMode: "red", renderType: "hourglass_shattered",
+                    { patterns: ["temporalCollapse", "sandStream", "timeReverse", "pendulumSwing", "clockworkGears", "shatteredGlass", "glitchWalls"], soulMode: "red", renderType: "hourglass_shattered",
                       speech: ["YO HE VISTO\nTU FINAL.", "EL CICLO\nSE ROMPE.", "NO HAY\nFUTURO."] }
                 ],
                 phaseHP: [2500, 3200, 4000],
