@@ -11,13 +11,15 @@ var PendulumSwingPattern = function(config) {
     this.length = 400;
     this.thickness = 18;
     
-    this.speed = 2.5;
+    this.speed = 1.5; // Slowed down from 2.5
     this.maxAngle = Math.PI / 2.2;
     
     this.sandParticles = [];
     this.angle = 0;
     this.battleBox = null;
     this.particleTimer = 0;
+    this.gapStart = 150;
+    this.gapSize = 80;
 };
 
 PendulumSwingPattern.prototype = Object.create(BulletPattern.prototype);
@@ -33,6 +35,9 @@ PendulumSwingPattern.prototype.generateBullets = function(battleBox) {
     this.sandParticles = [];
     this.angle = 0;
     this.particleTimer = 0;
+    
+    // Set a random gap height
+    this.gapStart = 80 + Math.random() * (battleBox[3] - battleBox[1] - 80);
 };
 
 PendulumSwingPattern.prototype.update = function(dt) {
@@ -45,6 +50,11 @@ PendulumSwingPattern.prototype.update = function(dt) {
     
     // Sine wave swing
     this.angle = Math.sin(this.elapsed * this.speed) * this.maxAngle;
+    
+    // Move gap up and down slowly
+    this.gapStart += Math.cos(this.elapsed * 2) * 50 * dt;
+    if (this.gapStart < 50) this.gapStart = 50;
+    if (this.gapStart > bb[3] - bb[1]) this.gapStart = bb[3] - bb[1];
     
     // Spawn ambient sand
     if (this.particleTimer >= 0.05) {
@@ -98,13 +108,18 @@ PendulumSwingPattern.prototype.draw = function(ctx) {
     grad.addColorStop(1, "rgba(0, 255, 255, 0)"); 
     
     ctx.fillStyle = grad;
+    
+    // Top part of beam
     ctx.beginPath();
-    ctx.fillRect(-this.thickness / 2, 0, this.thickness, this.length);
+    ctx.fillRect(-this.thickness / 2, 0, this.thickness, this.gapStart);
+    // Bottom part of beam
+    ctx.fillRect(-this.thickness / 2, this.gapStart + this.gapSize, this.thickness, this.length - (this.gapStart + this.gapSize));
     
     // Inner core
     ctx.shadowBlur = 0;
     ctx.fillStyle = "#FFFFFF";
-    ctx.fillRect(-this.thickness / 4, 0, this.thickness / 2, this.length);
+    ctx.fillRect(-this.thickness / 4, 0, this.thickness / 2, this.gapStart);
+    ctx.fillRect(-this.thickness / 4, this.gapStart + this.gapSize, this.thickness / 2, this.length - (this.gapStart + this.gapSize));
     
     // Pivot joint
     ctx.beginPath();
@@ -135,7 +150,14 @@ PendulumSwingPattern.prototype.checkCollision = function(sx, sy, sw, sh) {
     
     var dist = Math.sqrt(Math.pow(cx - projX, 2) + Math.pow(cy - projY, 2));
     
+    // Check if within thickness
     if (dist < (this.thickness / 2) + sw / 2) {
+        // Distance along the beam
+        var distAlong = t * this.length;
+        // Check if in gap
+        if (distAlong >= this.gapStart && distAlong <= this.gapStart + this.gapSize) {
+            return 0; // Safe in the gap
+        }
         return this.damVal;
     }
     

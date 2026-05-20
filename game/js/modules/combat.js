@@ -26,7 +26,7 @@ var Combat = (function() {
         Cgroup.setup(bossId);
 
         Sound.pauseSoundHard("bgm_overworld");
-        if (bossId === "singularity" || bossId === "ramiel" || bossId === "paradox") {
+        if (bossId === "singularity" || bossId === "ramiel" || bossId === "paradox" || bossId === "sachiel") {
             Sound.playSound("bgm_singularity", true);
             Sound.pauseSoundHard("bgm_seraphina");
         } else {

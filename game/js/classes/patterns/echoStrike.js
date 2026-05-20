@@ -25,8 +25,9 @@ EchoStrikePattern.prototype.update = function(dt) {
     if (this.markTimer >= 0.6 && this.elapsed < this.duration - 2) {
         this.markTimer = 0;
         
-        var px = Player.x;
-        var py = Player.y;
+        var pos = Soul.getPos();
+        var px = pos.x;
+        var py = pos.y;
         
         this.marks.push({
             x: px,

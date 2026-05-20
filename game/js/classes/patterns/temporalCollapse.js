@@ -113,12 +113,26 @@ TemporalCollapsePattern.prototype.draw = function(ctx) {
     if (this.collapseProgress >= 1) {
         var dist = Math.sqrt(Math.pow(this.targetSafeX - this.safeX, 2) + Math.pow(this.targetSafeY - this.safeY, 2));
         if (dist > 10) {
-            ctx.strokeStyle = "rgba(255, 200, 50, " + (0.3 + Math.sin(this.elapsed * 10) * 0.2) + ")"; // Pulsing gold
-            ctx.setLineDash([5, 5]);
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = "#FFD700";
+            ctx.strokeStyle = "rgba(255, 215, 0, " + (0.6 + Math.sin(this.elapsed * 15) * 0.4) + ")"; // Pulsing bright gold
+            ctx.lineWidth = 4;
+            ctx.setLineDash([10, 10]);
             var tl = this.targetSafeX - this.safeSize/2;
             var tt = this.targetSafeY - this.safeSize/2;
+            
+            // Draw an X in the middle
+            ctx.beginPath();
+            ctx.moveTo(tl + 10, tt + 10);
+            ctx.lineTo(tl + this.safeSize - 10, tt + this.safeSize - 10);
+            ctx.moveTo(tl + this.safeSize - 10, tt + 10);
+            ctx.lineTo(tl + 10, tt + this.safeSize - 10);
+            ctx.stroke();
+            
             ctx.strokeRect(tl, tt, this.safeSize, this.safeSize);
             ctx.setLineDash([]);
+            ctx.lineWidth = 1;
+            ctx.shadowBlur = 0;
         }
     }
     

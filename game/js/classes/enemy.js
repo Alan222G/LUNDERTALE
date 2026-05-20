@@ -133,6 +133,8 @@ Enemy.prototype.draw = function(ctx) {
         this.drawHourglass(ctx, -1);
     } else if (this.renderType === "hourglass_shattered") {
         this.drawHourglassShattered(ctx);
+    } else if (this.renderType === "sachiel") {
+        this.drawSachiel(ctx);
     } else if (this.active) {
         for (var i = 0; i < this.animations.length; i++) {
             ctx.save();
@@ -1536,6 +1538,140 @@ Enemy.prototype.drawHourglassShattered = function(ctx) {
         ctx.fill();
     }
 
+    ctx.restore();
+};
+
+Enemy.prototype.drawSachiel = function(ctx) {
+    var time = this.timeCounter * 5;
+    var bossX = 370;
+    var bossY = 150; // Raised slightly to fit attacks better
+    
+    if (this.jitterEnabled) {
+        bossX += Math.sin(this.timeCounter * 50) * 1.5;
+        bossY += Math.cos(this.timeCounter * 60) * 1.5;
+    }
+    
+    ctx.save();
+    
+    var breatheY = Math.sin(time) * 5;
+    var shoulderY = Math.cos(time * 0.7) * 8;
+
+    // Outer aura/glow (epic effect)
+    ctx.shadowBlur = 40;
+    ctx.shadowColor = "#FF0000";
+    
+    // 2. Hombros de Hueso (Placas superiores)
+    // Add curves instead of sharp lines for a more organic look
+    ctx.fillStyle = "#CCCCCC";
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = "#000";
+    
+    // Hombro izquierdo
+    ctx.beginPath();
+    ctx.moveTo(bossX - 40, bossY - 20 + breatheY);
+    ctx.quadraticCurveTo(bossX - 100, bossY - 60 + shoulderY, bossX - 150, bossY - 40 + shoulderY);
+    ctx.quadraticCurveTo(bossX - 140, bossY + 20, bossX - 100, bossY + 60);
+    ctx.quadraticCurveTo(bossX - 60, bossY + 20, bossX - 40, bossY - 20 + breatheY);
+    ctx.fill();
+
+    // Hombro derecho
+    ctx.beginPath();
+    ctx.moveTo(bossX + 40, bossY - 20 + breatheY);
+    ctx.quadraticCurveTo(bossX + 100, bossY - 60 + shoulderY, bossX + 150, bossY - 40 + shoulderY);
+    ctx.quadraticCurveTo(bossX + 140, bossY + 20, bossX + 100, bossY + 60);
+    ctx.quadraticCurveTo(bossX + 60, bossY + 20, bossX + 40, bossY - 20 + breatheY);
+    ctx.fill();
+
+    // 3. Torso Oscuro
+    // Using a gradient for depth
+    var torsoGrad = ctx.createLinearGradient(0, bossY - 20, 0, bossY + 120);
+    torsoGrad.addColorStop(0, "#1A1A2E");
+    torsoGrad.addColorStop(1, "#0A0A15");
+    ctx.fillStyle = torsoGrad;
+    ctx.beginPath();
+    ctx.moveTo(bossX - 60, bossY - 20 + breatheY);
+    ctx.quadraticCurveTo(bossX, bossY + breatheY, bossX + 60, bossY - 20 + breatheY);
+    ctx.quadraticCurveTo(bossX + 50, bossY + 60, bossX + 30, bossY + 120);
+    ctx.quadraticCurveTo(bossX, bossY + 140, bossX - 30, bossY + 120);
+    ctx.quadraticCurveTo(bossX - 50, bossY + 60, bossX - 60, bossY - 20 + breatheY);
+    ctx.fill();
+
+    // 4. Núcleo Rojo (Core)
+    var coreGlow = 0.7 + Math.sin(time * 2) * 0.3;
+    var coreX = bossX;
+    var coreY = bossY + 50 + breatheY;
+    
+    // Core details
+    ctx.shadowBlur = 20 + Math.sin(time * 5) * 10;
+    ctx.shadowColor = "#FF0000";
+    ctx.fillStyle = "rgba(255, 0, 0, " + coreGlow + ")";
+    ctx.beginPath();
+    ctx.arc(coreX, coreY, 18, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    
+    // Inner white hot core
+    ctx.fillStyle = "rgba(255, 255, 255, " + (coreGlow * 0.8) + ")";
+    ctx.beginPath();
+    ctx.arc(coreX, coreY, 8, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 5. Máscara de Sachiel (Cara de pájaro)
+    ctx.fillStyle = "#EAEAEA";
+    ctx.shadowBlur = 5;
+    ctx.shadowColor = "#000";
+    ctx.beginPath();
+    ctx.moveTo(bossX - 20, bossY - 45 + breatheY);
+    ctx.quadraticCurveTo(bossX, bossY - 55 + breatheY, bossX + 20, bossY - 45 + breatheY);
+    ctx.quadraticCurveTo(bossX + 10, bossY - 20 + breatheY, bossX, bossY + 15 + breatheY);
+    ctx.quadraticCurveTo(bossX - 10, bossY - 20 + breatheY, bossX - 20, bossY - 45 + breatheY);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Ojos
+    ctx.fillStyle = "#000000";
+    ctx.beginPath();
+    ctx.arc(bossX - 8, bossY - 25 + breatheY, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(bossX + 8, bossY - 25 + breatheY, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // 6. Particles
+    if (!this.sachielParticles) this.sachielParticles = [];
+    if (Math.random() < 0.4) {
+        this.sachielParticles.push({
+            x: coreX + (Math.random()-0.5)*20,
+            y: coreY + (Math.random()-0.5)*20,
+            vx: (Math.random()-0.5)*40,
+            vy: (Math.random()-0.5)*40 - 30,
+            life: 1.0,
+            size: Math.random()*4 + 1
+        });
+    }
+    
+    // Draw Particles
+    var dt = 1/60; // Approximated dt for drawing logic
+    ctx.fillStyle = "#FF3300";
+    for (var i = this.sachielParticles.length - 1; i >= 0; i--) {
+        var p = this.sachielParticles[i];
+        p.life -= dt;
+        if (p.life <= 0) {
+            this.sachielParticles.splice(i, 1);
+            continue;
+        }
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        
+        ctx.globalAlpha = p.life;
+        ctx.globalCompositeOperation = "lighter";
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    ctx.globalAlpha = 1.0;
+    ctx.globalCompositeOperation = "source-over";
+    
     ctx.restore();
 };
 

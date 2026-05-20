@@ -107,6 +107,23 @@ var Overworld = (function() {
             }
         });
         
+        // Sachiel battle trigger (bottom-middle area)
+        triggerList.push({
+            x: 285, y: 335, w: 90, h: 90,
+            triggered: false,
+            bossId: "sachiel",
+            label: "SACHIEL",
+            color: "rgba(200, 0, 0, 0.5)",
+            action: function() {
+                var self = this;
+                Transition.start(function() {
+                    main.gameState = main.GAME_STATE.COMBAT;
+                    Combat.init(self.bossId);
+                    Combat.setup(main.ctx);
+                });
+            }
+        });
+        
         // Load boss animations
         singFrames = [
             loadImg("Resources/Agujero negro Boss Map 1.PNG"),
@@ -222,9 +239,9 @@ var Overworld = (function() {
                 if (t.bossId === "seraphina") {
                     var frameIdx = Math.floor(animTimer * 4) % seraFrames.length;
                     img = seraFrames[frameIdx];
-                } else if (t.bossId === "ramiel") {
-                    // Procedural mini crystal for Ramiel
-                    img = null; // Force fallback to procedural
+                } else if (t.bossId === "ramiel" || t.bossId === "paradox" || t.bossId === "sachiel") {
+                    // Procedural mini crystal or colored box for new bosses
+                    img = null; 
                 } else {
                     var frameIdx = Math.floor(animTimer * 4) % singFrames.length;
                     img = singFrames[frameIdx];
@@ -269,6 +286,105 @@ var Overworld = (function() {
                     ctx.fill();
                     ctx.restore();
                     
+                    ctx.shadowBlur = 0;
+                } else if (t.bossId === "paradox") {
+                    // Draw procedural mini hourglass
+                    var pTime = animTimer;
+                    var pSize = 18 + Math.sin(pTime * 2) * 2;
+                    
+                    ctx.save();
+                    ctx.translate(gcx, gcy);
+                    ctx.rotate(Math.sin(pTime * 0.5) * 0.1);
+                    
+                    // Gold glow
+                    ctx.shadowBlur = 12;
+                    ctx.shadowColor = "rgba(255, 200, 50, 0.8)";
+                    
+                    // Top triangle
+                    ctx.fillStyle = "rgba(255, 200, 50, 0.85)";
+                    ctx.beginPath();
+                    ctx.moveTo(-pSize * 0.5, -pSize);
+                    ctx.lineTo(pSize * 0.5, -pSize);
+                    ctx.lineTo(0, 0);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Bottom triangle
+                    ctx.fillStyle = "rgba(200, 150, 30, 0.85)";
+                    ctx.beginPath();
+                    ctx.moveTo(-pSize * 0.5, pSize);
+                    ctx.lineTo(pSize * 0.5, pSize);
+                    ctx.lineTo(0, 0);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Sand particles
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = "#FFE080";
+                    for (var sp = 0; sp < 4; sp++) {
+                        var sy = Math.sin(pTime * 3 + sp) * pSize * 0.4;
+                        var sx = Math.sin(pTime * 2 + sp * 2) * 3;
+                        ctx.beginPath();
+                        ctx.arc(sx, sy, 1.5, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    
+                    ctx.restore();
+                    ctx.shadowBlur = 0;
+                } else if (t.bossId === "sachiel") {
+                    // Draw procedural mini Sachiel (mask + core)
+                    var sTime = animTimer;
+                    
+                    ctx.save();
+                    ctx.translate(gcx, gcy);
+                    
+                    // Red core glow
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = "rgba(255, 0, 0, 0.8)";
+                    
+                    // Body (dark torso)
+                    ctx.fillStyle = "#1A1A2E";
+                    ctx.beginPath();
+                    ctx.moveTo(-12, -5);
+                    ctx.quadraticCurveTo(0, -10, 12, -5);
+                    ctx.quadraticCurveTo(10, 15, 0, 22);
+                    ctx.quadraticCurveTo(-10, 15, -12, -5);
+                    ctx.fill();
+                    
+                    // Core
+                    var cPulse = 0.7 + Math.sin(sTime * 5) * 0.3;
+                    ctx.fillStyle = "rgba(255, 0, 0, " + cPulse.toFixed(2) + ")";
+                    ctx.beginPath();
+                    ctx.arc(0, 8, 4, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // White mask
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = "#EAEAEA";
+                    ctx.beginPath();
+                    ctx.moveTo(-6, -12);
+                    ctx.quadraticCurveTo(0, -16, 6, -12);
+                    ctx.quadraticCurveTo(3, -4, 0, 2);
+                    ctx.quadraticCurveTo(-3, -4, -6, -12);
+                    ctx.fill();
+                    
+                    // Eyes
+                    ctx.fillStyle = "#000";
+                    ctx.beginPath();
+                    ctx.arc(-2.5, -8, 1.5, 0, Math.PI * 2);
+                    ctx.arc(2.5, -8, 1.5, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Shoulders
+                    ctx.fillStyle = "#CCC";
+                    ctx.beginPath();
+                    ctx.ellipse(-16, 0, 8, 5, -0.3, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.ellipse(16, 0, 8, 5, 0.3, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.restore();
                     ctx.shadowBlur = 0;
                 } else if (img && img.complete) {
                     ctx.drawImage(img, t.x, t.y, t.w, t.h);

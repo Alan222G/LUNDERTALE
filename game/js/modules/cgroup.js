@@ -14,6 +14,8 @@ var Cgroup = (function() {
             setupSeraphina();
         } else if (currentBossId === "ramiel") {
             setupRamiel();
+        } else if (currentBossId === "sachiel") {
+            setupSachiel();
         } else if (currentBossId === "paradox") {
             setupParadox();
         } else {
@@ -243,6 +245,78 @@ var Cgroup = (function() {
         defends = [];
     }
 
+    function setupSachiel() {
+        enemies = [
+            new Enemy({
+                name: "Sachiel",
+                checkText: "The Third Angel. Its core glows with a terrible light.",
+                maxHP: 3000,
+                curHP: 3000,
+                renderType: "sachiel",
+                atk: 15,
+                def: 12,
+                defense: 1.1,
+                acts: ["Check", "Study Core", "Shield", "Flee"],
+                actResponses: [
+                    "* SACHIEL - ATK 15 DEF 12\n* The Third Angel.\n* Its A.T. Field is weak but its strikes are brutal.",
+                    "* You observe the red core closely.\n* It pulses faster... is it afraid?",
+                    "* You brace yourself.\n* A faint light surrounds you.",
+                    "* You turn your back and run away..."
+                ],
+                actFunctions: [
+                    function() { console.log("Checked Sachiel"); },
+                    function() {
+                        console.log("Studied Sachiel's Core");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 20);
+                    },
+                    function() {
+                        console.log("Shielded against Sachiel");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 10);
+                    },
+                    function() {
+                        console.log("Fled Sachiel");
+                        Sound.playSound("flash", true);
+                        Transition.start("overworld", function() {
+                            main.gameState = main.GAME_STATE.OVERWORLD;
+                            Overworld.setup(main.ctx);
+                        });
+                    }
+                ],
+                texts: [
+                    "* The Third Angel stands before you.",
+                    "* The core glows an angry red.",
+                    "* You feel the heat of annihilation.",
+                    "* The bone mask stares blankly.",
+                    "* Sachiel's shoulders heave with each breath."
+                ],
+                speech: [
+                    "...",
+                    "...",
+                    "...",
+                    "..."
+                ],
+                spriteId: "asriel",
+                attacks: ["causalLightBeam", "bonePiercers"],
+                phases: [
+                    { patterns: ["causalLightBeam", "bonePiercers"], soulMode: "red", renderType: "sachiel",
+                      speech: ["...", "...", "..."] }
+                ],
+                phaseHP: [3000],
+                karmaEnabled: false,
+                jitterEnabled: true,
+                damagePos: new Vect(370, 320, 0),
+                damageVel: 120,
+                bubbleOff: 30,
+                mercyHP: 100,
+                xpReward: 300,
+                goldReward: 150,
+            })
+        ];
+        enemies[0].bubblePos = enemies[0].damagePos.getAdd(new Vect(60, -160, 0));
+        mercies = ["Spare", "Flee"];
+        defends = [];
+    }
+
     function setupParadox() {
         enemies = [
             new Enemy({
@@ -294,7 +368,7 @@ var Cgroup = (function() {
                 phases: [
                     { patterns: ["sandStream", "clockworkGears", "pendulumSwing", "timeMines", "sandWhirlwind"], soulMode: "red", renderType: "hourglass",
                       speech: ["EL TIEMPO\nNO PERDONA.", "TODO SE\nREPITE.\nSIEMPRE."] },
-                    { patterns: ["timeReverse", "clockworkGears", "sandStream", "pendulumSwing", "echoStrike", "timeReverseWave"], soulMode: "red", renderType: "hourglass_inverted",
+                    { patterns: ["timeReverse", "clockworkGears", "sandStream", "pendulumSwing", "echoStrike", "timeLasers"], soulMode: "red", renderType: "hourglass_inverted",
                       speech: ["¿CREES QUE\nEL PASADO\nES SEGURO?", "LA GRAVEDAD\nES UNA\nILUSION."] },
                     { patterns: ["temporalCollapse", "sandStream", "timeReverse", "pendulumSwing", "clockworkGears", "shatteredGlass", "glitchWalls"], soulMode: "red", renderType: "hourglass_shattered",
                       speech: ["YO HE VISTO\nTU FINAL.", "EL CICLO\nSE ROMPE.", "NO HAY\nFUTURO."] }
