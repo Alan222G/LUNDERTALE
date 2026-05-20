@@ -59,6 +59,27 @@ SandWhirlwindPattern.prototype.draw = function(ctx) {
         var px = cx + Math.cos(angle) * r;
         var py = cy + Math.sin(angle) * r;
         
+        // Save trail history
+        if (!p.history) p.history = [];
+        p.history.push({x: px, y: py});
+        if (p.history.length > 5) p.history.shift();
+        
+        // Draw trail
+        if (p.history.length > 1) {
+            ctx.beginPath();
+            ctx.moveTo(p.history[0].x, p.history[0].y);
+            for(var h=1; h<p.history.length; h++) {
+                ctx.lineTo(p.history[h].x, p.history[h].y);
+            }
+            ctx.strokeStyle = p.color;
+            ctx.lineWidth = p.size;
+            ctx.lineCap = "round";
+            ctx.globalAlpha = 0.5;
+            ctx.stroke();
+        }
+        
+        // Draw head
+        ctx.globalAlpha = 1.0;
         ctx.fillStyle = p.color;
         ctx.beginPath();
         ctx.arc(px, py, p.size, 0, Math.PI * 2);

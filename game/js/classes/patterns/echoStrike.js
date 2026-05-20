@@ -77,18 +77,36 @@ EchoStrikePattern.prototype.draw = function(ctx) {
             ctx.moveTo(m.x, m.y - 5); ctx.lineTo(m.x, m.y + 5);
             ctx.stroke();
         } else {
+            // Play sound once
+            if (!m.soundPlayed) {
+                Sound.playSound("select", true);
+                m.soundPlayed = true;
+            }
+            
+            // Screen shake
+            ctx.translate((Math.random()-0.5)*3, (Math.random()-0.5)*3);
+            
             // Strike phase
-            ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+            var strikeProgress = (m.time - m.delay) / 0.3; // 0 to 1
+            ctx.fillStyle = "rgba(255, 255, 255, " + (1 - strikeProgress) + ")";
             ctx.shadowBlur = 20;
             ctx.shadowColor = "#0FF";
             
+            // Central explosion
             ctx.beginPath();
             ctx.arc(m.x, m.y, m.radius, 0, Math.PI * 2);
             ctx.fill();
             
+            // Expanding shockwave
+            ctx.strokeStyle = "rgba(0, 255, 255, " + (1 - strikeProgress) + ")";
+            ctx.lineWidth = 4 * (1 - strikeProgress);
+            ctx.beginPath();
+            ctx.arc(m.x, m.y, m.radius + strikeProgress * 40, 0, Math.PI * 2);
+            ctx.stroke();
+            
             // Strike beam from above
             var bb = Cbbox.getBound();
-            ctx.fillStyle = "rgba(0, 255, 255, 0.6)";
+            ctx.fillStyle = "rgba(0, 255, 255, " + (0.8 * (1 - strikeProgress)) + ")";
             ctx.fillRect(m.x - m.radius, bb[1] - 50, m.radius * 2, m.y - (bb[1] - 50));
         }
     }

@@ -7,6 +7,7 @@ var TimeMinesPattern = function(config) {
     
     this.mines = [];
     this.lasers = [];
+    this.particles = [];
     this.spawnTimer = 0;
     this.spawnInterval = 2.0;
 };
@@ -17,6 +18,7 @@ TimeMinesPattern.prototype.generateBullets = function(battleBox) {
     this.elapsed = 0;
     this.mines = [];
     this.lasers = [];
+    this.particles = [];
     this.spawnTimer = 1.5; // Spawn first mine quickly
 };
 
@@ -48,13 +50,28 @@ TimeMinesPattern.prototype.update = function(dt) {
         
         if (m.timer <= 0 && !m.exploded) {
             m.exploded = true;
+            Sound.playSound("select", true); // Explosion sound
+            
             // Spawn lasers
             this.lasers.push({
                 x: m.x,
                 y: m.y,
                 life: 0.5,
-                width: 20
+                width: 25 // Slightly thicker lasers
             });
+            
+            // Explosion particles
+            for(var p=0; p<15; p++) {
+                this.particles.push({
+                    x: m.x,
+                    y: m.y,
+                    vx: (Math.random()-0.5)*200,
+                    vy: (Math.random()-0.5)*200,
+                    life: 0.5 + Math.random()*0.5,
+                    size: Math.random()*4 + 2,
+                    color: Math.random() > 0.5 ? "#FFAA00" : "#FF5500"
+                });
+            }
             this.mines.splice(i, 1);
         }
     }
@@ -66,33 +83,59 @@ TimeMinesPattern.prototype.update = function(dt) {
             this.lasers.splice(j, 1);
         }
     }
+    
+    // Update particles
+    for (var p = this.particles.length - 1; p >= 0; p--) {
+        var part = this.particles[p];
+        part.x += part.vx * dt;
+        part.y += part.vy * dt;
+        part.life -= dt;
+        if (part.life <= 0) this.particles.splice(p, 1);
+    }
 };
 
 TimeMinesPattern.prototype.draw = function(ctx) {
     ctx.save();
+    var bb = Cbbox.getBound();
+    
+    // Screen shake effect when lasers are active
+    if (this.lasers.length > 0) {
+        ctx.translate((Math.random()-0.5)*4, (Math.random()-0.5)*4);
+    }
     
     // Draw lasers
-    var bb = Cbbox.getBound();
     for (var j = 0; j < this.lasers.length; j++) {
         var l = this.lasers[j];
         var alpha = l.life / 0.5;
         
-        ctx.fillStyle = "rgba(255, 200, 0, " + alpha + ")";
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = "#FF0";
+        ctx.fillStyle = "rgba(255, 100, 0, " + alpha + ")";
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = "#FF5500";
         
         // Horizontal laser
         ctx.fillRect(bb[0], l.y - l.width/2, bb[2] - bb[0], l.width);
         // Vertical laser
         ctx.fillRect(l.x - l.width/2, bb[1], l.width, bb[3] - bb[1]);
         
+        // Bright core
         ctx.fillStyle = "rgba(255, 255, 255, " + alpha + ")";
+        ctx.shadowBlur = 0;
         ctx.fillRect(bb[0], l.y - l.width/4, bb[2] - bb[0], l.width/2);
         ctx.fillRect(l.x - l.width/4, bb[1], l.width/2, bb[3] - bb[1]);
     }
     
-    // Draw mines
-    ctx.shadowBlur = 0;
+    // Draw particles
+    for (var p = 0; p < this.particles.length; p++) {
+        var part = this.particles[p];
+        ctx.fillStyle = part.color;
+        ctx.globalAlpha = part.life;
+        ctx.beginPath();
+        ctx.arc(part.x, part.y, part.size, 0, Math.PI*2);
+        ctx.fill();
+    }
+    ctx.globalAlpha = 1.0;
+    
+    // Draw mines with telegraphs
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.font = "16px 'Determination Mono', monospace";
@@ -100,18 +143,31 @@ TimeMinesPattern.prototype.draw = function(ctx) {
     for (var i = 0; i < this.mines.length; i++) {
         var m = this.mines[i];
         var num = Math.ceil(m.timer);
-        
-        // Beeping effect
         var beep = (m.timer % 0.2 < 0.1) && m.timer < 1.0;
         
+        // Draw telegraph lines if close to detonation
+        if (m.timer < 1.0) {
+            ctx.strokeStyle = "rgba(255, 0, 0, 0.3)";
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(bb[0], m.y); ctx.lineTo(bb[2], m.y);
+            ctx.moveTo(m.x, bb[1]); ctx.lineTo(m.x, bb[3]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+        
+        ctx.shadowBlur = beep ? 15 : 0;
+        ctx.shadowColor = "#F00";
         ctx.beginPath();
-        ctx.arc(m.x, m.y, 15, 0, Math.PI * 2);
-        ctx.fillStyle = beep ? "#F00" : "#A00";
+        ctx.arc(m.x, m.y, 16, 0, Math.PI * 2);
+        ctx.fillStyle = beep ? "#F00" : "#600";
         ctx.fill();
         ctx.strokeStyle = "#FFF";
         ctx.lineWidth = 2;
         ctx.stroke();
         
+        ctx.shadowBlur = 0;
         ctx.fillStyle = "#FFF";
         ctx.fillText(num.toString(), m.x, m.y);
     }
