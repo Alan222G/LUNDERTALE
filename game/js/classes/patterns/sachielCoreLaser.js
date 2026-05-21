@@ -96,6 +96,20 @@ SachielCoreLaserPattern.prototype.draw = function(ctx) {
     var bw = bb[2] - bb[0];
     var bh = bb[3] - bb[1];
     
+    ctx.save();
+    
+    // Massive local screen shake when firing
+    if (this.state === "FIRE") {
+        var shake = 10;
+        ctx.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
+        
+        // Initial blinding flash
+        if (this.stateTimer < 0.15) {
+            ctx.fillStyle = "rgba(255, 255, 255, " + (1 - this.stateTimer/0.15) + ")";
+            ctx.fillRect(bb[0] - 50, bb[1] - 50, bw + 100, bh + 100);
+        }
+    }
+    
     for (var i = 0; i < this.lasers.length; i++) {
         var l = this.lasers[i];
         
@@ -186,6 +200,8 @@ SachielCoreLaserPattern.prototype.draw = function(ctx) {
             ctx.shadowBlur = 0;
         }
     }
+    
+    ctx.restore();
 };
 
 SachielCoreLaserPattern.prototype.checkCollision = function(sx, sy, sw, sh) {

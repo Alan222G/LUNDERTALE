@@ -1625,6 +1625,39 @@ Enemy.prototype.drawSachiel = function(ctx) {
     var breatheY = Math.sin(time) * 4;
     var shoulderY = Math.cos(time * 0.7) * 6;
 
+    // VFX: Ambient pulsing dark aura behind the whole figure
+    var auraPulse = 0.15 + Math.sin(time * 0.8) * 0.08;
+    var auraGrad = ctx.createRadialGradient(bossX, bossY + 80, 20, bossX, bossY + 80, 200);
+    auraGrad.addColorStop(0, "rgba(80, 0, 0, " + auraPulse.toFixed(2) + ")");
+    auraGrad.addColorStop(0.4, "rgba(40, 0, 20, " + (auraPulse * 0.6).toFixed(2) + ")");
+    auraGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+    ctx.fillStyle = auraGrad;
+    ctx.beginPath();
+    ctx.arc(bossX, bossY + 80, 200, 0, Math.PI * 2);
+    ctx.fill();
+
+    // VFX: Floating dark energy wisps around the body
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    for (var w = 0; w < 12; w++) {
+        var wAngle = time * 0.4 + w * Math.PI * 2 / 12;
+        var wRadX = 100 + Math.sin(time * 0.6 + w * 1.5) * 40;
+        var wRadY = 80 + Math.cos(time * 0.5 + w * 2) * 30;
+        var wx = bossX + Math.cos(wAngle) * wRadX;
+        var wy = bossY + 60 + Math.sin(wAngle) * wRadY;
+        var wSize = 3 + Math.sin(time * 2 + w) * 1.5;
+        var wAlpha = (0.08 + Math.sin(time * 1.5 + w * 3) * 0.06);
+        if (wAlpha < 0) wAlpha = 0;
+        var wGrad = ctx.createRadialGradient(wx, wy, 0, wx, wy, wSize * 3);
+        wGrad.addColorStop(0, "rgba(60, 0, 30, " + wAlpha.toFixed(3) + ")");
+        wGrad.addColorStop(1, "rgba(20, 0, 10, 0)");
+        ctx.fillStyle = wGrad;
+        ctx.beginPath();
+        ctx.arc(wx, wy, wSize * 3, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    ctx.restore();
+
     // Helper function to draw a bird mask
     function drawBirdMask(ctx, mx, my, scale, rot) {
         ctx.save();
@@ -1936,6 +1969,33 @@ Enemy.prototype.drawSachiel = function(ctx) {
     drawRib(coreX, coreY, false); // Left ribs
     drawRib(coreX, coreY, true);  // Right ribs
 
+    // VFX: Faint red energy lines connecting masks to core
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    var maskPositions = [
+        { x: bossX - 25, y: bossY - 5 + breatheY },
+        { x: bossX + 35, y: bossY + 25 + breatheY },
+        { x: bossX, y: bossY + 10 + breatheY }
+    ];
+    for (var ml = 0; ml < maskPositions.length; ml++) {
+        var mp = maskPositions[ml];
+        var lineAlpha = (0.08 + Math.sin(time * 3 + ml * 2) * 0.06).toFixed(3);
+        var lineGrad = ctx.createLinearGradient(mp.x, mp.y, coreX, coreY);
+        lineGrad.addColorStop(0, "rgba(255, 50, 0, " + lineAlpha + ")");
+        lineGrad.addColorStop(0.5, "rgba(255, 0, 0, " + (parseFloat(lineAlpha) * 1.5).toFixed(3) + ")");
+        lineGrad.addColorStop(1, "rgba(255, 80, 0, " + lineAlpha + ")");
+        ctx.strokeStyle = lineGrad;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(mp.x, mp.y);
+        // Curvy energy line with midpoint offset
+        var midX = (mp.x + coreX) / 2 + Math.sin(time * 4 + ml * 3) * 12;
+        var midY = (mp.y + coreY) / 2 + Math.cos(time * 3 + ml * 2) * 8;
+        ctx.quadraticCurveTo(midX, midY, coreX, coreY);
+        ctx.stroke();
+    }
+    ctx.restore();
+
     // 6. Three Bird Masks
     // Left small mask
     drawBirdMask(ctx, bossX - 25, bossY - 5 + breatheY, 0.7, -0.3);
@@ -1944,16 +2004,18 @@ Enemy.prototype.drawSachiel = function(ctx) {
     // Center large mask
     drawBirdMask(ctx, bossX, bossY + 10 + breatheY, 1.2, 0);
 
-    // 7. Core Particles
+    // 7. Core Particles (MORE numerous and dramatic)
     if (!this.sachielParticles) this.sachielParticles = [];
-    if (Math.random() < 0.5) {
+    // Spawn 2-3 particles per frame instead of 0-1
+    var spawnCount = 2 + (Math.random() < 0.5 ? 1 : 0);
+    for (var sp = 0; sp < spawnCount; sp++) {
         this.sachielParticles.push({
-            x: coreX + (Math.random()-0.5)*25,
-            y: coreY + (Math.random()-0.5)*25,
-            vx: (Math.random()-0.5)*40,
-            vy: (Math.random()-0.5)*40 - 20,
-            life: 1.0,
-            size: Math.random()*3 + 1
+            x: coreX + (Math.random()-0.5)*30,
+            y: coreY + (Math.random()-0.5)*30,
+            vx: (Math.random()-0.5)*60,
+            vy: (Math.random()-0.5)*50 - 30,
+            life: 0.8 + Math.random() * 0.6,
+            size: Math.random()*4 + 1.5
         });
     }
     
@@ -2004,6 +2066,39 @@ Enemy.prototype.drawSachielMutated = function(ctx) {
     ctx.fill();
     ctx.globalCompositeOperation = "source-over";
     
+    // VFX: Corruption particles floating off the body
+    if (!this._mutCorruptionParticles) this._mutCorruptionParticles = [];
+    if (Math.random() < 0.7) {
+        this._mutCorruptionParticles.push({
+            x: (Math.random() - 0.5) * 80,
+            y: -10 + Math.random() * 100,
+            vx: (Math.random() - 0.5) * 15,
+            vy: -15 - Math.random() * 25,
+            life: 0.8 + Math.random() * 0.6,
+            maxLife: 0.8 + Math.random() * 0.6,
+            size: 1.5 + Math.random() * 3
+        });
+    }
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    var cdt = 1/60;
+    for (var cp = this._mutCorruptionParticles.length - 1; cp >= 0; cp--) {
+        var cPart = this._mutCorruptionParticles[cp];
+        cPart.life -= cdt;
+        if (cPart.life <= 0) { this._mutCorruptionParticles.splice(cp, 1); continue; }
+        cPart.x += cPart.vx * cdt;
+        cPart.y += cPart.vy * cdt;
+        var cpAlpha = (cPart.life / cPart.maxLife) * 0.5;
+        ctx.fillStyle = "rgba(180, 0, 40, " + cpAlpha.toFixed(3) + ")";
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = "rgba(255, 0, 50, 0.3)";
+        ctx.beginPath();
+        ctx.arc(cPart.x, cPart.y, cPart.size * (cPart.life / cPart.maxLife), 0, Math.PI * 2);
+        ctx.fill();
+    }
+    ctx.shadowBlur = 0;
+    ctx.restore();
+
     // --- Torso (asymmetric, swollen right side) ---
     ctx.fillStyle = "#2a1a15";
     ctx.beginPath();
@@ -2014,9 +2109,15 @@ Enemy.prototype.drawSachielMutated = function(ctx) {
     ctx.closePath();
     ctx.fill();
     
-    // Pulsating dark veins
-    ctx.strokeStyle = "rgba(150, 0, 50, 0.8)";
-    ctx.lineWidth = 1.5;
+    // Pulsating dark veins (VFX: glow brighter over time)
+    var veinTimeFactor = Math.min(time * 0.04, 1.0); // gradually intensify
+    var veinBaseAlpha = 0.5 + veinTimeFactor * 0.4;
+    var veinGlow = 3 + veinTimeFactor * 10;
+    ctx.save();
+    ctx.shadowBlur = veinGlow;
+    ctx.shadowColor = "rgba(255, 0, 50, " + (veinTimeFactor * 0.6).toFixed(2) + ")";
+    ctx.strokeStyle = "rgba(150, 0, 50, " + veinBaseAlpha.toFixed(2) + ")";
+    ctx.lineWidth = 1.5 + veinTimeFactor * 0.8;
     for (var v = 0; v < 8; v++) {
         var vx = -30 + v * 9;
         ctx.beginPath();
@@ -2026,6 +2127,8 @@ Enemy.prototype.drawSachielMutated = function(ctx) {
         }
         ctx.stroke();
     }
+    ctx.shadowBlur = 0;
+    ctx.restore();
     
     // --- Shoulders ---
     ctx.fillStyle = "#3a2a20";
@@ -2043,6 +2146,43 @@ Enemy.prototype.drawSachielMutated = function(ctx) {
     ctx.moveTo(65, -20); ctx.lineTo(80, -35); ctx.lineTo(70, -15);
     ctx.closePath();
     ctx.fill();
+
+    // VFX: Dripping liquid/corruption from swollen right shoulder & arms
+    ctx.save();
+    var dripPoints = [
+        { x: 55, y: 13, speed: 0.7 },   // right shoulder bottom
+        { x: 65, y: 10, speed: 0.9 },   // right shoulder edge
+        { x: 42, y: 85, speed: 1.1 },   // right torso bottom edge
+        { x: -38, y: 80, speed: 0.8 },  // left torso bottom
+        { x: 70, y: 55, speed: 0.6 }    // right arm
+    ];
+    for (var d = 0; d < dripPoints.length; d++) {
+        var dp = dripPoints[d];
+        // Each drip cycles: falls, resets
+        var dripCycle = ((time * dp.speed + d * 1.3) % 2.0) / 2.0; // 0..1
+        var dripLen = 8 + dripCycle * 18;
+        var dripAlpha = (1 - dripCycle) * 0.6;
+        var dGrad = ctx.createLinearGradient(dp.x, dp.y, dp.x, dp.y + dripLen);
+        dGrad.addColorStop(0, "rgba(100, 0, 20, " + dripAlpha.toFixed(2) + ")");
+        dGrad.addColorStop(0.6, "rgba(60, 0, 10, " + (dripAlpha * 0.6).toFixed(2) + ")");
+        dGrad.addColorStop(1, "rgba(40, 0, 0, 0)");
+        ctx.strokeStyle = dGrad;
+        ctx.lineWidth = 2 + Math.sin(d * 2) * 0.5;
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.moveTo(dp.x, dp.y);
+        ctx.lineTo(dp.x + Math.sin(time * 2 + d) * 2, dp.y + dripLen);
+        ctx.stroke();
+        // Drip droplet at the bottom
+        if (dripCycle > 0.6) {
+            var dropAlpha = (1 - dripCycle) * 1.5;
+            ctx.fillStyle = "rgba(120, 0, 30, " + dropAlpha.toFixed(2) + ")";
+            ctx.beginPath();
+            ctx.arc(dp.x + Math.sin(time * 2 + d) * 2, dp.y + dripLen, 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    ctx.restore();
     
     // --- Arms ---
     ctx.fillStyle = "#2a1a15";
@@ -2081,6 +2221,21 @@ Enemy.prototype.drawSachielMutated = function(ctx) {
     ctx.fillStyle = "#FFF";
     ctx.beginPath(); ctx.arc(5, -55, 2, 0, Math.PI * 2); ctx.fill();
     ctx.shadowBlur = 0;
+
+    // VFX: Rotating energy rings emanating from the third eye
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    for (var ring = 0; ring < 3; ring++) {
+        var ringRadius = 10 + ring * 8 + Math.sin(time * 3 + ring * 2) * 3;
+        var ringAlpha = (0.15 - ring * 0.04 + Math.sin(time * 5 + ring) * 0.05);
+        if (ringAlpha < 0) ringAlpha = 0;
+        ctx.strokeStyle = "rgba(255, 30, 0, " + ringAlpha.toFixed(3) + ")";
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.ellipse(5, -55, ringRadius, ringRadius * 0.4, time * (1.5 + ring * 0.5), 0, Math.PI * 2);
+        ctx.stroke();
+    }
+    ctx.restore();
     
     // --- Core (intensely throbbing) ---
     var corePulse = 0.7 + Math.sin(time * 5) * 0.3;
@@ -2242,6 +2397,23 @@ Enemy.prototype.drawSachielAngelic = function(ctx) {
     ctx.lineWidth = 2;
     ctx.beginPath(); ctx.ellipse(0, 0, 35, 8, 0, 0, Math.PI * 2); ctx.stroke();
     ctx.restore();
+    
+    // --- Holy Light Rays ---
+    ctx.globalCompositeOperation = "lighter";
+    for (var r = 0; r < 12; r++) {
+        var rayAngle = time * 0.2 + (r * Math.PI / 6);
+        var rayLength = 300 + Math.sin(time * 3 + r) * 50;
+        var rayGrad = ctx.createLinearGradient(0, -30, Math.cos(rayAngle) * rayLength, Math.sin(rayAngle) * rayLength - 30);
+        rayGrad.addColorStop(0, "rgba(255, 255, 255, 0.3)");
+        rayGrad.addColorStop(1, "rgba(200, 100, 255, 0)");
+        
+        ctx.fillStyle = rayGrad;
+        ctx.beginPath();
+        ctx.moveTo(0, -30);
+        ctx.lineTo(Math.cos(rayAngle - 0.1) * rayLength, Math.sin(rayAngle - 0.1) * rayLength - 30);
+        ctx.lineTo(Math.cos(rayAngle + 0.1) * rayLength, Math.sin(rayAngle + 0.1) * rayLength - 30);
+        ctx.fill();
+    }
     
     // --- Ethereal Body ---
     ctx.globalCompositeOperation = "lighter";
