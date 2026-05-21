@@ -6,7 +6,7 @@ var SachielEyeSparkPattern = function(config) {
     this.damVal = config.damVal || 6;
     this.sparks = [];
     this.spawnTimer = 0;
-    this.spawnInterval = 0.4;
+    this.spawnInterval = 0.8;
 };
 
 SachielEyeSparkPattern.prototype = Object.create(BulletPattern.prototype);
@@ -38,8 +38,8 @@ SachielEyeSparkPattern.prototype.update = function(dt) {
             });
         }
         
-        // Increase spawn rate slightly
-        if (this.spawnInterval > 0.2) this.spawnInterval -= 0.05;
+        // Increase spawn rate slightly less
+        if (this.spawnInterval > 0.4) this.spawnInterval -= 0.05;
     }
     
     // Update sparks

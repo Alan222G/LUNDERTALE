@@ -20,40 +20,44 @@ SachielLonginusPattern.prototype.update = function(dt) {
     if (this.spawnTimer >= this.spawnInterval && this.elapsed < this.duration - 1.5) {
         this.spawnTimer = 0;
         
-        // Pick a random side to spawn from (0=Left, 1=Right, 2=Top, 3=Bottom)
-        var side = Math.floor(Math.random() * 4);
-        var x, y, vx, vy, rot;
-        var speed = 1000; // VERY FAST
+        // Pick one horizontal (0 or 1) and one vertical (2 or 3)
+        var sides = [Math.floor(Math.random() * 2), 2 + Math.floor(Math.random() * 2)];
         
-        if (side === 0) { // Left to Right
-            x = bb[0] - 300;
-            y = bb[1] + 20 + Math.random() * (bb[3] - bb[1] - 40);
-            vx = speed; vy = 0; rot = 0;
-        } else if (side === 1) { // Right to Left
-            x = bb[2] + 300;
-            y = bb[1] + 20 + Math.random() * (bb[3] - bb[1] - 40);
-            vx = -speed; vy = 0; rot = Math.PI;
-        } else if (side === 2) { // Top to Bottom
-            x = bb[0] + 20 + Math.random() * (bb[2] - bb[0] - 40);
-            y = bb[1] - 300;
-            vx = 0; vy = speed; rot = Math.PI/2;
-        } else { // Bottom to Top
-            x = bb[0] + 20 + Math.random() * (bb[2] - bb[0] - 40);
-            y = bb[3] + 300;
-            vx = 0; vy = -speed; rot = -Math.PI/2;
+        for (var i = 0; i < sides.length; i++) {
+            var side = sides[i];
+            var x, y, vx, vy, rot;
+            var speed = 1000; // VERY FAST
+            
+            if (side === 0) { // Left to Right
+                x = bb[0] - 300;
+                y = bb[1] + 20 + Math.random() * (bb[3] - bb[1] - 40);
+                vx = speed; vy = 0; rot = 0;
+            } else if (side === 1) { // Right to Left
+                x = bb[2] + 300;
+                y = bb[1] + 20 + Math.random() * (bb[3] - bb[1] - 40);
+                vx = -speed; vy = 0; rot = Math.PI;
+            } else if (side === 2) { // Top to Bottom
+                x = bb[0] + 20 + Math.random() * (bb[2] - bb[0] - 40);
+                y = bb[1] - 300;
+                vx = 0; vy = speed; rot = Math.PI/2;
+            } else { // Bottom to Top
+                x = bb[0] + 20 + Math.random() * (bb[2] - bb[0] - 40);
+                y = bb[3] + 300;
+                vx = 0; vy = -speed; rot = -Math.PI/2;
+            }
+            
+            this.lances.push({
+                x: x, y: y,
+                targetX: x, targetY: y, // To track warning line
+                vx: vx, vy: vy,
+                rot: rot,
+                state: "WARN",
+                timer: 0,
+                warnTime: 0.9,
+                width: 200, // Length of lance
+                height: 20 // Thickness
+            });
         }
-        
-        this.lances.push({
-            x: x, y: y,
-            targetX: x, targetY: y, // To track warning line
-            vx: vx, vy: vy,
-            rot: rot,
-            state: "WARN",
-            timer: 0,
-            warnTime: 0.9,
-            width: 200, // Length of lance
-            height: 20 // Thickness
-        });
         
         if (this.spawnInterval > 0.8) this.spawnInterval -= 0.1;
     }
