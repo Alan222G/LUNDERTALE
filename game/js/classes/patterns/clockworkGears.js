@@ -98,11 +98,20 @@ ClockworkGearsPattern.prototype.draw = function(ctx) {
         ctx.translate(gear.x, gear.y);
         ctx.rotate(gear.rotation);
 
-        ctx.shadowColor = 'rgba(255, 215, 0, 0.8)';
-        ctx.shadowBlur = 15;
-        ctx.fillStyle = '#b8860b'; // DarkGoldenRod
-        ctx.strokeStyle = '#ffd700'; // Gold
-        ctx.lineWidth = 3;
+        ctx.shadowColor = 'rgba(255, 200, 0, 0.4)';
+        ctx.shadowBlur = 20;
+
+        // Metallic gradient
+        var metalGrad = ctx.createLinearGradient(-gear.radius, -gear.radius, gear.radius, gear.radius);
+        metalGrad.addColorStop(0, "#F5D76E"); // Light Gold
+        metalGrad.addColorStop(0.3, "#A67C00"); // Dark Gold
+        metalGrad.addColorStop(0.7, "#BF953F"); // Mid Gold
+        metalGrad.addColorStop(1, "#FCF6BA"); // Highlight
+        
+        ctx.fillStyle = metalGrad;
+        ctx.strokeStyle = "#FFE87C"; // Brighter gold for edges
+        ctx.lineWidth = 2;
+        ctx.lineJoin = "round";
 
         var innerRadius = gear.radius * 0.75;
         var outerRadius = gear.radius;
@@ -132,8 +141,11 @@ ClockworkGearsPattern.prototype.draw = function(ctx) {
         ctx.arc(0, 0, gear.radius * 0.35, 0, Math.PI * 2);
         ctx.fill();
 
-        // Draw inner rim and spokes
+        // Draw inner rim and spokes with 3D inset shadow effect
         ctx.globalCompositeOperation = 'source-over';
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = "#8A6600";
+        ctx.lineWidth = 4;
         ctx.beginPath();
         ctx.arc(0, 0, gear.radius * 0.35, 0, Math.PI * 2);
         ctx.stroke();
@@ -147,11 +159,19 @@ ClockworkGearsPattern.prototype.draw = function(ctx) {
         ctx.stroke();
 
         // Central peg
-        ctx.fillStyle = '#DAA520';
+        ctx.fillStyle = '#FFD700';
+        ctx.strokeStyle = '#B8860B';
+        ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.arc(0, 0, gear.radius * 0.15, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
+        
+        // Specular highlight on peg
+        ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
+        ctx.beginPath();
+        ctx.arc(-gear.radius * 0.05, -gear.radius * 0.05, gear.radius * 0.04, 0, Math.PI * 2);
+        ctx.fill();
 
         ctx.restore();
     }

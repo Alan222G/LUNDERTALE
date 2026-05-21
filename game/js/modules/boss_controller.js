@@ -59,6 +59,12 @@ var BossController = (function() {
             "glitchWalls": function(cfg) { return new GlitchWallsPattern(cfg || { damVal: 9, duration: 8 }); },
             "causalLightBeam": function(cfg) { return new CausalLightBeamPattern(cfg || { damVal: 10, duration: 7 }); },
             "bonePiercers": function(cfg) { return new BonePiercersPattern(cfg || { damVal: 8, duration: 8 }); },
+            "timeDilation": function(cfg) { return new TimeDilationPattern(cfg || { damVal: 8, duration: 8 }); },
+            "gravityInversion": function(cfg) { return new GravityInversionPattern(cfg || { damVal: 9, duration: 8 }); },
+            "entropyVortex": function(cfg) { return new EntropyVortexPattern(cfg || { damVal: 10, duration: 9 }); },
+            "coreEruption": function(cfg) { return new CoreEruptionPattern(cfg || { damVal: 12, duration: 7 }); },
+            "bloodBoil": function(cfg) { return new BloodBoilPattern(cfg || { damVal: 11, duration: 8 }); },
+            "voidImplosion": function(cfg) { return new VoidImplosionPattern(cfg || { damVal: 15, duration: 8 }); },
         };
     }
 
@@ -148,6 +154,18 @@ var BossController = (function() {
             w = 300; h = 200;
         } else if (patternName === "bonePiercers") {
             w = 350; h = 250;
+        } else if (patternName === "timeDilation") {
+            w = 320; h = 320;
+        } else if (patternName === "gravityInversion") {
+            w = 300; h = 300;
+        } else if (patternName === "entropyVortex") {
+            w = 340; h = 340;
+        } else if (patternName === "coreEruption") {
+            w = 320; h = 320;
+        } else if (patternName === "bloodBoil") {
+            w = 300; h = 300;
+        } else if (patternName === "voidImplosion") {
+            w = 340; h = 340;
         }
 
         return { patternName: patternName, width: w, height: h };

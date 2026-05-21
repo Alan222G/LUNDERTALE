@@ -66,35 +66,88 @@ GlitchWallsPattern.prototype.update = function(dt) {
 GlitchWallsPattern.prototype.draw = function(ctx) {
     ctx.save();
     
+    var hasActive = false;
+    
     for (var i = 0; i < this.zones.length; i++) {
         var z = this.zones[i];
         
         if (z.timer < z.telegraph) {
-            // Telegraph
-            ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
-            ctx.fillRect(z.x, z.y, z.w, z.h);
+            // Telegraph — RGB scanline warning
+            var progress = z.timer / z.telegraph;
             
-            // Draw warning border
-            ctx.strokeStyle = (Math.floor(z.timer * 20) % 2 === 0) ? "#FFF" : "#F00";
-            ctx.lineWidth = 1;
+            // Red channel offset
+            ctx.fillStyle = "rgba(255, 0, 0, " + (0.1 + progress * 0.15) + ")";
+            ctx.fillRect(z.x - 3, z.y, z.w, z.h);
+            // Green channel
+            ctx.fillStyle = "rgba(0, 255, 0, " + (0.1 + progress * 0.15) + ")";
+            ctx.fillRect(z.x, z.y, z.w, z.h);
+            // Blue channel offset
+            ctx.fillStyle = "rgba(0, 0, 255, " + (0.1 + progress * 0.15) + ")";
+            ctx.fillRect(z.x + 3, z.y, z.w, z.h);
+            
+            // Scanlines across the zone
+            ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
+            for (var sl = z.y; sl < z.y + z.h; sl += 4) {
+                if (Math.random() > 0.5) {
+                    ctx.fillRect(z.x, sl, z.w, 1);
+                }
+            }
+            
+            // Pulsing border
+            ctx.strokeStyle = "rgba(255, 0, 255, " + (0.3 + Math.sin(z.timer * 20) * 0.3) + ")";
+            ctx.lineWidth = 2;
             ctx.strokeRect(z.x, z.y, z.w, z.h);
         } else {
-            // Active damage
-            // Static glitch effect
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = "#F0F";
+            // Active — Full RGB glitch
+            hasActive = true;
+            if (!z.soundPlayed) {
+                Sound.playSound("select", true);
+                z.soundPlayed = true;
+            }
             
-            for (var g = 0; g < 5; g++) {
-                ctx.fillStyle = Math.random() > 0.5 ? "#FFF" : "#F0F";
-                var gHeight = z.h / 5;
-                ctx.fillRect(
-                    z.x + (Math.random()-0.5)*10, 
-                    z.y + g * gHeight, 
-                    z.w, 
-                    gHeight
-                );
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = "#FF00FF";
+            
+            // RGB Channel Separation
+            ctx.globalCompositeOperation = "lighter";
+            
+            // Red channel
+            ctx.fillStyle = "rgba(255, 0, 0, 0.6)";
+            ctx.fillRect(z.x - 4 + Math.random()*2, z.y, z.w, z.h);
+            // Green channel
+            ctx.fillStyle = "rgba(0, 255, 0, 0.5)";
+            ctx.fillRect(z.x + Math.random()*2, z.y + 2, z.w, z.h);
+            // Blue channel
+            ctx.fillStyle = "rgba(0, 0, 255, 0.6)";
+            ctx.fillRect(z.x + 4 + Math.random()*2, z.y - 2, z.w, z.h);
+            
+            ctx.globalCompositeOperation = "source-over";
+            ctx.shadowBlur = 0;
+            
+            // TV Static noise
+            for (var n = 0; n < 30; n++) {
+                var nx = z.x + Math.random() * z.w;
+                var ny = z.y + Math.random() * z.h;
+                var nw = Math.random() * 15 + 2;
+                var nh = Math.random() * 3 + 1;
+                var colors = ["#FF0000", "#00FF00", "#0000FF", "#FFFFFF", "#FF00FF", "#000000"];
+                ctx.fillStyle = colors[Math.floor(Math.random() * colors.length)];
+                ctx.fillRect(nx, ny, nw, nh);
+            }
+            
+            // Horizontal glitch bars
+            for (var g = 0; g < 4; g++) {
+                var gy = z.y + Math.random() * z.h;
+                var gOffset = (Math.random() - 0.5) * 20;
+                ctx.fillStyle = "rgba(255, 255, 255, " + (Math.random() * 0.5) + ")";
+                ctx.fillRect(z.x + gOffset, gy, z.w, 2);
             }
         }
+    }
+    
+    // Screen shake when active
+    if (hasActive) {
+        ctx.translate((Math.random()-0.5)*5, (Math.random()-0.5)*5);
     }
     
     ctx.restore();

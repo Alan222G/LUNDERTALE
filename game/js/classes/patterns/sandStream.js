@@ -64,27 +64,34 @@ SandStreamPattern.prototype.update = function(dt) {
 
 SandStreamPattern.prototype.draw = function(ctx) {
     ctx.save();
+    
+    ctx.globalCompositeOperation = "lighter";
+    
+    // Draw particles with trails
     for (var i = 0; i < this.particles.length; i++) {
         var p = this.particles[i];
-        ctx.fillStyle = p.color;
         
-        // Motion blur effect
-        var trace = p.vy * 0.05;
-        ctx.beginPath();
-        ctx.moveTo(p.x - p.size/2, p.y);
-        ctx.lineTo(p.x, p.y - trace);
-        ctx.lineTo(p.x + p.size/2, p.y);
-        ctx.lineTo(p.x, p.y + trace);
-        ctx.closePath();
-        ctx.fill();
+        var trace = p.vy * 0.15; // Longer trail
         
-        ctx.shadowBlur = 5;
+        ctx.strokeStyle = p.color;
+        ctx.lineWidth = p.size;
+        ctx.lineCap = "round";
+        ctx.shadowBlur = 10;
         ctx.shadowColor = p.color;
+        
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size/2, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.moveTo(p.x, p.y);
+        ctx.lineTo(p.x, p.y - trace);
+        ctx.stroke();
+        
+        // Core particle
         ctx.shadowBlur = 0;
+        ctx.fillStyle = "#FFF";
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * 0.4, 0, Math.PI * 2);
+        ctx.fill();
     }
+    ctx.globalCompositeOperation = "source-over";
     ctx.restore();
 };
 

@@ -299,9 +299,15 @@ var Cgroup = (function() {
                 attacks: ["causalLightBeam", "bonePiercers"],
                 phases: [
                     { patterns: ["causalLightBeam", "bonePiercers"], soulMode: "red", renderType: "sachiel",
-                      speech: ["...", "...", "..."] }
+                      speech: ["...", "...", "..."] },
+                    { patterns: ["causalLightBeam", "bonePiercers", "coreEruption"], soulMode: "red", renderType: "sachiel_mutated",
+                      speech: ["GRRRR...", "THE CORE\nHUNGERS.", "YOU CANNOT\nSTOP IT."] },
+                    { patterns: ["causalLightBeam", "bonePiercers", "coreEruption", "bloodBoil"], soulMode: "red", renderType: "sachiel_beast",
+                      speech: ["RAAAGH!", "I WILL\nDEVOUR\nYOU.", "BLOOD\nBOILS."] },
+                    { patterns: ["coreEruption", "bonePiercers", "bloodBoil", "voidImplosion"], soulMode: "red", renderType: "sachiel_angelic",
+                      speech: ["...", "LIGHT\nCONSUMES\nALL.", "TRANSCEND."] }
                 ],
-                phaseHP: [3000],
+                phaseHP: [3000, 3500, 4000, 5000],
                 karmaEnabled: false,
                 jitterEnabled: true,
                 damagePos: new Vect(370, 320, 0),
@@ -366,11 +372,11 @@ var Cgroup = (function() {
                 spriteId: "asriel",
                 attacks: ["sandStream"],
                 phases: [
-                    { patterns: ["sandStream", "clockworkGears", "pendulumSwing", "timeMines", "sandWhirlwind"], soulMode: "red", renderType: "hourglass",
+                    { patterns: ["sandStream", "clockworkGears", "pendulumSwing", "timeMines", "sandWhirlwind", "timeDilation"], soulMode: "red", renderType: "hourglass",
                       speech: ["EL TIEMPO\nNO PERDONA.", "TODO SE\nREPITE.\nSIEMPRE."] },
-                    { patterns: ["timeReverse", "clockworkGears", "sandStream", "pendulumSwing", "echoStrike", "timeLasers"], soulMode: "red", renderType: "hourglass_inverted",
+                    { patterns: ["timeReverse", "clockworkGears", "sandStream", "pendulumSwing", "echoStrike", "timeLasers", "gravityInversion"], soulMode: "red", renderType: "hourglass_inverted",
                       speech: ["¿CREES QUE\nEL PASADO\nES SEGURO?", "LA GRAVEDAD\nES UNA\nILUSION."] },
-                    { patterns: ["temporalCollapse", "sandStream", "timeReverse", "pendulumSwing", "clockworkGears", "shatteredGlass", "glitchWalls"], soulMode: "red", renderType: "hourglass_shattered",
+                    { patterns: ["temporalCollapse", "sandStream", "timeReverse", "pendulumSwing", "clockworkGears", "shatteredGlass", "glitchWalls", "entropyVortex"], soulMode: "red", renderType: "hourglass_shattered",
                       speech: ["YO HE VISTO\nTU FINAL.", "EL CICLO\nSE ROMPE.", "NO HAY\nFUTURO."] }
                 ],
                 phaseHP: [2500, 3200, 4000],

@@ -139,24 +139,75 @@ BonePiercersPattern.prototype.draw = function(ctx) {
             ctx.arc(p.startX, p.startY, 4, 0, Math.PI * 2);
             ctx.fill();
         } else {
-            // Active piercer — thick white line from start to current position
-            ctx.shadowBlur = 12;
-            ctx.shadowColor = "#FFFFFF";
-            ctx.strokeStyle = "#FFFFFF";
-            ctx.lineWidth = p.width;
-            ctx.lineCap = "round";
+            // Active piercer — Textured bone spear
+            if (!p.soundPlayed && p.timer >= p.telegraphTime) {
+                Sound.playSound("select", true); // Whoosh sound
+                p.soundPlayed = true;
+            }
             
-            ctx.beginPath();
-            ctx.moveTo(p.startX, p.startY);
-            ctx.lineTo(p.currentX, p.currentY);
-            ctx.stroke();
+            var dx = p.currentX - p.startX;
+            var dy = p.currentY - p.startY;
+            var len = Math.sqrt(dx*dx + dy*dy);
+            var angle = Math.atan2(dy, dx);
             
-            // Red tip
-            ctx.fillStyle = "#FF3333";
-            ctx.shadowColor = "#FF0000";
-            ctx.beginPath();
-            ctx.arc(p.currentX, p.currentY, p.width / 2 + 3, 0, Math.PI * 2);
-            ctx.fill();
+            if (len > 1) {
+                ctx.save();
+                ctx.translate(p.startX, p.startY);
+                ctx.rotate(angle);
+                
+                // Red Dark Energy Trail
+                ctx.globalCompositeOperation = "lighter";
+                var trailGrad = ctx.createLinearGradient(0, 0, len, 0);
+                trailGrad.addColorStop(0, "rgba(255, 0, 0, 0)");
+                trailGrad.addColorStop(0.5, "rgba(255, 50, 50, 0.4)");
+                trailGrad.addColorStop(1, "rgba(255, 0, 0, 0)");
+                ctx.fillStyle = trailGrad;
+                ctx.fillRect(0, -p.width*1.5, len, p.width*3);
+                ctx.globalCompositeOperation = "source-over";
+                
+                // Draw Bone Shape (tapered)
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = "#FF0000";
+                
+                var boneGrad = ctx.createLinearGradient(0, -p.width, 0, p.width);
+                boneGrad.addColorStop(0, "#D3CDBF"); // Edge
+                boneGrad.addColorStop(0.5, "#FFFFFF"); // Center highlight
+                boneGrad.addColorStop(1, "#A8A295"); // Shadow edge
+                
+                ctx.fillStyle = boneGrad;
+                ctx.beginPath();
+                ctx.moveTo(0, -p.width/2);
+                ctx.lineTo(len - 20, -p.width/3); // Tapering
+                ctx.lineTo(len, 0);               // Sharp tip
+                ctx.lineTo(len - 20, p.width/3);  // Tapering
+                ctx.lineTo(0, p.width/2);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Bone Textures (cracks)
+                ctx.shadowBlur = 0;
+                ctx.strokeStyle = "rgba(0, 0, 0, 0.3)";
+                ctx.lineWidth = 1;
+                for(var c=0; c<3; c++) {
+                    var cxStart = len * 0.2 + c * (len * 0.2);
+                    ctx.beginPath();
+                    ctx.moveTo(cxStart, -p.width/4);
+                    ctx.lineTo(cxStart + 10, 0);
+                    ctx.lineTo(cxStart - 5, p.width/4);
+                    ctx.stroke();
+                }
+                
+                // Red glowing tip
+                ctx.globalCompositeOperation = "lighter";
+                ctx.fillStyle = "rgba(255, 50, 50, 0.9)";
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = "#FF0000";
+                ctx.beginPath();
+                ctx.arc(len, 0, 6 + Math.random()*4, 0, Math.PI*2);
+                ctx.fill();
+                
+                ctx.restore();
+            }
         }
     }
     

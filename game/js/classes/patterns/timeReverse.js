@@ -76,41 +76,94 @@ TimeReversePattern.prototype.update = function(dt) {
 };
 
 TimeReversePattern.prototype.draw = function(ctx) {
+    var bb = Cbbox.getBound();
     ctx.save();
+    
+    // --- VHS Overlay Effects ---
+    // Scanlines
+    ctx.fillStyle = "rgba(255, 255, 255, " + (0.02 + Math.random() * 0.03) + ")";
+    for (var y = bb[1]; y < bb[3]; y += 4) {
+        ctx.fillRect(bb[0], y, bb[2] - bb[0], 1);
+    }
+    
+    // CRT Vignette
+    var cx = (bb[0] + bb[2]) / 2;
+    var cy = (bb[1] + bb[3]) / 2;
+    var radius = Math.max(bb[2] - bb[0], bb[3] - bb[1]) * 0.7;
+    var vignette = ctx.createRadialGradient(cx, cy, radius * 0.5, cx, cy, radius);
+    vignette.addColorStop(0, "rgba(0, 0, 0, 0)");
+    vignette.addColorStop(1, "rgba(0, 0, 0, 0.6)");
+    ctx.fillStyle = vignette;
+    ctx.fillRect(bb[0], bb[1], bb[2] - bb[0], bb[3] - bb[1]);
+    
+    // VHS Timestamp
+    ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+    ctx.font = "16px monospace";
+    ctx.textAlign = "right";
+    var timeStr = "RECO " + ("00:0" + Math.floor((this.duration - this.elapsed)*10)).slice(-5);
+    ctx.fillText(timeStr, bb[2] - 10, bb[3] - 10);
+    
+    // Play overlay
+    ctx.fillStyle = "rgba(255, 255, 255, " + (Math.floor(this.elapsed * 4) % 2 === 0 ? 0.7 : 0.2) + ")";
+    ctx.fillText("⏪ REW", bb[0] + 60, bb[1] + 20);
+
     for (var i = 0; i < this.bullets.length; i++) {
         var b = this.bullets[i];
         
-        // Draw trail
+        // Draw trail with bloom
         if (b.trail.length > 0) {
+            ctx.save();
+            ctx.globalCompositeOperation = "lighter";
             ctx.beginPath();
             ctx.moveTo(b.x, b.y);
             for (var t = 0; t < b.trail.length; t++) {
                 ctx.lineTo(b.trail[t].x, b.trail[t].y);
             }
-            ctx.strokeStyle = "rgba(0, 255, 255, 0.4)";
+            ctx.strokeStyle = "rgba(0, 255, 255, 0.5)";
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = "#0FF";
             ctx.lineWidth = b.size;
             ctx.lineCap = "round";
             ctx.stroke();
+            
+            // Core trail
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
+            ctx.shadowBlur = 0;
+            ctx.lineWidth = b.size * 0.4;
+            ctx.stroke();
+            ctx.restore();
         }
         
-        // Draw diamond shape
+        // Draw diamond shape with Chromatic Aberration
+        ctx.save();
         ctx.translate(b.x, b.y);
         ctx.rotate(b.angle);
         
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = "#0FF";
-        ctx.fillStyle = "#FFF";
+        var drawDiamond = function(offsetX) {
+            ctx.beginPath();
+            ctx.moveTo(offsetX, -b.size);
+            ctx.lineTo(b.size + offsetX, 0);
+            ctx.lineTo(offsetX, b.size);
+            ctx.lineTo(-b.size + offsetX, 0);
+            ctx.closePath();
+            ctx.fill();
+        };
         
-        ctx.beginPath();
-        ctx.moveTo(0, -b.size);
-        ctx.lineTo(b.size, 0);
-        ctx.lineTo(0, b.size);
-        ctx.lineTo(-b.size, 0);
-        ctx.closePath();
-        ctx.fill();
+        ctx.globalCompositeOperation = "lighter";
         
-        ctx.rotate(-b.angle);
-        ctx.translate(-b.x, -b.y);
+        // Red channel
+        ctx.fillStyle = "rgba(255, 0, 0, 0.8)";
+        drawDiamond(-2);
+        
+        // Blue channel
+        ctx.fillStyle = "rgba(0, 0, 255, 0.8)";
+        drawDiamond(2);
+        
+        // Green/White core
+        ctx.fillStyle = "rgba(200, 255, 200, 0.9)";
+        drawDiamond(0);
+        
+        ctx.restore();
     }
     ctx.restore();
 };

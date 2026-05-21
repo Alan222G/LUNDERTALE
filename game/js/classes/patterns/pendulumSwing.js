@@ -95,40 +95,96 @@ PendulumSwingPattern.prototype.draw = function(ctx) {
     }
     ctx.globalAlpha = 1.0;
     
-    // Draw pendulum
-    ctx.translate(this.pivotX, this.pivotY);
-    ctx.rotate(this.angle);
+    // Draw pendulum with motion blur
+    // Calculate angular velocity for blur strength
+    var angularVelocity = Math.cos(this.elapsed * this.speed) * this.maxAngle * this.speed;
+    var blurStrength = Math.abs(angularVelocity);
     
-    ctx.shadowBlur = 20;
-    ctx.shadowColor = "#00FFFF";
-    
-    var grad = ctx.createLinearGradient(0, 0, 0, this.length);
-    grad.addColorStop(0, "rgba(255, 215, 0, 1)"); 
-    grad.addColorStop(0.5, "rgba(0, 255, 255, 1)"); 
-    grad.addColorStop(1, "rgba(0, 255, 255, 0)"); 
-    
-    ctx.fillStyle = grad;
-    
-    // Top part of beam
-    ctx.beginPath();
-    ctx.fillRect(-this.thickness / 2, 0, this.thickness, this.gapStart);
-    // Bottom part of beam
-    ctx.fillRect(-this.thickness / 2, this.gapStart + this.gapSize, this.thickness, this.length - (this.gapStart + this.gapSize));
-    
-    // Inner core
-    ctx.shadowBlur = 0;
-    ctx.fillStyle = "#FFFFFF";
-    ctx.fillRect(-this.thickness / 4, 0, this.thickness / 2, this.gapStart);
-    ctx.fillRect(-this.thickness / 4, this.gapStart + this.gapSize, this.thickness / 2, this.length - (this.gapStart + this.gapSize));
-    
-    // Pivot joint
-    ctx.beginPath();
-    ctx.arc(0, 0, 15, 0, Math.PI * 2);
-    ctx.fillStyle = "#FFD700";
-    ctx.fill();
-    ctx.strokeStyle = "#00FFFF";
-    ctx.lineWidth = 3;
-    ctx.stroke();
+    var numBlurs = Math.floor(blurStrength * 4) + 1;
+    for (var b = 0; b < numBlurs; b++) {
+        ctx.save();
+        ctx.translate(this.pivotX, this.pivotY);
+        // Interpolate angle for blur
+        var bAngle = this.angle - (angularVelocity * 0.05 * (b/numBlurs));
+        ctx.rotate(bAngle);
+        
+        ctx.globalAlpha = b === 0 ? 1.0 : (0.4 / numBlurs);
+        
+        if (b === 0) {
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = "#00FFFF";
+        } else {
+            ctx.shadowBlur = 0;
+        }
+        
+        // Metallic blade gradient
+        var grad = ctx.createLinearGradient(-this.thickness, 0, this.thickness, 0);
+        grad.addColorStop(0, "#888888"); // Edge
+        grad.addColorStop(0.3, "#E0E0E0"); // Highlight
+        grad.addColorStop(0.5, "#FFFFFF"); // Center
+        grad.addColorStop(0.7, "#A0A0A0"); // Core shadow
+        grad.addColorStop(1, "#666666"); // Edge
+        
+        ctx.fillStyle = grad;
+        
+        // Helper to draw a blade segment
+        var drawBladeSegment = function(ctx, yStart, yEnd, t) {
+            ctx.beginPath();
+            ctx.moveTo(-t/2, yStart);
+            ctx.lineTo(t/2, yStart);
+            // Curve down to a point if it's the bottom
+            if (yEnd >= this.length - 10) {
+                ctx.lineTo(t/4, yEnd - 20);
+                ctx.lineTo(0, yEnd + 20); // Sharp point
+                ctx.lineTo(-t/4, yEnd - 20);
+            } else {
+                ctx.lineTo(t/2, yEnd);
+                ctx.lineTo(-t/2, yEnd);
+            }
+            ctx.closePath();
+            ctx.fill();
+            
+            // Neon cyan inner core
+            ctx.fillStyle = "#00FFFF";
+            ctx.fillRect(-t/8, yStart, t/4, yEnd - yStart);
+            ctx.fillStyle = grad; // Reset to metal
+        }.bind(this);
+        
+        // Top part of beam
+        drawBladeSegment(ctx, 20, this.gapStart, this.thickness);
+        
+        // Bottom part of beam
+        drawBladeSegment(ctx, this.gapStart + this.gapSize, this.length, this.thickness);
+        
+        // Safe Zone Indicator (holographic cyan lines framing the gap)
+        if (b === 0) {
+            ctx.strokeStyle = "rgba(0, 255, 255, 0.8)";
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(-this.thickness, this.gapStart);
+            ctx.lineTo(this.thickness, this.gapStart);
+            ctx.moveTo(-this.thickness, this.gapStart + this.gapSize);
+            ctx.lineTo(this.thickness, this.gapStart + this.gapSize);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+        
+        // Pivot joint (Golden gear hub)
+        ctx.beginPath();
+        ctx.arc(0, 0, 25, 0, Math.PI * 2);
+        ctx.fillStyle = "#B8860B"; // Bronze
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(0, 0, 15, 0, Math.PI * 2);
+        ctx.fillStyle = "#FFD700"; // Gold
+        ctx.fill();
+        ctx.strokeStyle = "#FFF";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        ctx.restore();
+    }
     
     ctx.restore();
 };
