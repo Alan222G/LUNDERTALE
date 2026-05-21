@@ -1692,121 +1692,144 @@ Enemy.prototype.drawSachiel = function(ctx) {
     ctx.shadowBlur = 40;
     ctx.shadowColor = "rgba(100, 0, 0, 0.3)";
     
-    // 1. Torso (Dark purplish, sinewy)
-    var torsoGrad = ctx.createLinearGradient(0, bossY - 40, 0, bossY + 160);
-    torsoGrad.addColorStop(0, "#2D283E");
-    torsoGrad.addColorStop(0.5, "#181525");
-    torsoGrad.addColorStop(1, "#0D0B14");
+    // Small back bone spikes (behind the neck)
+    ctx.fillStyle = "#d4c8a0";
+    ctx.beginPath();
+    ctx.moveTo(bossX - 25, bossY - 35 + breatheY);
+    ctx.lineTo(bossX - 35, bossY - 50 + breatheY);
+    ctx.lineTo(bossX - 15, bossY - 30 + breatheY);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(bossX + 25, bossY - 35 + breatheY);
+    ctx.lineTo(bossX + 35, bossY - 50 + breatheY);
+    ctx.lineTo(bossX + 15, bossY - 30 + breatheY);
+    ctx.fill();
+
+    // 1. Torso (Dark purplish, glossy, severely emaciated waist)
+    var torsoGrad = ctx.createLinearGradient(0, bossY - 40, 0, bossY + 200);
+    torsoGrad.addColorStop(0, "#2c2738");
+    torsoGrad.addColorStop(0.3, "#1a1625");
+    torsoGrad.addColorStop(0.8, "#0e0c14");
     ctx.fillStyle = torsoGrad;
     
     ctx.beginPath();
     // Neck/Top
-    ctx.moveTo(bossX - 30, bossY - 30 + breatheY);
-    ctx.quadraticCurveTo(bossX, bossY - 40 + breatheY, bossX + 30, bossY - 30 + breatheY);
-    // Right side
-    ctx.quadraticCurveTo(bossX + 80, bossY + 20 + breatheY, bossX + 45, bossY + 100 + breatheY);
+    ctx.moveTo(bossX - 40, bossY - 30 + breatheY);
+    ctx.quadraticCurveTo(bossX, bossY - 45 + breatheY, bossX + 40, bossY - 30 + breatheY);
+    // Right shoulder width
+    ctx.quadraticCurveTo(bossX + 90, bossY + 20 + breatheY, bossX + 60, bossY + 60 + breatheY);
+    // Emaciated Right Waist
+    ctx.bezierCurveTo(bossX + 20, bossY + 120 + breatheY, bossX + 15, bossY + 160 + breatheY, bossX + 35, bossY + 200 + breatheY);
     // Hips/Bottom
-    ctx.quadraticCurveTo(bossX + 50, bossY + 180 + breatheY, bossX, bossY + 180 + breatheY);
-    ctx.quadraticCurveTo(bossX - 50, bossY + 180 + breatheY, bossX - 45, bossY + 100 + breatheY);
-    // Left side
-    ctx.quadraticCurveTo(bossX - 80, bossY + 20 + breatheY, bossX - 30, bossY - 30 + breatheY);
+    ctx.lineTo(bossX - 35, bossY + 200 + breatheY);
+    // Emaciated Left Waist
+    ctx.bezierCurveTo(bossX - 15, bossY + 160 + breatheY, bossX - 20, bossY + 120 + breatheY, bossX - 60, bossY + 60 + breatheY);
+    // Left shoulder width
+    ctx.quadraticCurveTo(bossX - 90, bossY + 20 + breatheY, bossX - 40, bossY - 30 + breatheY);
     ctx.fill();
     
-    // Torso highlights (sinewy lines)
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
-    ctx.lineWidth = 2;
-    for(var sl=0; sl<5; sl++) {
+    // Glossy skin highlights (muscles stretching to the waist)
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = "round";
+    for(var sl=0; sl<4; sl++) {
         ctx.beginPath();
-        ctx.moveTo(bossX - 20 + sl*10, bossY - 20 + breatheY);
-        ctx.quadraticCurveTo(bossX - 30 + sl*15, bossY + 60 + breatheY, bossX - 10 + sl*5, bossY + 150 + breatheY);
+        // Left side muscles
+        ctx.moveTo(bossX - 30 + sl*5, bossY - 20 + breatheY);
+        ctx.quadraticCurveTo(bossX - 50 + sl*10, bossY + 50 + breatheY, bossX - 10, bossY + 140 + breatheY);
+        ctx.stroke();
+        // Right side muscles
+        ctx.beginPath();
+        ctx.moveTo(bossX + 30 - sl*5, bossY - 20 + breatheY);
+        ctx.quadraticCurveTo(bossX + 50 - sl*10, bossY + 50 + breatheY, bossX + 10, bossY + 140 + breatheY);
         ctx.stroke();
     }
+    
+    // Internal rib structures showing through skin at waist
+    ctx.strokeStyle = "rgba(100, 90, 110, 0.3)";
+    ctx.lineWidth = 4;
+    for(var r=0; r<4; r++) {
+        ctx.beginPath(); ctx.moveTo(bossX - 10, bossY + 110 + r*15 + breatheY); ctx.lineTo(bossX - 25, bossY + 105 + r*15 + breatheY); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(bossX + 10, bossY + 110 + r*15 + breatheY); ctx.lineTo(bossX + 25, bossY + 105 + r*15 + breatheY); ctx.stroke();
+    }
 
-    // 2. Arms (Thin, hanging down)
-    ctx.fillStyle = "#181525";
+    // 2. Arms (Impossibly thin, hanging from behind the shoulder pads)
+    ctx.fillStyle = "#110f18";
     // Left Arm
     ctx.beginPath();
-    ctx.moveTo(bossX - 110, bossY + 10 + shoulderY);
-    ctx.quadraticCurveTo(bossX - 130, bossY + 80, bossX - 115, bossY + 200);
-    ctx.lineTo(bossX - 100, bossY + 200);
-    ctx.quadraticCurveTo(bossX - 110, bossY + 80, bossX - 90, bossY + 10 + shoulderY);
+    ctx.moveTo(bossX - 100, bossY + 40 + shoulderY);
+    ctx.quadraticCurveTo(bossX - 120, bossY + 100, bossX - 105, bossY + 220);
+    ctx.lineTo(bossX - 90, bossY + 220);
+    ctx.quadraticCurveTo(bossX - 100, bossY + 100, bossX - 85, bossY + 40 + shoulderY);
     ctx.fill();
     // Right Arm
     ctx.beginPath();
-    ctx.moveTo(bossX + 110, bossY + 10 + shoulderY);
-    ctx.quadraticCurveTo(bossX + 130, bossY + 80, bossX + 115, bossY + 200);
-    ctx.lineTo(bossX + 100, bossY + 200);
-    ctx.quadraticCurveTo(bossX + 110, bossY + 80, bossX + 90, bossY + 10 + shoulderY);
+    ctx.moveTo(bossX + 100, bossY + 40 + shoulderY);
+    ctx.quadraticCurveTo(bossX + 120, bossY + 100, bossX + 105, bossY + 220);
+    ctx.lineTo(bossX + 90, bossY + 220);
+    ctx.quadraticCurveTo(bossX + 100, bossY + 100, bossX + 85, bossY + 40 + shoulderY);
     ctx.fill();
 
-    // 3. Huge Bone Shoulders
-    var shoulderGradL = ctx.createLinearGradient(bossX - 100, bossY - 40, bossX - 100, bossY + 120);
-    shoulderGradL.addColorStop(0, "#F2F0ED"); // Highlight
-    shoulderGradL.addColorStop(0.5, "#D5D3D0"); // Base bone
-    shoulderGradL.addColorStop(1, "#8A8885"); // Shadow
+    // 3. Massive Bone Shoulder Pads (Evangelion Style)
+    // They are huge, bulbous at the top, sweeping down to a sharp point on the outside.
+    var shoulderGrad = ctx.createLinearGradient(0, bossY - 50, 0, bossY + 120);
+    shoulderGrad.addColorStop(0, "#f2ede4"); // Top highlight
+    shoulderGrad.addColorStop(0.5, "#d6cfc3"); // Mid bone
+    shoulderGrad.addColorStop(1, "#80786c"); // Dark bottom edge
     
-    ctx.fillStyle = shoulderGradL;
-    ctx.shadowBlur = 20;
-    ctx.shadowColor = "rgba(0,0,0,0.9)";
+    ctx.fillStyle = shoulderGrad;
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = "rgba(0,0,0,0.8)";
     
-    // Left Shoulder
-    ctx.beginPath();
-    ctx.moveTo(bossX - 30, bossY - 20 + shoulderY);
-    ctx.quadraticCurveTo(bossX - 100, bossY - 40 + shoulderY, bossX - 140, bossY + 20 + shoulderY); // Top curve out
-    ctx.lineTo(bossX - 140, bossY + 120 + shoulderY); // Drop down
-    ctx.quadraticCurveTo(bossX - 110, bossY + 50 + shoulderY, bossX - 60, bossY + 20 + shoulderY); // Inner curve back
-    ctx.fill();
-    
-    // Left Shoulder Textures (Cracks and wear)
-    ctx.strokeStyle = "rgba(0,0,0,0.15)";
-    ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(bossX - 120, bossY + 20 + shoulderY); ctx.quadraticCurveTo(bossX - 130, bossY + 60 + shoulderY, bossX - 125, bossY + 90 + shoulderY); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(bossX - 80, bossY - 20 + shoulderY); ctx.quadraticCurveTo(bossX - 90, bossY + 10 + shoulderY, bossX - 85, bossY + 40 + shoulderY); ctx.stroke();
-
-    var shoulderGradR = ctx.createLinearGradient(bossX + 100, bossY - 40, bossX + 100, bossY + 120);
-    shoulderGradR.addColorStop(0, "#F2F0ED");
-    shoulderGradR.addColorStop(0.5, "#D5D3D0");
-    shoulderGradR.addColorStop(1, "#8A8885");
-    
-    ctx.fillStyle = shoulderGradR;
-    
-    // Right Shoulder
-    ctx.beginPath();
-    ctx.moveTo(bossX + 30, bossY - 20 + shoulderY);
-    ctx.quadraticCurveTo(bossX + 100, bossY - 40 + shoulderY, bossX + 140, bossY + 20 + shoulderY); // Top curve out
-    ctx.lineTo(bossX + 140, bossY + 120 + shoulderY); // Drop down
-    ctx.quadraticCurveTo(bossX + 110, bossY + 50 + shoulderY, bossX + 60, bossY + 20 + shoulderY); // Inner curve back
-    ctx.fill();
-    
-    // Right Shoulder Textures
-    ctx.beginPath(); ctx.moveTo(bossX + 120, bossY + 20 + shoulderY); ctx.quadraticCurveTo(bossX + 130, bossY + 60 + shoulderY, bossX + 125, bossY + 90 + shoulderY); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(bossX + 80, bossY - 20 + shoulderY); ctx.quadraticCurveTo(bossX + 90, bossY + 10 + shoulderY, bossX + 85, bossY + 40 + shoulderY); ctx.stroke();
-    
-    // Shoulder Holes with Depth
-    ctx.shadowBlur = 0;
-    
-    function drawHole(hx, hy, r) {
-        // Inner shadow for depth
-        var holeGrad = ctx.createRadialGradient(hx - r*0.3, hy - r*0.3, r*0.1, hx, hy, r);
-        holeGrad.addColorStop(0, "#000");
-        holeGrad.addColorStop(1, "#222");
-        ctx.fillStyle = holeGrad;
-        ctx.beginPath(); ctx.arc(hx, hy, r, 0, Math.PI*2); ctx.fill();
+    function drawShoulderPad(isRight) {
+        ctx.save();
+        ctx.translate(bossX, bossY + shoulderY);
+        if (isRight) ctx.scale(-1, 1);
         
-        // Highlight rim
-        ctx.strokeStyle = "rgba(255,255,255,0.3)";
+        ctx.beginPath();
+        // Start near the neck
+        ctx.moveTo(-35, -25);
+        // Bulbous massive top
+        ctx.bezierCurveTo(-60, -45, -110, -45, -135, -10);
+        // Sweeping down to sharp point
+        ctx.bezierCurveTo(-150, 20, -165, 80, -170, 140);
+        // Inner curve coming back up
+        ctx.bezierCurveTo(-150, 100, -120, 60, -80, 40);
+        // Connect back to neck
+        ctx.bezierCurveTo(-50, 30, -35, 0, -35, -25);
+        ctx.fill();
+        
+        // Bone textures / cracks
+        ctx.strokeStyle = "rgba(0,0,0,0.2)";
         ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.arc(hx, hy, r, Math.PI, Math.PI*1.5); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(-110, -15); ctx.lineTo(-140, 25); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(-70, -25); ctx.quadraticCurveTo(-90, -10, -100, 10); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(-135, 40); ctx.lineTo(-155, 90); ctx.stroke();
+        
+        // The 3 iconic holes cluster
+        ctx.shadowBlur = 0;
+        function drawPadHole(hx, hy, r) {
+            var hGrad = ctx.createRadialGradient(hx - r*0.3, hy - r*0.3, r*0.1, hx, hy, r);
+            hGrad.addColorStop(0, "#050505");
+            hGrad.addColorStop(1, "#151515");
+            ctx.fillStyle = hGrad;
+            ctx.beginPath(); ctx.arc(hx, hy, r, 0, Math.PI*2); ctx.fill();
+            // Rim
+            ctx.strokeStyle = "rgba(255,255,255,0.4)";
+            ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.arc(hx, hy, r, Math.PI, Math.PI*1.5); ctx.stroke();
+        }
+        
+        // Cluster on the wide part of the shoulder pad
+        drawPadHole(-100, 15, 16); // Large bottom hole
+        drawPadHole(-120, -10, 8); // Top outer hole
+        drawPadHole(-80, -5, 7);   // Top inner hole
+        
+        ctx.restore();
     }
     
-    // Left holes
-    drawHole(bossX - 100, bossY + 10 + shoulderY, 10);
-    drawHole(bossX - 118, bossY - 5 + shoulderY, 6);
-    drawHole(bossX - 120, bossY + 35 + shoulderY, 14);
-    // Right holes
-    drawHole(bossX + 100, bossY + 10 + shoulderY, 10);
-    drawHole(bossX + 118, bossY - 5 + shoulderY, 6);
-    drawHole(bossX + 120, bossY + 35 + shoulderY, 14);
+    drawShoulderPad(false); // Left
+    drawShoulderPad(true);  // Right
 
     // 4. Red Glowing Core
     var coreGlow = 0.6 + Math.sin(time * 3) * 0.4;
