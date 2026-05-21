@@ -614,11 +614,32 @@ var Overworld = (function() {
                 ctx.fillText("▲", 470, 35);
             }
             if (endIdx < catalogOptions.length) {
-            ctx.font = "10pt Determination Mono";
-            ctx.fillText("UP/DOWN to select. ENTER to equip. X to close.", main.WIDTH/2, main.HEIGHT - 60);
+                ctx.fillText("▼", 470, 270);
+            }
             
-            ctx.fillStyle = "#555";
-            ctx.fillText("[" + (catalogIndex + 1) + "/" + catalogOptions.length + "]", main.WIDTH/2, main.HEIGHT - 45);
+            // 3. Draw Description (Bottom Pane)
+            // Asterisk Undertale style
+            ctx.textAlign = "left";
+            ctx.fillStyle = "#FFF";
+            ctx.font = "18pt 'Determination Mono', monospace";
+            ctx.fillText("*", 40, 340);
+            
+            // Word wrap
+            var words = opt.desc.split(" ");
+            var line = "";
+            var dy = 340;
+            for(var w = 0; w < words.length; w++) {
+                var testLine = line + words[w] + " ";
+                var metrics = ctx.measureText(testLine);
+                if (metrics.width > 520 && w > 0) {
+                    ctx.fillText(line, 70, dy);
+                    line = words[w] + " ";
+                    dy += 35;
+                } else {
+                    line = testLine;
+                }
+            }
+            ctx.fillText(line, 70, dy);
         }
 
         ctx.restore();
