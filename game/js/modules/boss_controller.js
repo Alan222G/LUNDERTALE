@@ -65,6 +65,17 @@ var BossController = (function() {
             "coreEruption": function(cfg) { return new CoreEruptionPattern(cfg || { damVal: 12, duration: 7 }); },
             "bloodBoil": function(cfg) { return new BloodBoilPattern(cfg || { damVal: 11, duration: 8 }); },
             "voidImplosion": function(cfg) { return new VoidImplosionPattern(cfg || { damVal: 15, duration: 8 }); },
+            // --- Custom Sachiel Attacks ---
+            "sachielWaterBlast": function(cfg) { return new SachielWaterBlastPattern(cfg || { damVal: 8, duration: 7 }); },
+            "sachielEyeSpark": function(cfg) { return new SachielEyeSparkPattern(cfg || { damVal: 6, duration: 7 }); },
+            "sachielRibCage": function(cfg) { return new SachielRibCagePattern(cfg || { damVal: 10, duration: 8 }); },
+            "sachielCrossExplosion": function(cfg) { return new SachielCrossExplosionPattern(cfg || { damVal: 12, duration: 8 }); },
+            "sachielAtField": function(cfg) { return new SachielAtFieldPattern(cfg || { damVal: 10, duration: 8 }); },
+            "sachielLonginus": function(cfg) { return new SachielLonginusPattern(cfg || { damVal: 15, duration: 8 }); },
+            "sachielCoreLaser": function(cfg) { return new SachielCoreLaserPattern(cfg || { damVal: 14, duration: 8 }); },
+            "sachielRegeneration": function(cfg) { return new SachielRegenerationPattern(cfg || { damVal: 8, duration: 8 }); },
+            "sachielHaloCrush": function(cfg) { return new SachielHaloCrushPattern(cfg || { damVal: 9, duration: 8 }); },
+            "sachielBloodRain": function(cfg) { return new SachielBloodRainPattern(cfg || { damVal: 8, duration: 8 }); },
         };
     }
 
@@ -150,6 +161,26 @@ var BossController = (function() {
             w = 360; h = 220;
         } else if (patternName === "glitchWalls") {
             w = 300; h = 300;
+        } else if (patternName === "sachielWaterBlast") {
+            w = 320; h = 260; // Wide enough for geysers
+        } else if (patternName === "sachielEyeSpark") {
+            w = 260; h = 260; // Fast bouncing sparks
+        } else if (patternName === "sachielRibCage") {
+            w = 350; h = 240; // Wide to allow ribs to close in
+        } else if (patternName === "sachielCrossExplosion") {
+            w = 300; h = 300; // Big square for crosses
+        } else if (patternName === "sachielAtField") {
+            w = 280; h = 280; // AT Field crush
+        } else if (patternName === "sachielLonginus") {
+            w = 360; h = 360; // Huge box to dodge the massive lance
+        } else if (patternName === "sachielCoreLaser") {
+            w = 350; h = 300; // Wide to run away from laser
+        } else if (patternName === "sachielRegeneration") {
+            w = 280; h = 280; // Fleshy walls
+        } else if (patternName === "sachielHaloCrush") {
+            w = 300; h = 300; // Shrinking halo
+        } else if (patternName === "sachielBloodRain") {
+            w = 300; h = 350; // Tall box for falling blood
         } else if (patternName === "causalLightBeam") {
             w = 300; h = 200;
         } else if (patternName === "bonePiercers") {

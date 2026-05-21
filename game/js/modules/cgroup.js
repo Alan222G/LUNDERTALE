@@ -298,11 +298,11 @@ var Cgroup = (function() {
                 spriteId: "asriel",
                 attacks: ["causalLightBeam", "bonePiercers"],
                 phases: [
-                    { patterns: ["causalLightBeam", "bonePiercers", "atField", "holyLance"], soulMode: "red", renderType: "sachiel_beast",
+                    { patterns: ["causalLightBeam", "bonePiercers", "sachielWaterBlast", "sachielEyeSpark"], soulMode: "red", renderType: "sachiel_beast",
                       speech: ["...", "...", "..."] },
-                    { patterns: ["causalLightBeam", "bonePiercers", "coreEruption", "angelicChains", "divinePillars"], soulMode: "red", renderType: "sachiel_mutated",
+                    { patterns: ["causalLightBeam", "bonePiercers", "coreEruption", "sachielRibCage", "sachielCrossExplosion"], soulMode: "red", renderType: "sachiel_mutated",
                       speech: ["GRRRR...", "THE CORE\nHUNGERS.", "YOU CANNOT\nSTOP IT."] },
-                    { patterns: ["causalLightBeam", "bonePiercers", "coreEruption", "bloodBoil", "voidImplosion", "annihilationGrid", "particleBeam", "geometricDrill", "crystalStorm", "atField"], soulMode: "red", renderType: "sachiel",
+                    { patterns: ["causalLightBeam", "bonePiercers", "coreEruption", "bloodBoil", "sachielAtField", "sachielLonginus", "sachielCoreLaser", "sachielRegeneration", "sachielHaloCrush", "sachielBloodRain"], soulMode: "red", renderType: "sachiel",
                       speech: ["RAAAGH!", "I WILL\nDEVOUR\nYOU.", "BLOOD\nBOILS."] }
                 ],
                 phaseHP: [3000, 3500, 9000],
