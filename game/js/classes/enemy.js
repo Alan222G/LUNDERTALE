@@ -1528,177 +1528,244 @@ Enemy.prototype.drawHourglass = function(ctx, gravityDir) {
 Enemy.prototype.drawHourglassShattered = function(ctx) {
     var time = this.timeCounter;
     var cx = 370;
-    var cy = 180 + Math.sin(time * 3) * 8; // More erratic floating
-    var size = 65; // Base size for fragments
+    var cy = 180 + Math.sin(time * 3) * 12; // Extremely erratic floating
     
     ctx.save();
 
-    // 1. Chaotic Temporal Distortions (Rifts) behind the boss
-    var distAlpha = (0.3 + Math.sin(time * 12) * 0.2).toFixed(2);
-    var distGrad = ctx.createRadialGradient(cx, cy, 10, cx, cy, 180);
-    distGrad.addColorStop(0, "rgba(255, 255, 255, " + distAlpha + ")");
-    distGrad.addColorStop(0.3, "rgba(255, 20, 50, " + (distAlpha * 0.6).toFixed(2) + ")");
-    distGrad.addColorStop(0.8, "rgba(50, 0, 80, " + (distAlpha * 0.3).toFixed(2) + ")");
-    distGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
-    ctx.fillStyle = distGrad;
+    // 1. OMEGA VORTEX BACKGROUND (Massive dark red portal)
+    var vortexAlpha = (0.5 + Math.sin(time * 15) * 0.2).toFixed(2);
+    var vortexGrad = ctx.createRadialGradient(cx, cy, 10, cx, cy, 280);
+    vortexGrad.addColorStop(0, "rgba(255, 255, 255, " + vortexAlpha + ")");
+    vortexGrad.addColorStop(0.2, "rgba(255, 0, 0, " + (vortexAlpha * 0.8).toFixed(2) + ")");
+    vortexGrad.addColorStop(0.5, "rgba(80, 0, 50, " + (vortexAlpha * 0.4).toFixed(2) + ")");
+    vortexGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+    
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(time * 0.5); // Rotating vortex
+    ctx.fillStyle = vortexGrad;
     ctx.beginPath();
-    ctx.arc(cx, cy, 180, 0, Math.PI * 2);
+    ctx.arc(0, 0, 280, 0, Math.PI * 2);
     ctx.fill();
-
-    // Red glitch lines across the background
-    ctx.lineWidth = 2;
-    for (var g = 0; g < 8; g++) {
-        var gY = cy - 100 + g * 25 + Math.sin(time * 8 + g) * 15;
-        var gAlpha = 0.1 + Math.random() * 0.3;
-        ctx.strokeStyle = "rgba(255, 50, 50, " + gAlpha.toFixed(2) + ")";
+    
+    // Vortex spiral arms
+    ctx.strokeStyle = "rgba(255, 50, 50, 0.3)";
+    ctx.lineWidth = 4;
+    for(var s=0; s<6; s++) {
         ctx.beginPath();
-        ctx.moveTo(cx - 150, gY);
-        ctx.lineTo(cx + 150, gY + Math.cos(time * 10 + g) * 20);
+        for(var a=0; a<Math.PI*2; a+=0.2) {
+            var r = a * 30;
+            var tx = Math.cos(a + s * (Math.PI/3) - time*2) * r;
+            var ty = Math.sin(a + s * (Math.PI/3) - time*2) * r;
+            if (a===0) ctx.moveTo(tx, ty);
+            else ctx.lineTo(tx, ty);
+        }
         ctx.stroke();
     }
+    ctx.restore();
 
-    // 2. The Shattered Metallic Frame
-    ctx.shadowBlur = 15;
-    ctx.shadowColor = "rgba(255, 150, 50, 0.5)";
-    ctx.lineWidth = 8;
+    // 2. GIANT OMEGA EYE (Center of the vortex)
+    var eyeBlink = Math.sin(time * 5) > 0.8 ? 0.1 : 1.0;
+    ctx.shadowBlur = 20;
+    ctx.shadowColor = "#FF0000";
+    ctx.fillStyle = "rgba(100, 0, 0, 0.9)";
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, 45, 25 * eyeBlink, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Slit pupil
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = "#FFF";
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, 8, 20 * eyeBlink, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#000";
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, 2, 18 * eyeBlink, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 3. GLITCH REALITY TEARS
+    ctx.lineWidth = 3;
+    for (var g = 0; g < 15; g++) {
+        var gY = cy - 150 + g * 20 + (Math.random()-0.5)*10;
+        var gX = cx + (Math.random()-0.5)*200;
+        if (Math.random() < 0.3) { // Flicker
+            ctx.strokeStyle = Math.random() > 0.5 ? "rgba(0, 255, 255, 0.7)" : "rgba(255, 0, 255, 0.7)";
+            ctx.beginPath();
+            ctx.moveTo(gX - 50 - Math.random()*50, gY);
+            ctx.lineTo(gX + 50 + Math.random()*50, gY + (Math.random()-0.5)*10);
+            ctx.stroke();
+            
+            // Glitch block
+            ctx.fillStyle = ctx.strokeStyle;
+            ctx.fillRect(gX - 10, gY - 5, Math.random()*40, Math.random()*10);
+        }
+    }
+
+    // 4. SHATTERED OMEGA FRAME (Orbiting chaotic metal parts)
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = "rgba(255, 200, 50, 0.6)";
+    ctx.lineWidth = 10;
     ctx.lineCap = "round";
     
-    // Broken top frame
-    ctx.strokeStyle = "#8b7355"; // Dark gold/bronze
-    ctx.beginPath();
-    ctx.moveTo(cx - 50, cy - 80 + Math.sin(time * 4) * 5);
-    ctx.lineTo(cx - 20, cy - 75 + Math.cos(time * 5) * 4);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(cx + 10, cy - 85 + Math.sin(time * 4.5) * 6);
-    ctx.lineTo(cx + 60, cy - 70 + Math.cos(time * 3.5) * 5);
-    ctx.stroke();
-
-    // Broken bottom frame
-    ctx.beginPath();
-    ctx.moveTo(cx - 60, cy + 70 + Math.cos(time * 5) * 6);
-    ctx.lineTo(cx - 10, cy + 85 + Math.sin(time * 4) * 4);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(cx + 30, cy + 80 + Math.cos(time * 5.5) * 5);
-    ctx.lineTo(cx + 70, cy + 75 + Math.sin(time * 3) * 7);
-    ctx.stroke();
-
-    // Twisted center pillar
-    ctx.lineWidth = 6;
-    ctx.beginPath();
-    ctx.moveTo(cx - 15 + Math.sin(time * 6) * 8, cy - 40);
-    ctx.quadraticCurveTo(cx - 30, cy, cx - 10 + Math.cos(time * 5) * 8, cy + 40);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(cx + 25 + Math.cos(time * 4) * 8, cy - 30);
-    ctx.quadraticCurveTo(cx + 40, cy + 10, cx + 15 + Math.sin(time * 7) * 8, cy + 50);
-    ctx.stroke();
+    var frameParts = [
+        {x: -80, y: -90, a: time*2.1}, {x: 80, y: -90, a: -time*1.8},
+        {x: -90, y: 0, a: time*1.5}, {x: 90, y: 0, a: -time*1.2},
+        {x: -80, y: 90, a: time*2.5}, {x: 80, y: 90, a: -time*2}
+    ];
+    
+    for (var i = 0; i < frameParts.length; i++) {
+        var fp = frameParts[i];
+        ctx.save();
+        ctx.translate(cx + fp.x + Math.sin(time*5+i)*10, cy + fp.y + Math.cos(time*4+i)*10);
+        ctx.rotate(fp.a);
+        
+        ctx.strokeStyle = i%2===0 ? "#8b7355" : "#a68862"; // Dark gold/bronze
+        ctx.beginPath();
+        ctx.moveTo(-30, -10);
+        ctx.quadraticCurveTo(0, -30, 30, 10);
+        ctx.stroke();
+        
+        // Spikes on the frame
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = "#553311";
+        ctx.beginPath();
+        ctx.moveTo(0, -15);
+        ctx.lineTo(0, -35);
+        ctx.stroke();
+        
+        ctx.restore();
+    }
+    
     ctx.shadowBlur = 0;
 
-    // 3. Spilling Golden Sands of Time (chaotic swirl)
-    ctx.fillStyle = "rgba(255, 215, 0, 0.85)";
-    ctx.shadowBlur = 8;
-    ctx.shadowColor = "rgba(255, 200, 50, 0.8)";
-    for (var i = 0; i < 80; i++) {
-        // Complex swirling motion
-        var angle = i * Math.PI * 2 / 80 + time * (1.5 + (i % 3) * 0.5);
-        var r = (time * 80 + i * 18) % 160;
+    // 5. CHAOTIC SAND OF TIME HURRICANE
+    ctx.fillStyle = "rgba(255, 215, 0, 0.9)";
+    ctx.shadowBlur = 12;
+    ctx.shadowColor = "rgba(255, 200, 50, 1)";
+    for (var i = 0; i < 150; i++) {
+        var angle = i * 0.1 + time * (2 + (i % 3));
+        var r = (time * 100 + i * 15) % 200;
         
-        // Some sand falls down, some swirls around
-        var px = cx + Math.cos(angle) * r * (1 + Math.sin(time * 2 + i) * 0.3);
-        var py = cy + Math.sin(angle) * r * 0.6 + (r > 60 ? (r - 60) * 1.5 : 0); // pull downwards
+        // Swirling outwards then falling
+        var px = cx + Math.cos(angle) * r;
+        var py = cy + Math.sin(angle) * r * 0.5 + (r * 0.8);
         
-        var sSize = 1.5 + Math.random() * 2.5;
+        var sSize = 1 + Math.random() * 3;
+        ctx.globalAlpha = 1 - (r / 200);
         ctx.beginPath();
         ctx.arc(px, py, sSize, 0, Math.PI * 2);
         ctx.fill();
     }
+    ctx.globalAlpha = 1;
     ctx.shadowBlur = 0;
 
-    // 4. Shattered Glass Fragments (Epic jagged shapes)
-    var glassColor = "rgba(200, 240, 255, 0.3)";
-    var glassGlow = "rgba(255, 255, 255, 0.8)";
+    // 6. MASSIVE SHATTERED GLASS CLOUD
+    var glassColor = "rgba(180, 240, 255, 0.4)";
+    var glassGlow = "rgba(255, 255, 255, 0.9)";
     
-    var frags = [
-        {x: -45, y: -50, rot: time * 0.8, pts: [[-20,-10], [15,-30], [25,10], [-5,25]]},
-        {x: 50, y: -40, rot: -time * 1.1, pts: [[-15,-20], [20,-5], [5,25], [-25,0]]},
-        {x: -10, y: -65, rot: time * 0.5, pts: [[-10,-15], [10,-15], [0,20]]},
-        {x: -55, y: 30, rot: -time * 1.3, pts: [[-25,-10], [5,-20], [20,15], [-15,25]]},
-        {x: 45, y: 45, rot: time * 1.5, pts: [[-15,-25], [15,-10], [20,20], [-20,5]]},
-        {x: 5, y: 60, rot: -time * 0.9, pts: [[-20,-5], [0,-20], [20,-5], [0,25]]},
-        // Extra floating shards
-        {x: -70, y: -10, rot: time * 2.1, pts: [[-8,-8], [12,-4], [4,12]]},
-        {x: 75, y: 15, rot: -time * 1.8, pts: [[-10,-5], [10,-15], [5,10]]}
-    ];
-
-    for (var f = 0; f < frags.length; f++) {
-        var frag = frags[f];
-        // Erratic floating movement
-        var fx = cx + frag.x + Math.sin(time * 4 + f * 2) * 15;
-        var fy = cy + frag.y + Math.cos(time * 5 + f * 3) * 15;
+    for (var f = 0; f < 12; f++) {
+        // Orbiting glass shards
+        var gA = time * (1 + f*0.2) + f * (Math.PI/6);
+        var gR = 60 + Math.sin(time*2 + f)*30;
+        
+        var fx = cx + Math.cos(gA) * gR;
+        var fy = cy + Math.sin(gA) * gR * 0.5 + Math.sin(time*5+f)*15;
         
         ctx.save();
         ctx.translate(fx, fy);
-        ctx.rotate(frag.rot);
+        ctx.rotate(time * (f%2===0?2:-2) + f);
         
-        // Inner glass fill
+        // Huge jagged shapes
         ctx.fillStyle = glassColor;
         ctx.beginPath();
-        ctx.moveTo(frag.pts[0][0], frag.pts[0][1]);
-        for (var p = 1; p < frag.pts.length; p++) {
-            ctx.lineTo(frag.pts[p][0], frag.pts[p][1]);
-        }
+        ctx.moveTo(-15, -20);
+        ctx.lineTo(25, -10);
+        ctx.lineTo(10, 30);
+        ctx.lineTo(-20, 15);
         ctx.closePath();
         ctx.fill();
         
-        // Glowing jagged edges
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = "rgba(150, 200, 255, 0.8)";
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = "rgba(150, 200, 255, 1)";
         ctx.strokeStyle = glassGlow;
-        ctx.lineWidth = 1.5;
+        ctx.lineWidth = 2;
         ctx.stroke();
         
-        // Inner glare reflection
+        // Reflection
         ctx.beginPath();
-        ctx.moveTo(frag.pts[0][0] + 5, frag.pts[0][1] + 5);
-        ctx.lineTo(frag.pts[1][0] - 5, frag.pts[1][1] + 5);
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
-        ctx.lineWidth = 2;
+        ctx.moveTo(-5, -10);
+        ctx.lineTo(10, 5);
+        ctx.strokeStyle = "rgba(255,255,255,0.7)";
         ctx.stroke();
         
         ctx.restore();
     }
 
-    // 5. Multiple Erratic Core Eyes inside the central rift
-    for (var e = 0; e < 4; e++) {
-        var eyeR = 25 + Math.sin(time * 3 + e) * 15; // varying distance from center
-        var eyeA = time * (1.5 + e * 0.5) + e * (Math.PI / 2);
+    // 7. ORBITING GEARS OF TIME
+    for(var gr=0; gr<4; gr++) {
+        var gearA = -time * (0.5 + gr*0.3) + gr * (Math.PI/2);
+        var gearR = 150 + Math.sin(time*3+gr)*20;
+        var gearX = cx + Math.cos(gearA) * gearR;
+        var gearY = cy + Math.sin(gearA) * gearR;
         
-        var eyeX = cx + Math.cos(eyeA) * eyeR + (Math.random() - 0.5) * 5;
-        var eyeY = cy + Math.sin(eyeA) * eyeR * 0.5 + (Math.random() - 0.5) * 5;
+        ctx.save();
+        ctx.translate(gearX, gearY);
+        ctx.rotate(time * (3 + gr));
         
-        var eyeBlink = Math.sin(time * (7 + e)) > 0.7 ? 0.1 : 1.0;
+        ctx.fillStyle = "rgba(30, 20, 10, 0.8)";
+        ctx.strokeStyle = "rgba(255, 200, 50, 0.8)";
+        ctx.lineWidth = 2;
         
-        // Red sclera glow
-        ctx.shadowBlur = 12;
-        ctx.shadowColor = "#FF0000";
-        ctx.fillStyle = "rgba(200, 0, 0, 0.95)";
+        // Draw gear
         ctx.beginPath();
-        ctx.ellipse(eyeX, eyeY, 12 + Math.random() * 2, (5 + Math.random() * 2) * eyeBlink, eyeA, 0, Math.PI * 2);
+        for(var i=0; i<8; i++) {
+            var ga = i * (Math.PI/4);
+            ctx.lineTo(Math.cos(ga-0.1)*15, Math.sin(ga-0.1)*15);
+            ctx.lineTo(Math.cos(ga)*20, Math.sin(ga)*20);
+            ctx.lineTo(Math.cos(ga+0.1)*15, Math.sin(ga+0.1)*15);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        
+        // Gear center
+        ctx.beginPath();
+        ctx.arc(0, 0, 5, 0, Math.PI*2);
+        ctx.stroke();
+        
+        ctx.restore();
+    }
+
+    // 8. CREEPY MULTIPLE EYES IN THE SHARDS
+    for (var e = 0; e < 6; e++) {
+        var eyeR = 80 + Math.sin(time * 4 + e) * 20; 
+        var eyeA = time * (1.2 + e * 0.3) + e * (Math.PI / 3);
+        
+        var eyeX = cx + Math.cos(eyeA) * eyeR + (Math.random() - 0.5) * 8;
+        var eyeY = cy + Math.sin(eyeA) * eyeR * 0.7 + (Math.random() - 0.5) * 8;
+        
+        var eb = Math.sin(time * (8 + e)) > 0.6 ? 0.1 : 1.0;
+        
+        // Sclera
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = "#FF0000";
+        ctx.fillStyle = "rgba(200, 0, 0, 0.9)";
+        ctx.beginPath();
+        ctx.ellipse(eyeX, eyeY, 15, 6 * eb, eyeA, 0, Math.PI * 2);
         ctx.fill();
         
         // Pupil
         ctx.shadowBlur = 0;
-        ctx.fillStyle = "#fff";
+        ctx.fillStyle = "#FFF";
         ctx.beginPath();
-        ctx.arc(eyeX, eyeY, 2.5 * eyeBlink, 0, Math.PI * 2);
+        ctx.arc(eyeX, eyeY, 3 * eb, 0, Math.PI * 2);
         ctx.fill();
         
         // Slit
         ctx.fillStyle = "#000";
         ctx.beginPath();
-        ctx.ellipse(eyeX, eyeY, 0.5 * eyeBlink, 1.5 * eyeBlink, 0, 0, Math.PI * 2);
+        ctx.ellipse(eyeX, eyeY, 1 * eb, 2.5 * eb, 0, 0, Math.PI * 2);
         ctx.fill();
     }
 

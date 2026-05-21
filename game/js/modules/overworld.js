@@ -248,144 +248,222 @@ var Overworld = (function() {
                 }
                 
                 if (t.bossId === "ramiel") {
-                    // Draw procedural mini octahedron
+                    // Epic 3D Ramiel representation
                     var rTime = animTimer;
                     var rRot = Math.sin(rTime * 0.8) * 0.15;
-                    var rSize = 18 + Math.sin(rTime * 2) * 2;
+                    var rSize = 25; // Bigger
                     
-                    // Blue glow
-                    ctx.shadowBlur = 15;
-                    ctx.shadowColor = "rgba(50, 120, 255, 0.8)";
-                    
-                    // Diamond shape
                     ctx.save();
-                    ctx.translate(gcx, gcy);
+                    ctx.translate(gcx, gcy - 5 + Math.sin(rTime * 2) * 5); // Floating
                     ctx.rotate(rRot);
-                    var dGrad = ctx.createLinearGradient(-rSize * 0.5, -rSize, rSize * 0.5, rSize);
-                    dGrad.addColorStop(0, "rgba(20, 40, 150, 0.9)");
-                    dGrad.addColorStop(0.5, "rgba(60, 140, 255, 0.95)");
-                    dGrad.addColorStop(1, "rgba(20, 40, 150, 0.9)");
-                    ctx.fillStyle = dGrad;
+                    
+                    // Massive Blue Glow
+                    ctx.shadowBlur = 25;
+                    ctx.shadowColor = "rgba(100, 150, 255, 0.9)";
+                    
+                    // Main Octahedron
                     ctx.beginPath();
                     ctx.moveTo(0, -rSize);
-                    ctx.lineTo(rSize * 0.6, 0);
+                    ctx.lineTo(rSize * 0.8, 0);
                     ctx.lineTo(0, rSize);
-                    ctx.lineTo(-rSize * 0.6, 0);
+                    ctx.lineTo(-rSize * 0.8, 0);
                     ctx.closePath();
+                    
+                    // Complex metallic blue gradient
+                    var dGrad = ctx.createLinearGradient(-rSize, -rSize, rSize, rSize);
+                    dGrad.addColorStop(0, "#88CCFF");
+                    dGrad.addColorStop(0.3, "#1155DD");
+                    dGrad.addColorStop(0.5, "#4488FF");
+                    dGrad.addColorStop(0.8, "#002288");
+                    dGrad.addColorStop(1, "#88CCFF");
+                    ctx.fillStyle = dGrad;
                     ctx.fill();
-                    ctx.strokeStyle = "rgba(150, 200, 255, 0.7)";
-                    ctx.lineWidth = 1;
+                    
+                    // Bright Edges
+                    ctx.shadowBlur = 5;
+                    ctx.strokeStyle = "#FFFFFF";
+                    ctx.lineWidth = 2;
                     ctx.stroke();
                     
-                    // Red core
-                    ctx.shadowBlur = 0;
-                    var cPulse = Math.sin(rTime * 3) * 0.2 + 0.8;
-                    ctx.fillStyle = "rgba(255, 50, 30, " + (0.8 * cPulse).toFixed(2) + ")";
+                    // Center facets line
                     ctx.beginPath();
-                    ctx.arc(0, 0, 3, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.restore();
+                    ctx.moveTo(-rSize * 0.8, 0);
+                    ctx.lineTo(rSize * 0.8, 0);
+                    ctx.stroke();
                     
+                    // Pulsing Red Core
+                    var coreScale = 0.5 + Math.sin(rTime * 5) * 0.5;
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = "#FF0000";
+                    ctx.fillStyle = "rgba(255, 50, 50, 0.9)";
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 4 + coreScale * 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Drill beam to the ground
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = "rgba(200, 220, 255, 0.8)";
+                    ctx.fillStyle = "rgba(255, 255, 255, " + (0.3 + coreScale * 0.2) + ")";
+                    ctx.beginPath();
+                    ctx.moveTo(-2, rSize);
+                    ctx.lineTo(2, rSize);
+                    ctx.lineTo(0, rSize + 25);
+                    ctx.fill();
+                    
+                    ctx.restore();
                     ctx.shadowBlur = 0;
                 } else if (t.bossId === "paradox") {
-                    // Draw procedural mini hourglass
+                    // Epic Paradox Hourglass
                     var pTime = animTimer;
-                    var pSize = 18 + Math.sin(pTime * 2) * 2;
+                    var pSize = 25; // Bigger
                     
                     ctx.save();
-                    ctx.translate(gcx, gcy);
-                    ctx.rotate(Math.sin(pTime * 0.5) * 0.1);
+                    ctx.translate(gcx, gcy + Math.sin(pTime * 3) * 5);
+                    ctx.rotate(Math.sin(pTime * 1.5) * 0.1);
                     
-                    // Gold glow
-                    ctx.shadowBlur = 12;
-                    ctx.shadowColor = "rgba(255, 200, 50, 0.8)";
+                    // Golden aura
+                    ctx.shadowBlur = 20;
+                    ctx.shadowColor = "rgba(255, 200, 50, 0.9)";
                     
-                    // Top triangle
-                    ctx.fillStyle = "rgba(255, 200, 50, 0.85)";
+                    // Hourglass Glass
+                    ctx.fillStyle = "rgba(200, 240, 255, 0.4)";
+                    ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
+                    ctx.lineWidth = 2;
                     ctx.beginPath();
-                    ctx.moveTo(-pSize * 0.5, -pSize);
-                    ctx.lineTo(pSize * 0.5, -pSize);
-                    ctx.lineTo(0, 0);
+                    ctx.moveTo(-pSize * 0.6, -pSize);
+                    ctx.quadraticCurveTo(0, -pSize * 0.2, pSize * 0.6, -pSize);
+                    ctx.lineTo(pSize * 0.2, 0);
+                    ctx.lineTo(pSize * 0.6, pSize);
+                    ctx.quadraticCurveTo(0, pSize * 0.2, -pSize * 0.6, pSize);
+                    ctx.lineTo(-pSize * 0.2, 0);
                     ctx.closePath();
                     ctx.fill();
+                    ctx.stroke();
                     
-                    // Bottom triangle
-                    ctx.fillStyle = "rgba(200, 150, 30, 0.85)";
+                    // Golden Frame
+                    ctx.fillStyle = "#FFB800";
+                    ctx.fillRect(-pSize * 0.7, -pSize - 4, pSize * 1.4, 4);
+                    ctx.fillRect(-pSize * 0.7, pSize, pSize * 1.4, 4);
+                    ctx.fillRect(-pSize * 0.7, -pSize - 4, 4, pSize * 2 + 8);
+                    ctx.fillRect(pSize * 0.7 - 4, -pSize - 4, 4, pSize * 2 + 8);
+                    
+                    // Glowing Red Eye in Top Half
+                    var eyeBlink = Math.sin(pTime * 6) > 0.8 ? 0.2 : 1.0;
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = "#FF0000";
+                    ctx.fillStyle = "rgba(200, 0, 0, 0.9)";
                     ctx.beginPath();
-                    ctx.moveTo(-pSize * 0.5, pSize);
-                    ctx.lineTo(pSize * 0.5, pSize);
-                    ctx.lineTo(0, 0);
-                    ctx.closePath();
+                    ctx.ellipse(0, -pSize * 0.5, 8, 4 * eyeBlink, 0, 0, Math.PI * 2);
                     ctx.fill();
-                    
-                    // Sand particles
                     ctx.shadowBlur = 0;
-                    ctx.fillStyle = "#FFE080";
-                    for (var sp = 0; sp < 4; sp++) {
-                        var sy = Math.sin(pTime * 3 + sp) * pSize * 0.4;
-                        var sx = Math.sin(pTime * 2 + sp * 2) * 3;
+                    ctx.fillStyle = "#FFF";
+                    ctx.beginPath();
+                    ctx.arc(0, -pSize * 0.5, 2 * eyeBlink, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = "#000";
+                    ctx.beginPath();
+                    ctx.ellipse(0, -pSize * 0.5, 0.5 * eyeBlink, 1.5 * eyeBlink, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Golden sand falling
+                    ctx.fillStyle = "#FFD700";
+                    for(var s=0; s<15; s++) {
+                        var sx = (Math.random()-0.5)*pSize*0.8;
+                        var sy = Math.random()*pSize;
+                        if(Math.abs(sx) < sy*0.4) {
+                            var yPos = (sy + pTime * 50) % pSize;
+                            ctx.fillRect(sx, yPos, 2, 2);
+                        }
+                    }
+                    
+                    // Magical temporal rings
+                    ctx.strokeStyle = "rgba(255, 200, 50, " + (0.3 + Math.sin(pTime*4)*0.2) + ")";
+                    ctx.lineWidth = 1.5;
+                    for (var r=1; r<=3; r++) {
                         ctx.beginPath();
-                        ctx.arc(sx, sy, 1.5, 0, Math.PI * 2);
-                        ctx.fill();
+                        ctx.ellipse(0, 0, pSize*1.5 + Math.sin(pTime*2)*5, pSize*0.5 + Math.sin(pTime*3+r)*5, pTime*(0.5*r), 0, Math.PI*2);
+                        ctx.stroke();
                     }
                     
                     ctx.restore();
-                    ctx.shadowBlur = 0;
                 } else if (t.bossId === "sachiel") {
-                    // Draw procedural mini Sachiel (mask + core)
+                    // Epic Sachiel Representation
                     var sTime = animTimer;
+                    var sSize = 25; // Bigger
                     
                     ctx.save();
-                    ctx.translate(gcx, gcy);
+                    ctx.translate(gcx, gcy + Math.sin(sTime * 4) * 3);
                     
-                    // Red core glow
-                    ctx.shadowBlur = 15;
-                    ctx.shadowColor = "rgba(255, 0, 0, 0.8)";
+                    // Dark Aura
+                    ctx.shadowBlur = 20;
+                    ctx.shadowColor = "rgba(100, 0, 150, 0.8)";
                     
-                    // Body (dark torso)
-                    ctx.fillStyle = "#1A1A2E";
+                    // Huge Dark Shoulders / Body
+                    ctx.fillStyle = "#110522";
                     ctx.beginPath();
-                    ctx.moveTo(-12, -5);
-                    ctx.quadraticCurveTo(0, -10, 12, -5);
-                    ctx.quadraticCurveTo(10, 15, 0, 22);
-                    ctx.quadraticCurveTo(-10, 15, -12, -5);
+                    ctx.moveTo(-sSize * 0.9, sSize * 0.2);
+                    ctx.quadraticCurveTo(-sSize * 0.8, -sSize * 0.8, 0, -sSize * 0.4);
+                    ctx.quadraticCurveTo(sSize * 0.8, -sSize * 0.8, sSize * 0.9, sSize * 0.2);
+                    ctx.quadraticCurveTo(sSize * 0.6, sSize * 0.8, 0, sSize * 0.9);
+                    ctx.quadraticCurveTo(-sSize * 0.6, sSize * 0.8, -sSize * 0.9, sSize * 0.2);
                     ctx.fill();
                     
-                    // Core
-                    var cPulse = 0.7 + Math.sin(sTime * 5) * 0.3;
-                    ctx.fillStyle = "rgba(255, 0, 0, " + cPulse.toFixed(2) + ")";
+                    // Purple highlights on shoulders
+                    ctx.strokeStyle = "rgba(150, 50, 200, 0.5)";
+                    ctx.lineWidth = 2;
                     ctx.beginPath();
-                    ctx.arc(0, 8, 4, 0, Math.PI * 2);
+                    ctx.moveTo(-sSize * 0.8, sSize * 0.1);
+                    ctx.quadraticCurveTo(-sSize * 0.6, -sSize * 0.6, -sSize * 0.1, -sSize * 0.3);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(sSize * 0.8, sSize * 0.1);
+                    ctx.quadraticCurveTo(sSize * 0.6, -sSize * 0.6, sSize * 0.1, -sSize * 0.3);
+                    ctx.stroke();
+                    
+                    // Throbbing Red Core
+                    var cPulse = 0.5 + Math.sin(sTime * 8) * 0.5;
+                    ctx.shadowBlur = 25;
+                    ctx.shadowColor = "#FF0000";
+                    ctx.fillStyle = "rgba(255, 0, 0, " + (0.7 + cPulse*0.3) + ")";
+                    ctx.beginPath();
+                    ctx.arc(0, sSize * 0.3, sSize * 0.25, 0, Math.PI * 2);
                     ctx.fill();
                     
-                    // White mask
+                    // Core Inner White
                     ctx.shadowBlur = 0;
-                    ctx.fillStyle = "#EAEAEA";
+                    ctx.fillStyle = "rgba(255, 255, 255, " + (0.5 + cPulse*0.5) + ")";
                     ctx.beginPath();
-                    ctx.moveTo(-6, -12);
-                    ctx.quadraticCurveTo(0, -16, 6, -12);
-                    ctx.quadraticCurveTo(3, -4, 0, 2);
-                    ctx.quadraticCurveTo(-3, -4, -6, -12);
+                    ctx.arc(0, sSize * 0.3, sSize * 0.1, 0, Math.PI * 2);
                     ctx.fill();
                     
-                    // Eyes
+                    // White Bone Mask
+                    ctx.shadowBlur = 5;
+                    ctx.shadowColor = "rgba(255, 255, 255, 0.5)";
+                    ctx.fillStyle = "#EEEEEE";
+                    ctx.beginPath();
+                    ctx.moveTo(-sSize * 0.4, -sSize * 0.6);
+                    ctx.quadraticCurveTo(0, -sSize * 0.9, sSize * 0.4, -sSize * 0.6);
+                    ctx.quadraticCurveTo(sSize * 0.2, -sSize * 0.2, 0, 0);
+                    ctx.quadraticCurveTo(-sSize * 0.2, -sSize * 0.2, -sSize * 0.4, -sSize * 0.6);
+                    ctx.fill();
+                    
+                    // Mask details (beak lines)
+                    ctx.strokeStyle = "#888";
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(0, -sSize * 0.4);
+                    ctx.lineTo(0, -sSize * 0.1);
+                    ctx.stroke();
+                    
+                    // Creepy Black Eyes
+                    ctx.shadowBlur = 0;
                     ctx.fillStyle = "#000";
                     ctx.beginPath();
-                    ctx.arc(-2.5, -8, 1.5, 0, Math.PI * 2);
-                    ctx.arc(2.5, -8, 1.5, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    // Shoulders
-                    ctx.fillStyle = "#CCC";
-                    ctx.beginPath();
-                    ctx.ellipse(-16, 0, 8, 5, -0.3, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.beginPath();
-                    ctx.ellipse(16, 0, 8, 5, 0.3, 0, Math.PI * 2);
+                    ctx.ellipse(-sSize * 0.15, -sSize * 0.5, sSize * 0.08, sSize * 0.05, 0.2, 0, Math.PI * 2);
+                    ctx.ellipse(sSize * 0.15, -sSize * 0.5, sSize * 0.08, sSize * 0.05, -0.2, 0, Math.PI * 2);
                     ctx.fill();
                     
                     ctx.restore();
-                    ctx.shadowBlur = 0;
                 } else if (img && img.complete) {
                     ctx.drawImage(img, t.x, t.y, t.w, t.h);
                 } else {
@@ -443,72 +521,99 @@ var Overworld = (function() {
         // Draw Player
         player.draw(ctx);
         
-        // Draw Catalog UI Overlay
+        // Draw Catalog UI Overlay (Undertale Shop Style)
         if (catalogActive) {
-            ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
+            // Full screen black background
+            ctx.fillStyle = "#000";
             ctx.fillRect(0, 0, main.WIDTH, main.HEIGHT);
             
+            // Draw Undertale style borders (white 4px)
             ctx.strokeStyle = "#FFF";
             ctx.lineWidth = 4;
-            ctx.fillStyle = "#000";
-            ctx.fillRect(50, 40, main.WIDTH - 100, main.HEIGHT - 80);
-            ctx.strokeRect(50, 40, main.WIDTH - 100, main.HEIGHT - 80);
             
-            ctx.font = "20pt Determination Mono";
+            // Top Left Pane (Preview)
+            ctx.strokeRect(20, 20, 280, 260);
+            
+            // Top Right Pane (List)
+            ctx.strokeRect(320, 20, 300, 260);
+            
+            // Bottom Pane (Description)
+            ctx.strokeRect(20, 300, 600, 160);
+            
+            // 1. Draw Preview (Top Left)
+            var opt = catalogOptions[catalogIndex];
             ctx.fillStyle = "#FFF";
+            ctx.font = "18pt 'Determination Mono', monospace";
             ctx.textAlign = "center";
-            ctx.fillText("CHARACTER CUSTOMIZATION", main.WIDTH/2, 78);
+            ctx.fillText(opt.name, 160, 50);
             
-            // Scrollable list - show 5 items at a time
-            var maxVisible = 5;
-            var itemHeight = 72;
-            var startY = 120;
+            // Draw Heart
+            ctx.save();
+            ctx.translate(160, 120);
+            ctx.scale(3, 3); // Make it big
+            var colors = ["#F00", "#0F0", "#FF0", "#A0A", "#00F", "#F80", "#0FF", "#F0F", "#408", "#FFF"];
+            ctx.fillStyle = colors[catalogIndex] || "#F00";
+            ctx.beginPath();
+            ctx.moveTo(0, 5);
+            ctx.bezierCurveTo(-5, 0, -10, 0, -10, 5);
+            ctx.bezierCurveTo(-10, 10, 0, 15, 0, 20);
+            ctx.bezierCurveTo(0, 15, 10, 10, 10, 5);
+            ctx.bezierCurveTo(10, 0, 5, 0, 0, 5);
+            ctx.fill();
+            ctx.restore();
             
-            // Calculate scroll offset so selected item is always visible
+            // Draw Stats / Controls
+            ctx.font = "14pt 'Determination Mono', monospace";
+            ctx.textAlign = "left";
+            ctx.fillStyle = Player.getSoulClass() === catalogIndex ? "#FF0" : "#FFF";
+            ctx.fillText("Equipped: " + (Player.getSoulClass() === catalogIndex ? "YES" : "NO"), 40, 210);
+            ctx.fillStyle = "#888";
+            ctx.fillText("[Z] Equip", 40, 240);
+            ctx.fillText("[X] Exit", 40, 265);
+            
+            // 2. Draw List (Top Right)
+            var maxVisible = 6;
+            var itemHeight = 35;
+            var startY = 60;
+            
             if (typeof catalogScrollOffset === "undefined") catalogScrollOffset = 0;
             if (catalogIndex < catalogScrollOffset) catalogScrollOffset = catalogIndex;
             if (catalogIndex >= catalogScrollOffset + maxVisible) catalogScrollOffset = catalogIndex - maxVisible + 1;
             
-            // Scroll indicators
-            if (catalogScrollOffset > 0) {
-                ctx.fillStyle = "#888";
-                ctx.font = "12pt Determination Mono";
-                ctx.textAlign = "center";
-                ctx.fillText("▲ More above ▲", main.WIDTH/2, startY - 5);
-            }
-            
-            ctx.textAlign = "left";
             var endIdx = Math.min(catalogOptions.length, catalogScrollOffset + maxVisible);
+            
+            ctx.font = "16pt 'Determination Mono', monospace";
             for (var i = catalogScrollOffset; i < endIdx; i++) {
                 var yPos = startY + (i - catalogScrollOffset) * itemHeight;
-                ctx.font = "14pt Determination Mono";
+                ctx.fillStyle = (i === catalogIndex) ? "#FF0" : "#FFF";
+                
+                // Draw heart cursor if selected
                 if (i === catalogIndex) {
-                    ctx.fillStyle = "#FF0";
-                    ctx.fillText("> " + catalogOptions[i].name, 80, yPos + 20);
-                } else {
-                    ctx.fillStyle = "#FFF";
-                    ctx.fillText("  " + catalogOptions[i].name, 80, yPos + 20);
+                    ctx.save();
+                    ctx.translate(345, yPos - 6);
+                    ctx.scale(0.8, 0.8);
+                    ctx.fillStyle = colors[i] || "#F00";
+                    ctx.beginPath();
+                    ctx.moveTo(0, 5);
+                    ctx.bezierCurveTo(-5, 0, -10, 0, -10, 5);
+                    ctx.bezierCurveTo(-10, 10, 0, 15, 0, 20);
+                    ctx.bezierCurveTo(0, 15, 10, 10, 10, 5);
+                    ctx.bezierCurveTo(10, 0, 5, 0, 0, 5);
+                    ctx.fill();
+                    ctx.restore();
                 }
-                ctx.fillStyle = "#AAA";
-                ctx.font = "10pt Determination Mono";
-                ctx.fillText(catalogOptions[i].desc, 110, yPos + 42);
+                
+                ctx.fillStyle = (i === catalogIndex) ? "#FF0" : "#FFF";
+                ctx.fillText(catalogOptions[i].name, 370, yPos);
             }
             
-            if (endIdx < catalogOptions.length) {
-                ctx.fillStyle = "#888";
-                ctx.font = "12pt Determination Mono";
-                ctx.textAlign = "center";
-                ctx.fillText("▼ More below ▼", main.WIDTH/2, startY + maxVisible * itemHeight + 5);
-            }
-            
-            // Footer info
-            ctx.textAlign = "center";
-            ctx.fillStyle = "#0F0";
-            ctx.font = "11pt Determination Mono";
-            var currentName = catalogOptions[Player.getSoulClass()].name;
-            ctx.fillText("Equipped: " + currentName, main.WIDTH/2, main.HEIGHT - 85);
-            
+            // Scroll arrows
             ctx.fillStyle = "#888";
+            ctx.textAlign = "center";
+            if (catalogScrollOffset > 0) {
+                ctx.fillText("▲", 470, 35);
+            }
+            if (endIdx < catalogOptions.length) {
             ctx.font = "10pt Determination Mono";
             ctx.fillText("UP/DOWN to select. ENTER to equip. X to close.", main.WIDTH/2, main.HEIGHT - 60);
             

@@ -28,17 +28,17 @@ ShatteredGlassPattern.prototype.update = function(dt) {
     if (this.spawnTimer >= 0.4 && this.elapsed < this.duration - 2) {
         this.spawnTimer = 0;
         
-        // Spawn 2-3 shards at the top
-        var num = 2 + Math.floor(Math.random() * 2);
+        // Spawn 1 shard at the top to give space to dodge
+        var num = 1;
         for(var i=0; i<num; i++) {
             this.shards.push({
                 x: bb[0] + 10 + Math.random() * (bb[2] - bb[0] - 20),
                 y: bb[1] - 20,
-                vx: (Math.random() - 0.5) * 150,
-                vy: 50 + Math.random() * 100,
+                vx: (Math.random() - 0.5) * 100, // Less horizontal speed
+                vy: 80 + Math.random() * 100,
                 rotation: Math.random() * Math.PI * 2,
                 rotSpeed: (Math.random() - 0.5) * 10,
-                size: 10 + Math.random() * 12, // Slightly larger shards
+                size: 10 + Math.random() * 12,
                 bounces: 0
             });
         }
@@ -47,7 +47,7 @@ ShatteredGlassPattern.prototype.update = function(dt) {
     for (var i = this.shards.length - 1; i >= 0; i--) {
         var s = this.shards[i];
         
-        s.vy += dt * 350; // Gravity
+        s.vy += dt * 300; // Slightly lower gravity
         
         s.x += s.vx * dt;
         s.y += s.vy * dt;
@@ -58,19 +58,19 @@ ShatteredGlassPattern.prototype.update = function(dt) {
         // Bounce off walls
         if (s.x < bb[0] + s.size) {
             s.x = bb[0] + s.size;
-            s.vx *= -0.8;
+            s.vx *= -0.6;
             s.bounces++;
         } else if (s.x > bb[2] - s.size) {
             s.x = bb[2] - s.size;
-            s.vx *= -0.8;
+            s.vx *= -0.6;
             s.bounces++;
         }
         
         // Bounce off floor
         if (s.y > bb[3] - s.size) {
             s.y = bb[3] - s.size;
-            s.vy *= -0.7; // Bounce
-            s.vx *= 0.9; // Friction
+            s.vy *= -0.6; // Lower bounce
+            s.vx *= 0.8; // Friction
             s.bounces++;
         }
         
@@ -90,8 +90,8 @@ ShatteredGlassPattern.prototype.update = function(dt) {
             }
         }
         
-        // Shatter after 3 bounces or if it flies out top
-        if (s.bounces > 3 && s.y > bb[3] - s.size - 5) {
+        // Shatter after 1 bounce to reduce screen clutter
+        if (s.bounces > 1 && s.y > bb[3] - s.size - 5) {
             for (var d = 0; d < 8; d++) {
                 this.dustParticles.push({
                     x: s.x + (Math.random() - 0.5) * s.size * 1.5,

@@ -6,11 +6,11 @@ var SachielHaloCrushPattern = function(config) {
     this.damVal = config.damVal || 9;
     
     this.haloRadius = 300;
-    this.haloTargetRadius = 70;
+    this.haloTargetRadius = 120; // Stop shrinking at a larger size to give space
     
     this.beams = [];
     this.beamTimer = 0;
-    this.beamInterval = 0.6;
+    this.beamInterval = 0.8;
 
     // --- VFX state ---
     this.haloParticles = [];   // angelic motes inside the halo
@@ -68,7 +68,7 @@ SachielHaloCrushPattern.prototype.update = function(dt) {
             });
         }
         
-        if (this.beamInterval > 0.3) this.beamInterval -= 0.05;
+        if (this.beamInterval > 0.45) this.beamInterval -= 0.02;
     }
     
     // Update beams

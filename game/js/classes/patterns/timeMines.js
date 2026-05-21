@@ -32,15 +32,17 @@ TimeMinesPattern.prototype.update = function(dt) {
     if (this.spawnTimer >= this.spawnInterval && this.elapsed < this.duration - 2) {
         this.spawnTimer = 0;
         
-        var mx = bb[0] + 30 + Math.random() * (bb[2] - bb[0] - 60);
-        var my = bb[1] + 30 + Math.random() * (bb[3] - bb[1] - 60);
-        
-        this.mines.push({
-            x: mx,
-            y: my,
-            timer: 3.0, // 3 seconds to detonate
-            exploded: false
-        });
+        for (var k = 0; k < 2; k++) {
+            var mx = bb[0] + 30 + Math.random() * (bb[2] - bb[0] - 60);
+            var my = bb[1] + 30 + Math.random() * (bb[3] - bb[1] - 60);
+            
+            this.mines.push({
+                x: mx,
+                y: my,
+                timer: 3.0, // 3 seconds to detonate
+                exploded: false
+            });
+        }
     }
     
     // Update mines
