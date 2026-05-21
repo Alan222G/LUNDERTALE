@@ -6,7 +6,7 @@ var SachielWaterBlastPattern = function(config) {
     this.damVal = config.damVal || 8;
     this.geysers = [];
     this.spawnTimer = 0;
-    this.spawnInterval = 1.2;
+    this.spawnInterval = 1.5;
 };
 
 SachielWaterBlastPattern.prototype = Object.create(BulletPattern.prototype);
@@ -22,16 +22,16 @@ SachielWaterBlastPattern.prototype.update = function(dt) {
     if (this.spawnTimer >= this.spawnInterval && this.elapsed < this.duration - 2) {
         this.spawnTimer = 0;
         
-        // Spawn 2 or 3 geysers at random X positions
-        var numGeysers = Math.random() > 0.5 ? 3 : 2;
+        // Spawn 1 or 2 geysers
+        var numGeysers = Math.random() > 0.7 ? 2 : 1;
         var safeWidth = bw / (numGeysers + 1);
         
         for (var i = 0; i < numGeysers; i++) {
             var xPos = bb[0] + (i * safeWidth) + (Math.random() * safeWidth) + 10;
             this.geysers.push({
                 x: xPos,
-                width: 40 + Math.random() * 20,
-                warningTime: 0.8,
+                width: 20 + Math.random() * 10,
+                warningTime: 1.3,
                 warningTimer: 0,
                 erupting: false,
                 eruptTimer: 0,
@@ -41,7 +41,7 @@ SachielWaterBlastPattern.prototype.update = function(dt) {
         }
         
         // Decrease interval slightly to increase difficulty
-        if (this.spawnInterval > 0.6) this.spawnInterval -= 0.1;
+        if (this.spawnInterval > 0.9) this.spawnInterval -= 0.05;
     }
     
     // Update geysers

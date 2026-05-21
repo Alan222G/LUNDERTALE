@@ -8,7 +8,7 @@ var SachielRegenerationPattern = function(config) {
     
     this.spikes = [];
     this.spawnTimer = 0;
-    this.spawnInterval = 0.6;
+    this.spawnInterval = 1.0;
     this.spikeWidth = 25;
 };
 
@@ -24,8 +24,8 @@ SachielRegenerationPattern.prototype.update = function(dt) {
     if (this.spawnTimer >= this.spawnInterval && this.elapsed < this.duration - 1.5) {
         this.spawnTimer = 0;
         
-        // Pick a random X position within the box
-        var numSpikes = 1 + Math.floor(Math.random() * 2);
+        // Spawn 1 spike at a time, but more often
+        var numSpikes = 1;
         for (var i = 0; i < numSpikes; i++) {
             var sx = bb[0] + 15 + Math.random() * (bb[2] - bb[0] - 30);
             
@@ -33,15 +33,15 @@ SachielRegenerationPattern.prototype.update = function(dt) {
                 x: sx,
                 state: "WARN", // WARN -> THRUST -> RETRACT
                 timer: 0,
-                warnTime: 0.6,
+                warnTime: 1.0,
                 thrustTime: 0.3,
                 retractTime: 0.3,
                 height: 0,
-                targetHeight: (bb[3] - bb[1]) * 0.8 // Spikes reach 80% up the box
+                targetHeight: (bb[3] - bb[1]) + 10 // Spikes reach beyond the top of the box
             });
         }
         
-        if (this.spawnInterval > 0.3) this.spawnInterval -= 0.05;
+        if (this.spawnInterval > 0.5) this.spawnInterval -= 0.05;
     }
     
     // Update spikes

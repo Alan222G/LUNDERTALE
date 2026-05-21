@@ -2131,6 +2131,20 @@ Enemy.prototype.drawSachielBeast = function(ctx) {
     ctx.closePath();
     ctx.fill();
     
+    // --- Energy Veins ---
+    var veinPulse = 0.5 + Math.sin(time * 8) * 0.5;
+    ctx.strokeStyle = "rgba(255, 0, 50, " + (0.2 + veinPulse * 0.5) + ")";
+    ctx.lineWidth = 2;
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = "#FF0000";
+    ctx.beginPath();
+    ctx.moveTo(-30, 0); ctx.quadraticCurveTo(-45, 40, -25, 90);
+    ctx.moveTo(30, 0); ctx.quadraticCurveTo(45, 40, 25, 90);
+    ctx.moveTo(-10, 20); ctx.lineTo(-20, 70);
+    ctx.moveTo(10, 20); ctx.lineTo(20, 70);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    
     // --- Ribcage opening ---
     var ribOpen = 5 + Math.abs(Math.sin(time * 3)) * 15;
     ctx.strokeStyle = "#d4c8a0";

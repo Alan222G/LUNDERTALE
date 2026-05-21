@@ -6,7 +6,7 @@ var SachielCrossExplosionPattern = function(config) {
     this.damVal = config.damVal || 12;
     this.crosses = [];
     this.spawnTimer = 0;
-    this.spawnInterval = 1.0;
+    this.spawnInterval = 1.3;
 };
 
 SachielCrossExplosionPattern.prototype = Object.create(BulletPattern.prototype);
@@ -20,22 +20,22 @@ SachielCrossExplosionPattern.prototype.update = function(dt) {
     if (this.spawnTimer >= this.spawnInterval && this.elapsed < this.duration - 2) {
         this.spawnTimer = 0;
         
-        // Spawn 2 to 3 crosses
-        var numCrosses = 2 + Math.floor(Math.random() * 2);
+        // Spawn 1 to 2 crosses
+        var numCrosses = 1 + Math.floor(Math.random() * 2);
         for (var i = 0; i < numCrosses; i++) {
             this.crosses.push({
                 x: bb[0] + 20 + Math.random() * (bb[2] - bb[0] - 40),
                 y: bb[1] + 20 + Math.random() * (bb[3] - bb[1] - 40),
                 state: "WARN", // WARN -> EXPLODE
                 timer: 0,
-                warnTime: 1.0,
+                warnTime: 1.3,
                 explodeTime: 1.2,
-                width: 40, // Width of the beams
+                width: 25, // Width of the beams
                 height: 1000 // Huge beams extending out
             });
         }
         
-        if (this.spawnInterval > 0.6) this.spawnInterval -= 0.1;
+        if (this.spawnInterval > 0.8) this.spawnInterval -= 0.1;
     }
     
     for (var i = this.crosses.length - 1; i >= 0; i--) {
