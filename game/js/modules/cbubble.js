@@ -6,7 +6,7 @@ var Cbubble = (function() {
     var bubbleOff = 30;
 
     function setup(text) {
-        duration = 3.0;
+        duration = 0.0;
         durationCounter = 0;
         if (text && typeof text === "string") {
             bubbleText = text;

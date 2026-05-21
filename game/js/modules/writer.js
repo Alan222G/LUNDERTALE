@@ -195,9 +195,12 @@ var Writer = (function() {
         return pos;
     }
 
+    function isFinished() { return charCounter >= text.length - 1; }
+
     return {
         init: init, setupTimes: setupTimes, setupText: setupText,
         update: update, drawText: drawText, drawMenu: drawMenu,
         skip: skip, reset: reset, getSoulPos: getSoulPos,
+        isFinished: isFinished,
     };
 }());

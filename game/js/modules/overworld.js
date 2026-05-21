@@ -173,14 +173,14 @@ var Overworld = (function() {
             } else if (myKeys.isUp()) {
                 myKeys.keydown[myKeys.KEYBOARD.KEY_UP] = false;
                 myKeys.keydown[myKeys.KEYBOARD.KEY_W] = false;
-                var listLen = catalogTab === 0 ? catalogOptions.length : Inventory.getLength();
+                var listLen = catalogTab === 0 ? catalogOptions.length : Inventory.getAllLength();
                 catalogIndex--;
                 if (catalogIndex < 0) catalogIndex = listLen - 1;
                 Sound.playSound("select", true);
             } else if (myKeys.isDown()) {
                 myKeys.keydown[myKeys.KEYBOARD.KEY_DOWN] = false;
                 myKeys.keydown[myKeys.KEYBOARD.KEY_S] = false;
-                var listLen = catalogTab === 0 ? catalogOptions.length : Inventory.getLength();
+                var listLen = catalogTab === 0 ? catalogOptions.length : Inventory.getAllLength();
                 catalogIndex++;
                 if (catalogIndex >= listLen) catalogIndex = 0;
                 Sound.playSound("select", true);
@@ -807,31 +807,53 @@ var Overworld = (function() {
                 if (potionCount > 0 && catalogIndex < potionCount) {
                     ctx.fillText(potionNames[catalogIndex], 160, 60);
                     
-                    // Draw potion bottle icon
+                    // Draw item icon
+                    var pName = potionNames[catalogIndex];
                     ctx.save();
                     ctx.translate(160, 140);
-                    ctx.shadowBlur = 12;
-                    ctx.shadowColor = "#0FF";
-                    // Bottle body
-                    ctx.fillStyle = "rgba(0, 200, 255, 0.6)";
-                    ctx.beginPath();
-                    ctx.moveTo(-12, -20);
-                    ctx.lineTo(-12, 20);
-                    ctx.quadraticCurveTo(-12, 30, 0, 30);
-                    ctx.quadraticCurveTo(12, 30, 12, 20);
-                    ctx.lineTo(12, -20);
-                    ctx.closePath();
-                    ctx.fill();
-                    // Bottle neck
-                    ctx.fillStyle = "#AAA";
-                    ctx.fillRect(-6, -30, 12, 12);
-                    // Cork
-                    ctx.fillStyle = "#8B4513";
-                    ctx.fillRect(-5, -36, 10, 8);
-                    // Liquid shimmer
-                    ctx.globalAlpha = 0.4 + Math.sin(animTimer * 4) * 0.3;
-                    ctx.fillStyle = "#FFF";
-                    ctx.fillRect(-8, -5, 4, 15);
+                    
+                    if (pName.indexOf("Pie") !== -1) {
+                        ctx.shadowBlur = 12; ctx.shadowColor = "#FF8";
+                        ctx.fillStyle = "#D2691E"; // Crust
+                        ctx.beginPath(); ctx.arc(0, 0, 25, Math.PI, 0); ctx.fill();
+                        ctx.fillStyle = "#F4A460"; ctx.fillRect(-27, -2, 54, 8);
+                        ctx.fillStyle = "#8B0000"; ctx.beginPath(); ctx.arc(0, -5, 18, Math.PI, 0); ctx.fill();
+                    } else if (pName.indexOf("Noodles") !== -1) {
+                        ctx.shadowBlur = 12; ctx.shadowColor = "#800080";
+                        ctx.fillStyle = "#FFF"; ctx.beginPath(); ctx.arc(0, 5, 20, 0, Math.PI); ctx.fill();
+                        ctx.strokeStyle = "#800080"; ctx.lineWidth = 3;
+                        ctx.beginPath(); ctx.moveTo(-10, 5); ctx.lineTo(-15, -15); ctx.stroke();
+                        ctx.beginPath(); ctx.moveTo(0, 5); ctx.lineTo(-5, -20); ctx.stroke();
+                        ctx.beginPath(); ctx.moveTo(10, 5); ctx.lineTo(15, -10); ctx.stroke();
+                    } else if (pName.indexOf("Fruit") !== -1) {
+                        ctx.shadowBlur = 12; ctx.shadowColor = "#FF00FF";
+                        ctx.fillStyle = "#FF1493"; ctx.beginPath(); ctx.arc(0, 0, 18, 0, Math.PI*2); ctx.fill();
+                        ctx.fillStyle = "#32CD32"; ctx.fillRect(-2, -24, 4, 10);
+                    } else if (pName.indexOf("Matter") !== -1) {
+                        ctx.shadowBlur = 15; ctx.shadowColor = "#800080";
+                        ctx.fillStyle = "#111"; ctx.beginPath(); ctx.arc(0, 0, 20, 0, Math.PI*2); ctx.fill();
+                        ctx.strokeStyle = "#800080"; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(0, 0, 25, 0, Math.PI*2); ctx.stroke();
+                    } else {
+                        // Bottle
+                        ctx.shadowBlur = 12;
+                        ctx.shadowColor = "#0FF";
+                        ctx.fillStyle = "rgba(0, 200, 255, 0.6)";
+                        ctx.beginPath();
+                        ctx.moveTo(-12, -20);
+                        ctx.lineTo(-12, 20);
+                        ctx.quadraticCurveTo(-12, 30, 0, 30);
+                        ctx.quadraticCurveTo(12, 30, 12, 20);
+                        ctx.lineTo(12, -20);
+                        ctx.closePath();
+                        ctx.fill();
+                        ctx.fillStyle = "#AAA";
+                        ctx.fillRect(-6, -30, 12, 12);
+                        ctx.fillStyle = "#8B4513";
+                        ctx.fillRect(-5, -36, 10, 8);
+                        ctx.globalAlpha = 0.4 + Math.sin(animTimer * 4) * 0.3;
+                        ctx.fillStyle = "#FFF";
+                        ctx.fillRect(-8, -5, 4, 15);
+                    }
                     ctx.restore();
                     
                     // Description from inventory

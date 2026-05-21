@@ -160,10 +160,18 @@ var Combat = (function() {
             case COMBAT_STATE.EFFECT:
                 Writer.update(dt);
                 if (myKeys.isConfirm()) {
-                    combatState = COMBAT_STATE.RESPOND;
-                    Cbubble.setup(Cgroup.getEnemy(selectStateEnemy).getRandomSpeech());
-                    Writer.setupText(Cgroup.getText());
-                    Sound.pauseSound("text");
+                    if (Writer.isFinished()) {
+                        combatState = COMBAT_STATE.RESPOND;
+                        Cbubble.setup(Cgroup.getEnemy(selectStateEnemy).getRandomSpeech());
+                        Writer.setupText(Cgroup.getText());
+                        Sound.pauseSound("text");
+                        myKeys.keydown[myKeys.KEYBOARD.KEY_Z] = false;
+                        myKeys.keydown[myKeys.KEYBOARD.KEY_ENTER] = false;
+                    } else {
+                        Writer.skip();
+                        myKeys.keydown[myKeys.KEYBOARD.KEY_Z] = false;
+                        myKeys.keydown[myKeys.KEYBOARD.KEY_ENTER] = false;
+                    }
                 }
                 break;
 
