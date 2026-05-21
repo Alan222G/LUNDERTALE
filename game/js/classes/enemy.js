@@ -1855,11 +1855,12 @@ Enemy.prototype.drawSachiel = function(ctx) {
 Enemy.prototype.drawSachielMutated = function(ctx) {
     var time = this.timeCounter || 0;
     var cx = this.damagePos.x;
-    var cy = this.damagePos.y - 60;
+    var cy = this.damagePos.y - 100;
     var breathe = Math.sin(time * 2.5) * 3;
     
     ctx.save();
     ctx.translate(cx, cy);
+    ctx.scale(1.4, 1.4);
     
     // --- Dark pulsing aura ---
     ctx.globalCompositeOperation = "lighter";
@@ -1970,11 +1971,12 @@ Enemy.prototype.drawSachielMutated = function(ctx) {
 Enemy.prototype.drawSachielBeast = function(ctx) {
     var time = this.timeCounter || 0;
     var cx = this.damagePos.x;
-    var cy = this.damagePos.y - 40;
+    var cy = this.damagePos.y - 80;
     var breathe = Math.sin(time * 4) * 5;
     
     ctx.save();
     ctx.translate(cx, cy);
+    ctx.scale(1.5, 1.5);
     
     // --- Violent aura ---
     ctx.globalCompositeOperation = "lighter";
@@ -2079,10 +2081,11 @@ Enemy.prototype.drawSachielBeast = function(ctx) {
 Enemy.prototype.drawSachielAngelic = function(ctx) {
     var time = this.timeCounter || 0;
     var cx = this.damagePos.x;
-    var cy = this.damagePos.y - 60;
+    var cy = this.damagePos.y - 90;
     
     ctx.save();
     ctx.translate(cx, cy);
+    ctx.scale(1.25, 1.25);
     
     // --- Dark Halo ---
     ctx.save();

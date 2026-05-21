@@ -17,7 +17,7 @@ SandWhirlwindPattern.prototype.generateBullets = function(battleBox) {
     this.particles = [];
     
     // Create initial ring of particles
-    var numParticles = 80;
+    var numParticles = 40;
     for (var i = 0; i < numParticles; i++) {
         this.particles.push({
             angle: (i / numParticles) * Math.PI * 2,

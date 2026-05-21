@@ -298,11 +298,11 @@ var Cgroup = (function() {
                 spriteId: "asriel",
                 attacks: ["causalLightBeam", "bonePiercers"],
                 phases: [
-                    { patterns: ["causalLightBeam", "bonePiercers"], soulMode: "red", renderType: "sachiel",
+                    { patterns: ["causalLightBeam", "bonePiercers"], soulMode: "red", renderType: "sachiel_beast",
                       speech: ["...", "...", "..."] },
                     { patterns: ["causalLightBeam", "bonePiercers", "coreEruption"], soulMode: "red", renderType: "sachiel_mutated",
                       speech: ["GRRRR...", "THE CORE\nHUNGERS.", "YOU CANNOT\nSTOP IT."] },
-                    { patterns: ["causalLightBeam", "bonePiercers", "coreEruption", "bloodBoil"], soulMode: "red", renderType: "sachiel_beast",
+                    { patterns: ["causalLightBeam", "bonePiercers", "coreEruption", "bloodBoil"], soulMode: "red", renderType: "sachiel",
                       speech: ["RAAAGH!", "I WILL\nDEVOUR\nYOU.", "BLOOD\nBOILS."] },
                     { patterns: ["coreEruption", "bonePiercers", "bloodBoil", "voidImplosion"], soulMode: "red", renderType: "sachiel_angelic",
                       speech: ["...", "LIGHT\nCONSUMES\nALL.", "TRANSCEND."] }

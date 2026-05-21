@@ -7,7 +7,7 @@ var TimeReversePattern = function(config) {
     
     this.bullets = [];
     this.spawnTimer = 0;
-    this.spawnInterval = 1.0;
+    this.spawnInterval = 1.5;
     this.battleBox = null;
     this.angleOffset = 0;
 };
@@ -34,10 +34,10 @@ TimeReversePattern.prototype.update = function(dt) {
         this.spawnTimer = 0;
         this.angleOffset += Math.PI / 8; // Rotate the spawn ring slightly
         
-        // Spawn a ring of 12 projectiles outside that move towards the center
-        var numProjectiles = 12;
+        // Spawn a ring of 8 projectiles outside that move towards the center
+        var numProjectiles = 8;
         var radius = 300; // Far outside the box
-        var speed = 150; // Fast inwards
+        var speed = 110; // Fast inwards
         
         for (var i = 0; i < numProjectiles; i++) {
             var angle = this.angleOffset + (i / numProjectiles) * Math.PI * 2;

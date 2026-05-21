@@ -244,7 +244,14 @@ var BossController = (function() {
 
     function draw(ctx) {
         if (currentPattern && isAttacking) {
+            // Clip to battle box to prevent visual artifacts at screen edges
+            var bb = Cbbox.getBound();
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(bb[0], bb[1], bb[2] - bb[0], bb[3] - bb[1]);
+            ctx.clip();
             currentPattern.draw(ctx);
+            ctx.restore();
         }
     }
 

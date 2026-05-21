@@ -28,7 +28,7 @@ EntropyVortexPattern.prototype.generateBullets = function(battleBox) {
     this.jets = [];
     
     // Spawn ambient light particles to be sucked in
-    for (var i = 0; i < 150; i++) {
+    for (var i = 0; i < 50; i++) {
         var angle = Math.random() * Math.PI * 2;
         var dist = 50 + Math.random() * 300;
         this.particles.push({
