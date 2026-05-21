@@ -1632,26 +1632,58 @@ Enemy.prototype.drawSachiel = function(ctx) {
         ctx.rotate(rot);
         ctx.scale(scale, scale);
         
-        ctx.fillStyle = "#E3E1DE"; // Bone color
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = "rgba(0, 0, 0, 0.6)";
+        ctx.fillStyle = "#e0dad0"; // Pale aged bone color
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
         
+        // Draw main mask shape (rounder top, sharper beak)
         ctx.beginPath();
-        ctx.moveTo(-15, -10);
-        ctx.quadraticCurveTo(0, -25, 15, -10); // Top head
-        ctx.quadraticCurveTo(12, 10, 0, 30);   // Beak down to point
-        ctx.quadraticCurveTo(-12, 10, -15, -10); // Beak up to left
+        ctx.moveTo(-18, -10);
+        ctx.bezierCurveTo(-18, -30, 18, -30, 18, -10); // Bulging round top
+        ctx.quadraticCurveTo(14, 15, 0, 40); // Sharp beak down
+        ctx.quadraticCurveTo(-14, 15, -18, -10); // Sharp beak up
+        ctx.closePath();
         ctx.fill();
         
-        // Eyes
+        // Soft shading for the mask's roundness
+        var maskGrad = ctx.createRadialGradient(-5, -15, 2, 0, -5, 30);
+        maskGrad.addColorStop(0, "rgba(255, 255, 255, 0.7)");
+        maskGrad.addColorStop(0.5, "rgba(0, 0, 0, 0)");
+        maskGrad.addColorStop(1, "rgba(0, 0, 0, 0.5)");
+        ctx.fillStyle = maskGrad;
+        ctx.fill();
+        
+        // Outline / wear and tear
+        ctx.strokeStyle = "rgba(50, 40, 30, 0.5)";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Eye Sockets (Deep hollows)
         ctx.shadowBlur = 0;
-        ctx.fillStyle = "#111";
+        ctx.fillStyle = "#0a0a0a"; // Almost black socket
+        
         ctx.beginPath();
-        ctx.arc(-5, -5, 3, 0, Math.PI * 2);
+        ctx.arc(-8, -4, 4.5, 0, Math.PI * 2); // Left socket
         ctx.fill();
+        
         ctx.beginPath();
-        ctx.arc(5, -5, 3, 0, Math.PI * 2);
+        ctx.arc(8, -4, 4.5, 0, Math.PI * 2); // Right socket
         ctx.fill();
+        
+        // The glowing yellow/amber Irises
+        ctx.fillStyle = "#d4a017"; // Amber
+        ctx.beginPath(); ctx.arc(-8, -4, 1.8, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(8, -4, 1.8, 0, Math.PI * 2); ctx.fill();
+        
+        // Pupils
+        ctx.fillStyle = "#000";
+        ctx.beginPath(); ctx.arc(-8, -4, 0.8, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(8, -4, 0.8, 0, Math.PI * 2); ctx.fill();
+        
+        // Tiny eye reflection
+        ctx.fillStyle = "#fff";
+        ctx.beginPath(); ctx.arc(-8.5, -4.5, 0.5, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(7.5, -4.5, 0.5, 0, Math.PI * 2); ctx.fill();
         
         ctx.restore();
     }
@@ -1795,16 +1827,59 @@ Enemy.prototype.drawSachiel = function(ctx) {
     ctx.arc(coreX, coreY, 10, 0, Math.PI * 2);
     ctx.fill();
     
-    // 5. Bone Ribs/Thorns around core
-    ctx.strokeStyle = "#E3E1DE";
-    ctx.lineWidth = 4;
-    ctx.lineCap = "round";
-    // Left ribs
-    ctx.beginPath(); ctx.moveTo(coreX - 45, coreY - 15); ctx.quadraticCurveTo(coreX - 20, coreY - 10, coreX - 5, coreY - 20); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(coreX - 40, coreY + 10); ctx.quadraticCurveTo(coreX - 25, coreY + 20, coreX - 10, coreY + 5); ctx.stroke();
-    // Right ribs
-    ctx.beginPath(); ctx.moveTo(coreX + 45, coreY - 15); ctx.quadraticCurveTo(coreX + 20, coreY - 10, coreX + 5, coreY - 20); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(coreX + 40, coreY + 10); ctx.quadraticCurveTo(coreX + 25, coreY + 20, coreX + 10, coreY + 5); ctx.stroke();
+    // 5. Bone Ribs/Thorns around core (like a skeletal hand gripping the core)
+    ctx.fillStyle = "#e0dad0";
+    ctx.strokeStyle = "rgba(50, 40, 30, 0.6)";
+    ctx.lineWidth = 1.5;
+    ctx.lineJoin = "round";
+    
+    function drawRib(rx, ry, isRight) {
+        ctx.save();
+        ctx.translate(rx, ry);
+        if (isRight) ctx.scale(-1, 1);
+        
+        ctx.beginPath();
+        // Main thick rib curving in
+        ctx.moveTo(-50, -20);
+        ctx.quadraticCurveTo(-20, -5, -5, -20); // Top inward spike
+        ctx.lineTo(-8, -10);
+        ctx.quadraticCurveTo(-25, 0, -50, -10);
+        
+        // Middle inward spike
+        ctx.moveTo(-45, -5);
+        ctx.quadraticCurveTo(-20, 15, -10, 5);
+        ctx.lineTo(-14, 12);
+        ctx.quadraticCurveTo(-25, 20, -45, 5);
+        
+        // Upward/Outward spikes (like in the image)
+        ctx.moveTo(-25, -5);
+        ctx.lineTo(-30, -35); // Sharp spike pointing up-left
+        ctx.lineTo(-20, -10);
+        
+        ctx.moveTo(-15, 5);
+        ctx.lineTo(-10, -25); // Sharp spike pointing up
+        ctx.lineTo(-10, 0);
+        
+        // Lower downward spike
+        ctx.moveTo(-35, 2);
+        ctx.lineTo(-35, 25);
+        ctx.lineTo(-28, 5);
+        
+        ctx.fill();
+        ctx.stroke();
+        
+        // Skeletal stubs/vertebrae attaching to the core side
+        ctx.fillStyle = "#baa892";
+        for(var i=0; i<4; i++) {
+            ctx.fillRect(-50, -15 + i*10, 10, 5);
+            ctx.strokeRect(-50, -15 + i*10, 10, 5);
+        }
+        
+        ctx.restore();
+    }
+    
+    drawRib(coreX, coreY, false); // Left ribs
+    drawRib(coreX, coreY, true);  // Right ribs
 
     // 6. Three Bird Masks
     // Left small mask
