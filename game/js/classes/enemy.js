@@ -1705,7 +1705,7 @@ Enemy.prototype.drawSachiel = function(ctx) {
     ctx.lineTo(bossX + 15, bossY - 30 + breatheY);
     ctx.fill();
 
-    // 1. Torso (Dark purplish, glossy, severely emaciated waist)
+    // 1. Torso (Dark purplish, glossy, severely emaciated waist, extending wide under shoulders)
     var torsoGrad = ctx.createLinearGradient(0, bossY - 40, 0, bossY + 200);
     torsoGrad.addColorStop(0, "#2c2738");
     torsoGrad.addColorStop(0.3, "#1a1625");
@@ -1716,16 +1716,16 @@ Enemy.prototype.drawSachiel = function(ctx) {
     // Neck/Top
     ctx.moveTo(bossX - 40, bossY - 30 + breatheY);
     ctx.quadraticCurveTo(bossX, bossY - 45 + breatheY, bossX + 40, bossY - 30 + breatheY);
-    // Right shoulder width
-    ctx.quadraticCurveTo(bossX + 90, bossY + 20 + breatheY, bossX + 60, bossY + 60 + breatheY);
-    // Emaciated Right Waist
-    ctx.bezierCurveTo(bossX + 20, bossY + 120 + breatheY, bossX + 15, bossY + 160 + breatheY, bossX + 35, bossY + 200 + breatheY);
+    // Right shoulder extension (reaching out to the far arm)
+    ctx.bezierCurveTo(bossX + 90, bossY - 30 + breatheY, bossX + 160, bossY - 10 + breatheY, bossX + 160, bossY + 40 + breatheY);
+    // Emaciated Right Waist (coming all the way back in)
+    ctx.bezierCurveTo(bossX + 100, bossY + 120 + breatheY, bossX + 15, bossY + 160 + breatheY, bossX + 35, bossY + 200 + breatheY);
     // Hips/Bottom
     ctx.lineTo(bossX - 35, bossY + 200 + breatheY);
-    // Emaciated Left Waist
-    ctx.bezierCurveTo(bossX - 15, bossY + 160 + breatheY, bossX - 20, bossY + 120 + breatheY, bossX - 60, bossY + 60 + breatheY);
-    // Left shoulder width
-    ctx.quadraticCurveTo(bossX - 90, bossY + 20 + breatheY, bossX - 40, bossY - 30 + breatheY);
+    // Emaciated Left Waist (going back out)
+    ctx.bezierCurveTo(bossX - 15, bossY + 160 + breatheY, bossX - 100, bossY + 120 + breatheY, bossX - 160, bossY + 40 + breatheY);
+    // Left shoulder extension
+    ctx.bezierCurveTo(bossX - 160, bossY - 10 + breatheY, bossX - 90, bossY - 30 + breatheY, bossX - 40, bossY - 30 + breatheY);
     ctx.fill();
     
     // Glossy skin highlights (muscles stretching to the waist)
@@ -1735,13 +1735,13 @@ Enemy.prototype.drawSachiel = function(ctx) {
     for(var sl=0; sl<4; sl++) {
         ctx.beginPath();
         // Left side muscles
-        ctx.moveTo(bossX - 30 + sl*5, bossY - 20 + breatheY);
-        ctx.quadraticCurveTo(bossX - 50 + sl*10, bossY + 50 + breatheY, bossX - 10, bossY + 140 + breatheY);
+        ctx.moveTo(bossX - 40 - sl*15, bossY - 10 + breatheY);
+        ctx.quadraticCurveTo(bossX - 60 - sl*10, bossY + 50 + breatheY, bossX - 10, bossY + 140 + breatheY);
         ctx.stroke();
         // Right side muscles
         ctx.beginPath();
-        ctx.moveTo(bossX + 30 - sl*5, bossY - 20 + breatheY);
-        ctx.quadraticCurveTo(bossX + 50 - sl*10, bossY + 50 + breatheY, bossX + 10, bossY + 140 + breatheY);
+        ctx.moveTo(bossX + 40 + sl*15, bossY - 10 + breatheY);
+        ctx.quadraticCurveTo(bossX + 60 + sl*10, bossY + 50 + breatheY, bossX + 10, bossY + 140 + breatheY);
         ctx.stroke();
     }
     
@@ -1753,54 +1753,54 @@ Enemy.prototype.drawSachiel = function(ctx) {
         ctx.beginPath(); ctx.moveTo(bossX + 10, bossY + 110 + r*15 + breatheY); ctx.lineTo(bossX + 25, bossY + 105 + r*15 + breatheY); ctx.stroke();
     }
 
-    // 2. Arms (Muscular but elongated, hanging from behind the shoulder pads)
-    var armGradL = ctx.createLinearGradient(bossX - 120, bossY, bossX - 70, bossY);
+    // 2. Arms (Muscular but elongated, hanging down directly from the shoulder pad peaks)
+    var armGradL = ctx.createLinearGradient(bossX - 200, bossY, bossX - 120, bossY);
     armGradL.addColorStop(0, "#1a1625"); // Outer dark edge
     armGradL.addColorStop(0.4, "#3d364d"); // Glossy muscle highlight
     armGradL.addColorStop(1, "#0e0c14"); // Inner shadow
     
-    // Left Arm
+    // Left Arm (Moved far left to bossX - 165)
     ctx.fillStyle = armGradL;
     ctx.beginPath();
-    ctx.moveTo(bossX - 90, bossY + 30 + shoulderY); // Inner armpit
+    ctx.moveTo(bossX - 150, bossY + 40 + shoulderY); // Inner armpit
     // Bicep bulge
-    ctx.bezierCurveTo(bossX - 110, bossY + 60, bossX - 125, bossY + 100, bossX - 105, bossY + 140);
+    ctx.bezierCurveTo(bossX - 170, bossY + 60, bossX - 185, bossY + 100, bossX - 165, bossY + 140);
     // Forearm bulge
-    ctx.bezierCurveTo(bossX - 120, bossY + 180, bossX - 110, bossY + 220, bossX - 95, bossY + 260);
+    ctx.bezierCurveTo(bossX - 180, bossY + 180, bossX - 170, bossY + 220, bossX - 155, bossY + 260);
     // Inner arm going back up
-    ctx.lineTo(bossX - 75, bossY + 260);
-    ctx.bezierCurveTo(bossX - 85, bossY + 220, bossX - 90, bossY + 180, bossX - 85, bossY + 140);
-    ctx.bezierCurveTo(bossX - 75, bossY + 100, bossX - 70, bossY + 60, bossX - 75, bossY + 30 + shoulderY);
+    ctx.lineTo(bossX - 135, bossY + 260);
+    ctx.bezierCurveTo(bossX - 145, bossY + 220, bossX - 150, bossY + 180, bossX - 145, bossY + 140);
+    ctx.bezierCurveTo(bossX - 135, bossY + 100, bossX - 130, bossY + 60, bossX - 135, bossY + 40 + shoulderY);
     ctx.fill();
     
     // Muscle striations / highlights for left arm
     ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
     ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(bossX - 105, bossY + 70); ctx.quadraticCurveTo(bossX - 115, bossY + 100, bossX - 95, bossY + 135); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(bossX - 100, bossY + 150); ctx.quadraticCurveTo(bossX - 110, bossY + 190, bossX - 90, bossY + 240); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(bossX - 165, bossY + 70); ctx.quadraticCurveTo(bossX - 175, bossY + 100, bossX - 155, bossY + 135); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(bossX - 160, bossY + 150); ctx.quadraticCurveTo(bossX - 170, bossY + 190, bossX - 150, bossY + 240); ctx.stroke();
 
-    // Right Arm
-    var armGradR = ctx.createLinearGradient(bossX + 70, bossY, bossX + 120, bossY);
+    // Right Arm (Moved far right to bossX + 165)
+    var armGradR = ctx.createLinearGradient(bossX + 120, bossY, bossX + 200, bossY);
     armGradR.addColorStop(0, "#0e0c14"); // Inner shadow
     armGradR.addColorStop(0.6, "#3d364d"); // Glossy muscle highlight
     armGradR.addColorStop(1, "#1a1625"); // Outer dark edge
     
     ctx.fillStyle = armGradR;
     ctx.beginPath();
-    ctx.moveTo(bossX + 90, bossY + 30 + shoulderY); // Inner armpit
+    ctx.moveTo(bossX + 150, bossY + 40 + shoulderY); // Inner armpit
     // Bicep bulge
-    ctx.bezierCurveTo(bossX + 110, bossY + 60, bossX + 125, bossY + 100, bossX + 105, bossY + 140);
+    ctx.bezierCurveTo(bossX + 170, bossY + 60, bossX + 185, bossY + 100, bossX + 165, bossY + 140);
     // Forearm bulge
-    ctx.bezierCurveTo(bossX + 120, bossY + 180, bossX + 110, bossY + 220, bossX + 95, bossY + 260);
+    ctx.bezierCurveTo(bossX + 180, bossY + 180, bossX + 170, bossY + 220, bossX + 155, bossY + 260);
     // Inner arm going back up
-    ctx.lineTo(bossX + 75, bossY + 260);
-    ctx.bezierCurveTo(bossX + 85, bossY + 220, bossX + 90, bossY + 180, bossX + 85, bossY + 140);
-    ctx.bezierCurveTo(bossX + 75, bossY + 100, bossX + 70, bossY + 60, bossX + 75, bossY + 30 + shoulderY);
+    ctx.lineTo(bossX + 135, bossY + 260);
+    ctx.bezierCurveTo(bossX + 145, bossY + 220, bossX + 150, bossY + 180, bossX + 145, bossY + 140);
+    ctx.bezierCurveTo(bossX + 135, bossY + 100, bossX + 130, bossY + 60, bossX + 135, bossY + 40 + shoulderY);
     ctx.fill();
 
     // Muscle striations / highlights for right arm
-    ctx.beginPath(); ctx.moveTo(bossX + 105, bossY + 70); ctx.quadraticCurveTo(bossX + 115, bossY + 100, bossX + 95, bossY + 135); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(bossX + 100, bossY + 150); ctx.quadraticCurveTo(bossX + 110, bossY + 190, bossX + 90, bossY + 240); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(bossX + 165, bossY + 70); ctx.quadraticCurveTo(bossX + 175, bossY + 100, bossX + 155, bossY + 135); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(bossX + 160, bossY + 150); ctx.quadraticCurveTo(bossX + 170, bossY + 190, bossX + 150, bossY + 240); ctx.stroke();
 
     // 3. Massive Bone Shoulder Pads (Evangelion Style)
     // They are huge, bulbous at the top, sweeping down to a sharp point on the outside.
