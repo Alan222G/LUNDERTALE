@@ -28,7 +28,7 @@ SachielCoreLaserPattern.prototype.update = function(dt) {
     this.stateTimer += dt;
     
     var bb = Cbbox.getBound();
-    var soulPos = Cplayer.pos;
+    var soulPos = Soul.getPos();
     
     if (this.state === "TRACKING") {
         // Move target X towards player X
