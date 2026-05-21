@@ -7,7 +7,7 @@ var Player = (function() {
     function init() {
         weapon = {};
         armor = {};
-        setSoulClass(0); // Default to Red
+        setSoulClass(soulClass || 0); // Keep current class, just reset HP and buffs
     }
 
     function setSoulClass(classId) {

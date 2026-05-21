@@ -8,7 +8,11 @@ var Transition = (function() {
     var maxFlickers = 4;
     var flashRate = 0.1;
 
-    function start(onComplete) {
+    function start(type, onComplete) {
+        if (typeof type === "function") {
+            onComplete = type;
+            type = "default";
+        }
         state = 1;
         timer = 0;
         flickerCount = 0;

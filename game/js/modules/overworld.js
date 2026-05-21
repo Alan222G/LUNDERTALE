@@ -39,9 +39,9 @@ var Overworld = (function() {
             isCatalog: true
         });
 
-        // Singularity battle trigger (top-right area)
+        // Singularity battle trigger (Anomalies Group)
         triggerList.push({
-            x: 485, y: 85, w: 90, h: 90,
+            x: 100, y: 250, w: 40, h: 40,
             triggered: false,
             bossId: "singularity",
             label: "Anti-gravity",
@@ -56,9 +56,9 @@ var Overworld = (function() {
             }
         });
 
-        // Seraphina Vex battle trigger (bottom-left area)
+        // Seraphina Vex battle trigger (Anomalies Group)
         triggerList.push({
-            x: 85, y: 335, w: 90, h: 90,
+            x: 100, y: 400, w: 40, h: 40,
             triggered: false,
             bossId: "seraphina",
             label: "Seraphina Vex",
@@ -73,9 +73,9 @@ var Overworld = (function() {
             }
         });
 
-        // Ramiel battle trigger (bottom-right area)
+        // Ramiel battle trigger (Guest Group)
         triggerList.push({
-            x: 485, y: 335, w: 90, h: 90,
+            x: 500, y: 150, w: 40, h: 40,
             triggered: false,
             bossId: "ramiel",
             label: "RAMIEL",
@@ -90,9 +90,9 @@ var Overworld = (function() {
             }
         });
         
-        // Paradox battle trigger (top-middle area)
+        // Paradox battle trigger (Anomalies Group)
         triggerList.push({
-            x: 285, y: 85, w: 90, h: 90,
+            x: 250, y: 250, w: 40, h: 40,
             triggered: false,
             bossId: "paradox",
             label: "PARADOJA",
@@ -107,9 +107,9 @@ var Overworld = (function() {
             }
         });
         
-        // Sachiel battle trigger (bottom-middle area)
+        // Sachiel battle trigger (Guest Group)
         triggerList.push({
-            x: 285, y: 335, w: 90, h: 90,
+            x: 500, y: 350, w: 40, h: 40,
             triggered: false,
             bossId: "sachiel",
             label: "SACHIEL",
