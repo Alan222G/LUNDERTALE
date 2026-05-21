@@ -298,16 +298,14 @@ var Cgroup = (function() {
                 spriteId: "asriel",
                 attacks: ["causalLightBeam", "bonePiercers"],
                 phases: [
-                    { patterns: ["causalLightBeam", "bonePiercers"], soulMode: "red", renderType: "sachiel_beast",
+                    { patterns: ["causalLightBeam", "bonePiercers", "atField", "holyLance"], soulMode: "red", renderType: "sachiel_beast",
                       speech: ["...", "...", "..."] },
-                    { patterns: ["causalLightBeam", "bonePiercers", "coreEruption"], soulMode: "red", renderType: "sachiel_mutated",
+                    { patterns: ["causalLightBeam", "bonePiercers", "coreEruption", "angelicChains", "divinePillars"], soulMode: "red", renderType: "sachiel_mutated",
                       speech: ["GRRRR...", "THE CORE\nHUNGERS.", "YOU CANNOT\nSTOP IT."] },
-                    { patterns: ["causalLightBeam", "bonePiercers", "coreEruption", "bloodBoil"], soulMode: "red", renderType: "sachiel",
-                      speech: ["RAAAGH!", "I WILL\nDEVOUR\nYOU.", "BLOOD\nBOILS."] },
-                    { patterns: ["coreEruption", "bonePiercers", "bloodBoil", "voidImplosion"], soulMode: "red", renderType: "sachiel_angelic",
-                      speech: ["...", "LIGHT\nCONSUMES\nALL.", "TRANSCEND."] }
+                    { patterns: ["causalLightBeam", "bonePiercers", "coreEruption", "bloodBoil", "voidImplosion", "annihilationGrid", "particleBeam", "geometricDrill", "crystalStorm", "atField"], soulMode: "red", renderType: "sachiel",
+                      speech: ["RAAAGH!", "I WILL\nDEVOUR\nYOU.", "BLOOD\nBOILS."] }
                 ],
-                phaseHP: [3000, 3500, 4000, 5000],
+                phaseHP: [3000, 3500, 9000],
                 karmaEnabled: false,
                 jitterEnabled: true,
                 damagePos: new Vect(370, 320, 0),
