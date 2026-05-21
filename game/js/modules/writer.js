@@ -64,14 +64,37 @@ var Writer = (function() {
         ctx.font = "19pt Determination Mono";
         ctx.fillStyle = "#FFF";
         var textXPos = 102, textYPos = 396;
+        var startIndent = 102;
+        var wrapIndent = 102;
+        var maxWidth = 530;
+        
         for (var i = 0; i < charCounter + 1; i++) {
-            if (text.charAt(i) != "*" || text.charAt(i) != "|" || i < charCounter) {
-                ctx.fillText(text.charAt(i),
-                    textXPos + 2 * Math.floor(Math.random() * 1.0004),
-                    textYPos + 2 * Math.floor(Math.random() * 1.0004));
+            var char = text.charAt(i);
+            
+            // Check for word wrap at the start of a word
+            if (char !== " " && char !== "*" && char !== "|" && char !== "\n" && (i === 0 || text.charAt(i-1) === " " || text.charAt(i-1) === "*" || text.charAt(i-1) === "\n")) {
+                var wordWidth = 0;
+                var j = i;
+                while (j < text.length && text.charAt(j) !== " " && text.charAt(j) !== "\n" && text.charAt(j) !== "*" && text.charAt(j) !== "|") {
+                    wordWidth += ctx.measureText(text.charAt(j)).width + 2;
+                    j++;
+                }
+                if (textXPos + wordWidth > startIndent + maxWidth) {
+                    textXPos = wrapIndent;
+                    textYPos += 32;
+                }
             }
+
+            if (char != "*" && char != "|" && i < charCounter) {
+                if (char !== "\n") {
+                    ctx.fillText(char,
+                        textXPos + 2 * Math.floor(Math.random() * 1.0004),
+                        textYPos + 2 * Math.floor(Math.random() * 1.0004));
+                }
+            }
+
             if (text.charAt(i + 1) == "|") {
-                textXPos += ctx.measureText(text.charAt(i)).width;
+                textXPos += ctx.measureText(char).width;
                 if (text.charAt(i + 2) == '#') {
                     ctx.fillStyle = text.substring(i + 2, i + 6);
                     i += 5;
@@ -81,11 +104,13 @@ var Writer = (function() {
                     i += 2;
                 }
             } else if (text.charAt(i + 1) == "\n") {
-                textXPos = 120; textYPos += 32;
+                textXPos = wrapIndent; 
+                textYPos += 32;
             } else if (text.charAt(i + 1) == "*") {
-                textXPos = 102; textYPos += 32;
-            } else {
-                textXPos += ctx.measureText(text.charAt(i)).width + 2;
+                textXPos = startIndent; 
+                textYPos += 32;
+            } else if (char !== "\n") {
+                textXPos += ctx.measureText(char).width + 2;
             }
         }
         ctx.restore();

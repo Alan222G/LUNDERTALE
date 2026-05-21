@@ -8,6 +8,9 @@ var Overworld = (function() {
 
     var catalogActive = false;
     var catalogIndex = 0;
+    var catalogTab = 0; // 0 = Corazones, 1 = Pociones
+    var catalogScrollOffset = 0;
+    var starParticles = [];
     var catalogOptions = [
         { name: "Corazón Rojo", desc: "Equilibrado. HP:120, VEL:Normal, ATK:Normal" },
         { name: "Corazón Verde", desc: "Tanque. HP:180, VEL:-20%, ATK:-20%, DEF:+30%" },
@@ -153,24 +156,47 @@ var Overworld = (function() {
         
         if (catalogActive) {
             // Handle Catalog Input
-            if (myKeys.isUp()) {
+            if (myKeys.keydown[myKeys.KEYBOARD.KEY_LEFT] || myKeys.keydown[myKeys.KEYBOARD.KEY_A]) {
+                myKeys.keydown[myKeys.KEYBOARD.KEY_LEFT] = false;
+                myKeys.keydown[myKeys.KEYBOARD.KEY_A] = false;
+                catalogTab = 0;
+                catalogIndex = 0;
+                catalogScrollOffset = 0;
+                Sound.playSound("select", true);
+            } else if (myKeys.keydown[myKeys.KEYBOARD.KEY_RIGHT] || myKeys.keydown[myKeys.KEYBOARD.KEY_D]) {
+                myKeys.keydown[myKeys.KEYBOARD.KEY_RIGHT] = false;
+                myKeys.keydown[myKeys.KEYBOARD.KEY_D] = false;
+                catalogTab = 1;
+                catalogIndex = 0;
+                catalogScrollOffset = 0;
+                Sound.playSound("select", true);
+            } else if (myKeys.isUp()) {
                 myKeys.keydown[myKeys.KEYBOARD.KEY_UP] = false;
                 myKeys.keydown[myKeys.KEYBOARD.KEY_W] = false;
+                var listLen = catalogTab === 0 ? catalogOptions.length : Inventory.getLength();
                 catalogIndex--;
-                if (catalogIndex < 0) catalogIndex = catalogOptions.length - 1;
+                if (catalogIndex < 0) catalogIndex = listLen - 1;
                 Sound.playSound("select", true);
             } else if (myKeys.isDown()) {
                 myKeys.keydown[myKeys.KEYBOARD.KEY_DOWN] = false;
                 myKeys.keydown[myKeys.KEYBOARD.KEY_S] = false;
+                var listLen = catalogTab === 0 ? catalogOptions.length : Inventory.getLength();
                 catalogIndex++;
-                if (catalogIndex >= catalogOptions.length) catalogIndex = 0;
+                if (catalogIndex >= listLen) catalogIndex = 0;
                 Sound.playSound("select", true);
             } else if (myKeys.isConfirm()) {
                 myKeys.keydown[myKeys.KEYBOARD.KEY_Z] = false;
                 myKeys.keydown[myKeys.KEYBOARD.KEY_ENTER] = false;
-                Player.setSoulClass(catalogIndex);
-                catalogActive = false;
-                Sound.playSound("heal", true);
+                if (catalogTab === 0) {
+                    Player.setSoulClass(catalogIndex);
+                    catalogActive = false;
+                    Sound.playSound("heal", true);
+                } else if (catalogTab === 1) {
+                    // Equip / Unequip potion
+                    var success = Inventory.toggleEquip(catalogIndex);
+                    if (success) Sound.playSound("heal", true);
+                    else Sound.playSound("select", true);
+                }
             } else if (myKeys.isCancel()) {
                 myKeys.keydown[myKeys.KEYBOARD.KEY_X] = false;
                 catalogActive = false;
@@ -503,15 +529,123 @@ var Overworld = (function() {
         for (var i = 0; i < npcList.length; i++) {
             var npc = npcList[i];
             if (npc.isCatalog) {
-                ctx.shadowBlur = 15;
+                var scx = npc.x + npc.w / 2;
+                var scy = npc.y + npc.h / 2;
+                var sTime = animTimer;
+                
+                // Update sparkle particles
+                if (starParticles.length < 12) {
+                    starParticles.push({
+                        x: scx + (Math.random() - 0.5) * 50,
+                        y: scy + (Math.random() - 0.5) * 50,
+                        vx: (Math.random() - 0.5) * 0.5,
+                        vy: -Math.random() * 0.8 - 0.2,
+                        life: Math.random() * 2 + 1,
+                        maxLife: Math.random() * 2 + 1,
+                        size: Math.random() * 2 + 1
+                    });
+                }
+                for (var sp = starParticles.length - 1; sp >= 0; sp--) {
+                    var p = starParticles[sp];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.life -= 0.016;
+                    if (p.life <= 0) {
+                        starParticles[sp] = {
+                            x: scx + (Math.random() - 0.5) * 50,
+                            y: scy + (Math.random() - 0.5) * 50,
+                            vx: (Math.random() - 0.5) * 0.5,
+                            vy: -Math.random() * 0.8 - 0.2,
+                            life: Math.random() * 2 + 1,
+                            maxLife: Math.random() * 2 + 1,
+                            size: Math.random() * 2 + 1
+                        };
+                    }
+                }
+                
+                // Draw sparkle particles
+                for (var sp = 0; sp < starParticles.length; sp++) {
+                    var p = starParticles[sp];
+                    var alpha = p.life / p.maxLife;
+                    ctx.save();
+                    ctx.globalAlpha = alpha * 0.8;
+                    ctx.shadowBlur = 6;
+                    ctx.shadowColor = "#FFD700";
+                    ctx.fillStyle = "#FFFACD";
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                }
+                
+                // Draw pulsing glow aura
+                var pulse = 0.6 + Math.sin(sTime * 3) * 0.4;
+                ctx.save();
+                ctx.globalAlpha = pulse * 0.3;
+                var auraGrad = ctx.createRadialGradient(scx, scy, 5, scx, scy, 40);
+                auraGrad.addColorStop(0, "#FFD700");
+                auraGrad.addColorStop(0.5, "rgba(255, 215, 0, 0.3)");
+                auraGrad.addColorStop(1, "rgba(255, 215, 0, 0)");
+                ctx.fillStyle = auraGrad;
+                ctx.beginPath();
+                ctx.arc(scx, scy, 40, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+                
+                // Draw 5-point star
+                ctx.save();
+                ctx.translate(scx, scy);
+                var starScale = 1 + Math.sin(sTime * 3) * 0.08;
+                ctx.scale(starScale, starScale);
+                ctx.rotate(Math.sin(sTime * 0.5) * 0.1);
+                
+                ctx.shadowBlur = 20;
                 ctx.shadowColor = "#FFD700";
-                ctx.fillStyle = npc.color;
-                ctx.fillRect(npc.x, npc.y, npc.w, npc.h);
+                ctx.fillStyle = "#FFD700";
+                ctx.beginPath();
+                for (var s = 0; s < 5; s++) {
+                    var outerAngle = (s * 2 * Math.PI / 5) - Math.PI / 2;
+                    var innerAngle = outerAngle + Math.PI / 5;
+                    var outerR = 16;
+                    var innerR = 7;
+                    if (s === 0) {
+                        ctx.moveTo(Math.cos(outerAngle) * outerR, Math.sin(outerAngle) * outerR);
+                    } else {
+                        ctx.lineTo(Math.cos(outerAngle) * outerR, Math.sin(outerAngle) * outerR);
+                    }
+                    ctx.lineTo(Math.cos(innerAngle) * innerR, Math.sin(innerAngle) * innerR);
+                }
+                ctx.closePath();
+                ctx.fill();
+                
+                // Inner white highlight
                 ctx.shadowBlur = 0;
+                ctx.globalAlpha = 0.5 + Math.sin(sTime * 4) * 0.3;
+                ctx.fillStyle = "#FFF";
+                ctx.beginPath();
+                for (var s = 0; s < 5; s++) {
+                    var outerAngle = (s * 2 * Math.PI / 5) - Math.PI / 2;
+                    var innerAngle = outerAngle + Math.PI / 5;
+                    if (s === 0) {
+                        ctx.moveTo(Math.cos(outerAngle) * 9, Math.sin(outerAngle) * 9);
+                    } else {
+                        ctx.lineTo(Math.cos(outerAngle) * 9, Math.sin(outerAngle) * 9);
+                    }
+                    ctx.lineTo(Math.cos(innerAngle) * 4, Math.sin(innerAngle) * 4);
+                }
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+                
+                // Text label with glow
+                ctx.save();
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = "#FFD700";
                 ctx.fillStyle = "#FFF";
                 ctx.font = "10pt Determination Mono";
                 ctx.textAlign = "center";
-                ctx.fillText("SOUL CATALOG", npc.x + npc.w/2, npc.y - 5);
+                ctx.fillText("SOUL CATALOG", scx, npc.y + npc.h + 18);
+                ctx.restore();
             } else {
                 ctx.fillStyle = npc.color;
                 ctx.fillRect(npc.x, npc.y, npc.w, npc.h);
@@ -527,119 +661,244 @@ var Overworld = (function() {
             ctx.fillStyle = "#000";
             ctx.fillRect(0, 0, main.WIDTH, main.HEIGHT);
             
+            // --- TAB BAR ---
+            var tabLabels = ["Corazones", "Pociones"];
+            ctx.font = "16pt 'Determination Mono', monospace";
+            ctx.textAlign = "center";
+            for (var t = 0; t < tabLabels.length; t++) {
+                var tabX = 160 + t * 320;
+                if (t === catalogTab) {
+                    ctx.fillStyle = "#FFD700";
+                    ctx.fillText("[ " + tabLabels[t] + " ]", tabX, 18);
+                    // Underline active tab
+                    ctx.fillRect(tabX - 80, 22, 160, 2);
+                } else {
+                    ctx.fillStyle = "#666";
+                    ctx.fillText(tabLabels[t], tabX, 18);
+                }
+            }
+            ctx.fillStyle = "#555";
+            ctx.font = "10pt 'Determination Mono', monospace";
+            ctx.fillText("< LEFT / RIGHT >", 320, 18);
+            
             // Draw Undertale style borders (white 4px)
             ctx.strokeStyle = "#FFF";
             ctx.lineWidth = 4;
             
             // Top Left Pane (Preview)
-            ctx.strokeRect(20, 20, 280, 260);
+            ctx.strokeRect(20, 30, 280, 250);
             
             // Top Right Pane (List)
-            ctx.strokeRect(320, 20, 300, 260);
+            ctx.strokeRect(320, 30, 300, 250);
             
             // Bottom Pane (Description)
             ctx.strokeRect(20, 300, 600, 160);
             
-            // 1. Draw Preview (Top Left)
-            var opt = catalogOptions[catalogIndex];
-            ctx.fillStyle = "#FFF";
-            ctx.font = "18pt 'Determination Mono', monospace";
-            ctx.textAlign = "center";
-            ctx.fillText(opt.name, 160, 50);
-            
-            // Draw Heart
-            ctx.save();
-            ctx.translate(160, 120);
-            ctx.scale(3, 3); // Make it big
             var colors = ["#F00", "#0F0", "#FF0", "#A0A", "#00F", "#F80", "#0FF", "#F0F", "#408", "#FFF"];
-            ctx.fillStyle = colors[catalogIndex] || "#F00";
-            ctx.beginPath();
-            ctx.moveTo(0, 5);
-            ctx.bezierCurveTo(-5, 0, -10, 0, -10, 5);
-            ctx.bezierCurveTo(-10, 10, 0, 15, 0, 20);
-            ctx.bezierCurveTo(0, 15, 10, 10, 10, 5);
-            ctx.bezierCurveTo(10, 0, 5, 0, 0, 5);
-            ctx.fill();
-            ctx.restore();
             
-            // Draw Stats / Controls
-            ctx.font = "14pt 'Determination Mono', monospace";
-            ctx.textAlign = "left";
-            ctx.fillStyle = Player.getSoulClass() === catalogIndex ? "#FF0" : "#FFF";
-            ctx.fillText("Equipped: " + (Player.getSoulClass() === catalogIndex ? "YES" : "NO"), 40, 210);
-            ctx.fillStyle = "#888";
-            ctx.fillText("[Z] Equip", 40, 240);
-            ctx.fillText("[X] Exit", 40, 265);
-            
-            // 2. Draw List (Top Right)
-            var maxVisible = 6;
-            var itemHeight = 35;
-            var startY = 60;
-            
-            if (typeof catalogScrollOffset === "undefined") catalogScrollOffset = 0;
-            if (catalogIndex < catalogScrollOffset) catalogScrollOffset = catalogIndex;
-            if (catalogIndex >= catalogScrollOffset + maxVisible) catalogScrollOffset = catalogIndex - maxVisible + 1;
-            
-            var endIdx = Math.min(catalogOptions.length, catalogScrollOffset + maxVisible);
-            
-            ctx.font = "16pt 'Determination Mono', monospace";
-            for (var i = catalogScrollOffset; i < endIdx; i++) {
-                var yPos = startY + (i - catalogScrollOffset) * itemHeight;
-                ctx.fillStyle = (i === catalogIndex) ? "#FF0" : "#FFF";
+            if (catalogTab === 0) {
+                // =====================
+                // TAB: CORAZONES
+                // =====================
+                var opt = catalogOptions[catalogIndex];
                 
-                // Draw heart cursor if selected
-                if (i === catalogIndex) {
+                // 1. Draw Preview (Top Left)
+                ctx.fillStyle = "#FFF";
+                ctx.font = "16pt 'Determination Mono', monospace";
+                ctx.textAlign = "center";
+                ctx.fillText(opt.name, 160, 60);
+                
+                // Draw Heart
+                ctx.save();
+                ctx.translate(160, 130);
+                ctx.scale(3, 3);
+                ctx.fillStyle = colors[catalogIndex] || "#F00";
+                ctx.beginPath();
+                ctx.moveTo(0, 5);
+                ctx.bezierCurveTo(-5, 0, -10, 0, -10, 5);
+                ctx.bezierCurveTo(-10, 10, 0, 15, 0, 20);
+                ctx.bezierCurveTo(0, 15, 10, 10, 10, 5);
+                ctx.bezierCurveTo(10, 0, 5, 0, 0, 5);
+                ctx.fill();
+                ctx.restore();
+                
+                // Draw Stats / Controls
+                ctx.font = "14pt 'Determination Mono', monospace";
+                ctx.textAlign = "left";
+                ctx.fillStyle = Player.getSoulClass() === catalogIndex ? "#FF0" : "#FFF";
+                ctx.fillText("Equipped: " + (Player.getSoulClass() === catalogIndex ? "YES" : "NO"), 40, 215);
+                ctx.fillStyle = "#888";
+                ctx.fillText("[Z] Equip", 40, 240);
+                ctx.fillText("[X] Exit", 40, 265);
+                
+                // 2. Draw List (Top Right)
+                var maxVisible = 6;
+                var itemHeight = 35;
+                var startY = 70;
+                
+                if (catalogIndex < catalogScrollOffset) catalogScrollOffset = catalogIndex;
+                if (catalogIndex >= catalogScrollOffset + maxVisible) catalogScrollOffset = catalogIndex - maxVisible + 1;
+                
+                var endIdx = Math.min(catalogOptions.length, catalogScrollOffset + maxVisible);
+                
+                ctx.font = "14pt 'Determination Mono', monospace";
+                for (var i = catalogScrollOffset; i < endIdx; i++) {
+                    var yPos = startY + (i - catalogScrollOffset) * itemHeight;
+                    ctx.fillStyle = (i === catalogIndex) ? "#FF0" : "#FFF";
+                    
+                    if (i === catalogIndex) {
+                        ctx.save();
+                        ctx.translate(345, yPos - 6);
+                        ctx.scale(0.8, 0.8);
+                        ctx.fillStyle = colors[i] || "#F00";
+                        ctx.beginPath();
+                        ctx.moveTo(0, 5);
+                        ctx.bezierCurveTo(-5, 0, -10, 0, -10, 5);
+                        ctx.bezierCurveTo(-10, 10, 0, 15, 0, 20);
+                        ctx.bezierCurveTo(0, 15, 10, 10, 10, 5);
+                        ctx.bezierCurveTo(10, 0, 5, 0, 0, 5);
+                        ctx.fill();
+                        ctx.restore();
+                    }
+                    
+                    ctx.fillStyle = (i === catalogIndex) ? "#FF0" : "#FFF";
+                    ctx.fillText(catalogOptions[i].name, 370, yPos);
+                }
+                
+                // Scroll arrows
+                ctx.fillStyle = "#888";
+                ctx.textAlign = "center";
+                if (catalogScrollOffset > 0) ctx.fillText("\u25B2", 470, 45);
+                if (endIdx < catalogOptions.length) ctx.fillText("\u25BC", 470, 275);
+                
+                // 3. Draw Description (Bottom Pane)
+                ctx.textAlign = "left";
+                ctx.fillStyle = "#FFF";
+                ctx.font = "18pt 'Determination Mono', monospace";
+                ctx.fillText("*", 40, 340);
+                
+                var words = opt.desc.split(" ");
+                var line = "";
+                var dy = 340;
+                for (var w = 0; w < words.length; w++) {
+                    var testLine = line + words[w] + " ";
+                    var metrics = ctx.measureText(testLine);
+                    if (metrics.width > 520 && w > 0) {
+                        ctx.fillText(line, 70, dy);
+                        line = words[w] + " ";
+                        dy += 35;
+                    } else {
+                        line = testLine;
+                    }
+                }
+                ctx.fillText(line, 70, dy);
+            } else {
+                // =====================
+                // TAB: POCIONES
+                // =====================
+                var potionNames = Inventory.getAllNames();
+                var potionCount = Inventory.getAllLength();
+                var equippedCount = Inventory.getEquippedCount();
+                
+                // 1. Draw Preview (Top Left)
+                ctx.fillStyle = "#FFF";
+                ctx.font = "16pt 'Determination Mono', monospace";
+                ctx.textAlign = "center";
+                if (potionCount > 0 && catalogIndex < potionCount) {
+                    ctx.fillText(potionNames[catalogIndex], 160, 60);
+                    
+                    // Draw potion bottle icon
                     ctx.save();
-                    ctx.translate(345, yPos - 6);
-                    ctx.scale(0.8, 0.8);
-                    ctx.fillStyle = colors[i] || "#F00";
+                    ctx.translate(160, 140);
+                    ctx.shadowBlur = 12;
+                    ctx.shadowColor = "#0FF";
+                    // Bottle body
+                    ctx.fillStyle = "rgba(0, 200, 255, 0.6)";
                     ctx.beginPath();
-                    ctx.moveTo(0, 5);
-                    ctx.bezierCurveTo(-5, 0, -10, 0, -10, 5);
-                    ctx.bezierCurveTo(-10, 10, 0, 15, 0, 20);
-                    ctx.bezierCurveTo(0, 15, 10, 10, 10, 5);
-                    ctx.bezierCurveTo(10, 0, 5, 0, 0, 5);
+                    ctx.moveTo(-12, -20);
+                    ctx.lineTo(-12, 20);
+                    ctx.quadraticCurveTo(-12, 30, 0, 30);
+                    ctx.quadraticCurveTo(12, 30, 12, 20);
+                    ctx.lineTo(12, -20);
+                    ctx.closePath();
                     ctx.fill();
+                    // Bottle neck
+                    ctx.fillStyle = "#AAA";
+                    ctx.fillRect(-6, -30, 12, 12);
+                    // Cork
+                    ctx.fillStyle = "#8B4513";
+                    ctx.fillRect(-5, -36, 10, 8);
+                    // Liquid shimmer
+                    ctx.globalAlpha = 0.4 + Math.sin(animTimer * 4) * 0.3;
+                    ctx.fillStyle = "#FFF";
+                    ctx.fillRect(-8, -5, 4, 15);
                     ctx.restore();
+                    
+                    // Description from inventory
+                    var potionText = Inventory.getAllText(catalogIndex);
+                    ctx.font = "14pt 'Determination Mono', monospace";
+                    ctx.textAlign = "left";
+                    var isEq = Inventory.isEquipped(catalogIndex);
+                    ctx.fillStyle = isEq ? "#0F0" : "#888";
+                    ctx.fillText(isEq ? "Equipado (" + equippedCount + "/3)" : "Presiona Z para equipar (" + equippedCount + "/3)", 40, 240);
+                    ctx.fillStyle = "#888";
+                    ctx.fillText("[X] Exit", 40, 265);
+                    
+                    // Bottom pane: use text
+                    ctx.textAlign = "left";
+                    ctx.fillStyle = "#FFF";
+                    ctx.font = "16pt 'Determination Mono', monospace";
+                    
+                    var textLines = potionText.split("\n");
+                    var dy = 335;
+                    for (var tl = 0; tl < textLines.length; tl++) {
+                        ctx.fillText(textLines[tl], 40, dy);
+                        dy += 30;
+                    }
+                } else {
+                    ctx.fillStyle = "#888";
+                    ctx.fillText("No items", 160, 150);
                 }
                 
-                ctx.fillStyle = (i === catalogIndex) ? "#FF0" : "#FFF";
-                ctx.fillText(catalogOptions[i].name, 370, yPos);
-            }
-            
-            // Scroll arrows
-            ctx.fillStyle = "#888";
-            ctx.textAlign = "center";
-            if (catalogScrollOffset > 0) {
-                ctx.fillText("▲", 470, 35);
-            }
-            if (endIdx < catalogOptions.length) {
-                ctx.fillText("▼", 470, 270);
-            }
-            
-            // 3. Draw Description (Bottom Pane)
-            // Asterisk Undertale style
-            ctx.textAlign = "left";
-            ctx.fillStyle = "#FFF";
-            ctx.font = "18pt 'Determination Mono', monospace";
-            ctx.fillText("*", 40, 340);
-            
-            // Word wrap
-            var words = opt.desc.split(" ");
-            var line = "";
-            var dy = 340;
-            for(var w = 0; w < words.length; w++) {
-                var testLine = line + words[w] + " ";
-                var metrics = ctx.measureText(testLine);
-                if (metrics.width > 520 && w > 0) {
-                    ctx.fillText(line, 70, dy);
-                    line = words[w] + " ";
-                    dy += 35;
-                } else {
-                    line = testLine;
+                // 2. Draw List (Top Right)
+                var maxVisible = 6;
+                var itemHeight = 35;
+                var startY = 70;
+                
+                if (catalogIndex < catalogScrollOffset) catalogScrollOffset = catalogIndex;
+                if (catalogIndex >= catalogScrollOffset + maxVisible) catalogScrollOffset = catalogIndex - maxVisible + 1;
+                
+                var endIdx = Math.min(potionCount, catalogScrollOffset + maxVisible);
+                
+                ctx.font = "14pt 'Determination Mono', monospace";
+                for (var i = catalogScrollOffset; i < endIdx; i++) {
+                    var yPos = startY + (i - catalogScrollOffset) * itemHeight;
+                    
+                    // Draw potion cursor (small diamond)
+                    if (i === catalogIndex) {
+                        ctx.fillStyle = "#0FF";
+                        ctx.save();
+                        ctx.translate(340, yPos - 4);
+                        ctx.rotate(Math.PI / 4);
+                        ctx.fillRect(-4, -4, 8, 8);
+                        ctx.restore();
+                    }
+                    
+                    ctx.fillStyle = (i === catalogIndex) ? "#0FF" : "#FFF";
+                    if (Inventory.isEquipped(i)) {
+                        ctx.fillStyle = (i === catalogIndex) ? "#AFA" : "#0F0";
+                    }
+                    ctx.textAlign = "left";
+                    var prefix = Inventory.isEquipped(i) ? "[E] " : "    ";
+                    ctx.fillText(prefix + potionNames[i], 360, yPos);
                 }
+                
+                // Scroll arrows
+                ctx.fillStyle = "#888";
+                ctx.textAlign = "center";
+                if (catalogScrollOffset > 0) ctx.fillText("\u25B2", 470, 45);
+                if (endIdx < potionCount) ctx.fillText("\u25BC", 470, 275);
             }
-            ctx.fillText(line, 70, dy);
         }
 
         ctx.restore();

@@ -116,6 +116,8 @@ var Soul = (function() {
     }
 
     function getOpacity() {
+        if (state === STATE.OKAY || state === STATE.DAMAGED) return 1.0;
+        if (state === STATE.FADEIN) return Math.min(1.0, durationCounter * 4);
         return durationCounter * 4;
     }
 

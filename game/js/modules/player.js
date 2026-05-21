@@ -36,7 +36,21 @@ var Player = (function() {
         }
         hpCur = hpMax;
     }
-    
+    function resetBuffs() {
+        switch (soulClass) {
+            case 0: buffSpd = 1.0; buffAtk = 1.0; buffDef = 1.0; break;
+            case 1: buffSpd = 0.8; buffAtk = 0.8; buffDef = 1.3; break;
+            case 2: buffSpd = 1.3; buffAtk = 1.4; buffDef = 0.7; break;
+            case 3: buffSpd = 1.5; buffAtk = 1.0; buffDef = 1.0; break;
+            case 4: buffSpd = 1.2; buffAtk = 1.0; buffDef = 1.0; break;
+            case 5: buffSpd = 1.6; buffAtk = 1.1; buffDef = 0.8; break;
+            case 6: buffSpd = 0.9; buffAtk = 1.0; buffDef = 1.2; break;
+            case 7: buffSpd = 1.4; buffAtk = 1.2; buffDef = 0.9; break;
+            case 8: buffSpd = 1.0; buffAtk = 1.0; buffDef = 1.1; break;
+            case 9: buffSpd = 1.2; buffAtk = 0.9; buffDef = 0.8; break;
+        }
+    }
+
     function getSoulClass() { return soulClass; }
 
     function getWeapon() { return weapon; }
@@ -108,6 +122,7 @@ var Player = (function() {
         getKarma: getKarma,
         addBleed: addBleed,
         getBleedTimer: getBleedTimer,
+        resetBuffs: resetBuffs,
         getBuffSpd: function() { return buffSpd; },
         addBuffSpd: function(val) { buffSpd += val; },
         getBuffDef: function() { return buffDef; },

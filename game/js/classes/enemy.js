@@ -536,7 +536,11 @@ Enemy.prototype.getRandomAttack = function() {
 
 // Get a random dialogue line
 Enemy.prototype.getRandomSpeech = function() {
-    return this.speech[Math.floor(Math.random() * this.speech.length)];
+    var speechArray = this.speech;
+    if (this.phases && this.phases[this.currentPhase] && this.phases[this.currentPhase].speech) {
+        speechArray = this.phases[this.currentPhase].speech;
+    }
+    return speechArray[Math.floor(Math.random() * speechArray.length)];
 };
 
 // Get a random flavor text

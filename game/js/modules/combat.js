@@ -101,7 +101,7 @@ var Combat = (function() {
                         return;
                     }
                     combatState = COMBAT_STATE.RESPOND;
-                    Cbubble.setup();
+                    Cbubble.setup(Cgroup.getEnemy(selectStateEnemy).getRandomSpeech());
                     Writer.reset();
                 }
                 break;
@@ -161,7 +161,7 @@ var Combat = (function() {
                 Writer.update(dt);
                 if (myKeys.isConfirm()) {
                     combatState = COMBAT_STATE.RESPOND;
-                    Cbubble.setup();
+                    Cbubble.setup(Cgroup.getEnemy(selectStateEnemy).getRandomSpeech());
                     Writer.setupText(Cgroup.getText());
                     Sound.pauseSound("text");
                 }
@@ -219,6 +219,7 @@ var Combat = (function() {
                     Soul.reset();
                     Soul.setSoulMode(Soul.SOUL_MODE.RED);
                     Cbbox.setSize(574, 140, false);
+                    Player.resetBuffs();
                     combatState = COMBAT_STATE.MAIN;
                     Writer.setupText(Cgroup.getText());
                 }

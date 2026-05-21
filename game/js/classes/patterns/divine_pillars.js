@@ -73,6 +73,7 @@ DivinePillarsPattern.prototype.checkCollision = function(sx, sy, sw, sh) {
 };
 
 DivinePillarsPattern.prototype.draw = function(ctx) {
+    ctx.save();
     for (var i = 0; i < this.pillars.length; i++) {
         var p = this.pillars[i];
         ctx.save();
@@ -143,6 +144,7 @@ DivinePillarsPattern.prototype.draw = function(ctx) {
         }
         ctx.restore();
     }
+    ctx.restore();
 };
 
 DivinePillarsPattern.prototype.isOver = function() {
