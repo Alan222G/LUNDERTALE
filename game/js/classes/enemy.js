@@ -134,13 +134,21 @@ Enemy.prototype.draw = function(ctx) {
     } else if (this.renderType === "hourglass_shattered") {
         this.drawHourglassShattered(ctx);
     } else if (this.renderType === "sachiel") {
+        ctx.save(); ctx.translate(370, 160); ctx.scale(1.4, 1.4); ctx.translate(-370, -160);
         this.drawSachiel(ctx);
+        ctx.restore();
     } else if (this.renderType === "sachiel_mutated") {
+        ctx.save(); ctx.translate(370, 160); ctx.scale(1.4, 1.4); ctx.translate(-370, -160);
         this.drawSachielMutated(ctx);
+        ctx.restore();
     } else if (this.renderType === "sachiel_beast") {
+        ctx.save(); ctx.translate(370, 160); ctx.scale(1.4, 1.4); ctx.translate(-370, -160);
         this.drawSachielBeast(ctx);
+        ctx.restore();
     } else if (this.renderType === "sachiel_angelic") {
+        ctx.save(); ctx.translate(370, 160); ctx.scale(1.4, 1.4); ctx.translate(-370, -160);
         this.drawSachielAngelic(ctx);
+        ctx.restore();
     } else if (this.active) {
         for (var i = 0; i < this.animations.length; i++) {
             ctx.save();

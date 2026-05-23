@@ -7,11 +7,11 @@ var SachielBloodRainPattern = function(config) {
     
     this.drops = [];
     this.spawnTimer = 0;
-    this.spawnInterval = 0.15;
+    this.spawnInterval = 0.35; // Was 0.15
     
     // Blood pool at bottom
     this.poolHeight = 0;
-    this.maxPoolHeight = 120; // Will cover the bottom portion of the box
+    this.maxPoolHeight = 70; // Half of 140 (combat box height)
     // VFX particles
     this.splashes = [];
     this.mist = [];
@@ -50,7 +50,13 @@ SachielBloodRainPattern.prototype.update = function(dt) {
             });
         }
         
-        if (this.spawnInterval > 0.05) this.spawnInterval -= 0.01;
+        if (this.spawnInterval > 0.15) this.spawnInterval -= 0.01;
+    }
+    
+    // Drain pool at the end
+    if (this.elapsed >= this.duration - 2 && this.poolHeight > 0) {
+        this.poolHeight -= 40 * dt;
+        if (this.poolHeight < 0) this.poolHeight = 0;
     }
     
     // Update drops

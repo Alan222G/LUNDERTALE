@@ -8,54 +8,83 @@ var Inventory = (function() {
             new Item("Cosmic Pie", "A pie that smells like stardust.", 99,
                 "* You ate the Cosmic Pie.\n* Its warmth fills you with DETERMINATION.\n* Your HP was maxed out.",
                 function() { Player.heal(Player.getHPMax()); }),
-            new Item("Star Potion", "A glowing liquid that tastes like grapes.", 50,
-                "* You drank the Star Potion.\n* You recovered 50 HP.",
-                function() { Player.heal(50); }),
             new Item("Void Noodles", "Noodles made from dark energy.", 80,
                 "* You ate the Void Noodles.\n* You recovered 80 HP.",
                 function() { Player.heal(80); }),
-            new Item("Nebula Fruit", "A glowing fruit from the void.", 20,
-                "* You ate the Nebula Fruit.\n* You recovered 20 HP.",
-                function() { Player.heal(20); }),
             new Item("Dark Matter", "Wait, are you supposed to eat this?", 100,
                 "* You consumed the Dark Matter.\n* It was surprisingly delicious!\n* You recovered 100 HP.",
                 function() { Player.heal(100); }),
             new Item("Shield Elixir", "A dense silver liquid. Smells metallic.", 15,
                 "* You drank the Shield Elixir.\n* A barrier shimmers around you!\n* +15 HP. DEF +30% for 1 turn.",
-                function() { Player.heal(15); Player.addBuffDef(0.3); }),
+                function() { Player.heal(15); Player.addBuffDef(0.3, 1); }),
             new Item("Rage Tonic", "A boiling red vial. Handle with care.", 15,
                 "* You drank the Rage Tonic.\n* Your fists burn with power!\n* +15 HP. ATK +30% for 1 turn.",
-                function() { Player.heal(15); Player.addBuffAtk(0.3); }),
+                function() { Player.heal(15); Player.addBuffAtk(0.3, 1); }),
             new Item("Swift Serum", "A fizzy cyan liquid. Tingles on contact.", 15,
                 "* You drank the Swift Serum.\n* The world slows around you!\n* +15 HP. SPD +30% for 1 turn.",
-                function() { Player.heal(15); Player.addBuffSpd(0.3); }),
+                function() { Player.heal(15); Player.addBuffSpd(0.3, 1); }),
             new Item("Starlight Brew", "Brewed from captured starlight.", 30,
                 "* You drank the Starlight Brew.\n* Starlight coats your skin!\n* +30 HP. DEF +30% for 1 turn.",
-                function() { Player.heal(30); Player.addBuffDef(0.3); }),
+                function() { Player.heal(30); Player.addBuffDef(0.3, 1); }),
             new Item("Photon Flask", "Pure light in a bottle. Warm.", 10,
                 "* You drank the Photon Flask.\n* Light surges through you!\n* +10 HP. SPD & ATK +30% 1 turn.",
-                function() { Player.heal(10); Player.addBuffSpd(0.3); Player.addBuffAtk(0.3); }),
+                function() { Player.heal(10); Player.addBuffSpd(0.3, 1); Player.addBuffAtk(0.3, 1); }),
             new Item("Void Vial", "Darkness swirls inside. Unsettling.", 20,
                 "* You drank the Void Vial.\n* The void shields and empowers!\n* +20 HP. DEF & ATK +30% 1 turn.",
-                function() { Player.heal(20); Player.addBuffDef(0.3); Player.addBuffAtk(0.3); }),
+                function() { Player.heal(20); Player.addBuffDef(0.3, 1); Player.addBuffAtk(0.3, 1); }),
             new Item("Eclipse Draught", "Half light, half dark. Balanced.", 25,
                 "* You drank the Eclipse Draught.\n* Eclipse energy fills you!\n* +25 HP. DEF & SPD +30% 1 turn.",
-                function() { Player.heal(25); Player.addBuffDef(0.3); Player.addBuffSpd(0.3); }),
+                function() { Player.heal(25); Player.addBuffDef(0.3, 1); Player.addBuffSpd(0.3, 1); }),
             new Item("Gravity Gulp", "Incredibly heavy for its size.", 20,
                 "* You drank the Gravity Gulp.\n* Gravity bends to your will!\n* +20 HP. All stats +30% 1 turn.",
-                function() { Player.heal(20); Player.addBuffDef(0.3); Player.addBuffAtk(0.3); Player.addBuffSpd(0.3); }),
+                function() { Player.heal(20); Player.addBuffDef(0.3, 1); Player.addBuffAtk(0.3, 1); Player.addBuffSpd(0.3, 1); }),
             new Item("Singularity Shot", "A tiny black hole in a glass.", 5,
                 "* You drank the Singularity Shot.\n* Infinite density courses through!\n* +5 HP. ATK +30% for 1 turn.",
-                function() { Player.heal(5); Player.addBuffAtk(0.3); }),
-            new Item("Speed Potion", "A vial of bubbling green liquid.", 20,
-                "* You drank the Speed Potion.\n* You recovered 20 HP.\n* Your SPEED increased by 10%!",
-                function() { Player.heal(20); if(Player.addBuffSpd) Player.addBuffSpd(0.1); }),
-            new Item("Iron Potion", "A dense, metallic-tasting syrup.", 20,
-                "* You drank the Iron Potion.\n* You recovered 20 HP.\n* Your DEFENSE increased by 10%!",
-                function() { Player.heal(20); if(Player.addBuffDef) Player.addBuffDef(0.1); }),
-            new Item("Power Potion", "A spicy red concoction.", 20,
-                "* You drank the Power Potion.\n* You recovered 20 HP.\n* Your DAMAGE increased by 10%!",
-                function() { Player.heal(20); if(Player.addBuffAtk) Player.addBuffAtk(0.1); })
+                function() { Player.heal(5); Player.addBuffAtk(0.3, 1); }),
+                
+            // NEW CRAZY ITEMS
+            new Item("Fruto de Cristal", "Te vuelve invulnerable pero muy lento.", 20,
+                "* Te comes el Fruto de Cristal.\n* Te vuelves INMUNE por 1 turno.\n* Pero tu velocidad se desploma.",
+                function() { Player.heal(20); Player.setInvulnerable(1); Player.addBuffSpd(-0.6, 2); }),
+            new Item("Espejo del Vacío", "Un cristal oscuro y reflectante.", 0,
+                "* Usas el Espejo del Vacío.\n* Reflejarás el 50% del daño en el\npróximo turno (daña piedad del jefe).",
+                function() { Player.setReflection(0.5, 1); }),
+            new Item("Pildora Aceleradora", "Pastilla brillante con símbolo de rayo.", 0,
+                "* Tragas la Píldora Aceleradora.\n* Tu velocidad se DUPLICA por 3 turnos.\n* ¡Pero tu defensa baja a la mitad!",
+                function() { Player.addBuffSpd(1.0, 3); Player.addBuffDef(-0.5, 3); }),
+            new Item("Corazón Sangrante", "Late rítmicamente en tu mano.", 999,
+                "* Absorbes el Corazón Sangrante.\n* ¡HP MÁXIMO RECUPERADO!\n* Pero ya no podrás usar curas pequeñas.",
+                function() { Player.heal(999); Player.setNoSmallHeals(true); }),
+            new Item("Polvo de Gravedad", "Polvo de enana blanca triturada.", 0,
+                "* Inhalas el Polvo de Gravedad.\n* Tu alma es más rápida PERMANENTEMENTE.\n* (Recibes 20% más de daño).",
+                function() { Player.setPermanentGravityDust(); }),
+            new Item("Materia Inestable", "Peligrosamente radiactiva.", 0,
+                "* Tragas la Materia Inestable.\n* Su energía fluctúa violentamente...",
+                function() { 
+                    if (Math.random() > 0.5) { 
+                        Player.heal(500); 
+                    } else { 
+                        Player.damage(150); 
+                    } 
+                }),
+            new Item("Reloj Roto", "Sus manecillas giran sin sentido.", 0,
+                "* Rompes el Reloj Roto.\n* ¡El tiempo se fragmenta!\n* El próximo ataque del jefe durará la MITAD.",
+                function() { Player.setNextAttackHalfDuration(); }),
+            new Item("Alma Artificial", "Un contenedor de alma vacío.", 0,
+                "* Usas el Alma Artificial.\n* ¡Ganas un ESCUDO de 3 cargas\ndurante los próximos 2 turnos!",
+                function() { Player.setShieldCharges(3, 2); }),
+            new Item("Té de Resonancia", "Té servido en una taza humeante.", 30,
+                "* Bebes el Té de Resonancia.\n* Recibes 30 HP.\n* Todo objeto futuro te curará un 25% MÁS.",
+                function() { Player.heal(30); Player.addHealMultiplier(0.25); }),
+            new Item("Brebaje Tóxico", "Una calavera en la etiqueta.", 0,
+                "* Te bebes el Brebaje Tóxico.\n* El veneno afecta a tu enemigo...\n* ...¡Pero también te hiere a ti!",
+                function() { Player.setPoisonEnemy(true); Player.setSelfPoison(10); }),
+            new Item("Estrella Fugaz", "Brilla intensamente. Muy caliente.", 0,
+                "* Pides un deseo a la Estrella Fugaz.\n* Tu HP se REGENERARÁ (20 HP por turno)\ndurante los próximos 5 turnos.",
+                function() { Player.setRegen(20, 5); }),
+            new Item("Ojo del Ángel", "Parece observarte fijamente.", 0,
+                "* Usas el Ojo del Ángel.\n* Amplías tu visión del campo de batalla.\n* ¡La próxima caja será un 50% MÁS GRANDE!",
+                function() { Player.setNextBoxBigger(true); })
         ];
         
         equippedItems = [];
@@ -116,7 +145,7 @@ var Inventory = (function() {
             }
         }
         // Equip
-        if (equippedItems.length < 3) {
+        if (equippedItems.length < 6) {
             equippedItems.push(item);
             return true;
         }

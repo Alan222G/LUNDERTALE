@@ -181,7 +181,13 @@ var Combat = (function() {
                     // Start boss attack
                     var enemy = Cgroup.getEnemy(selectStateEnemy);
                     var details = BossController.getAttackDetails(enemy);
-                    Cbbox.setSize(details.width, details.height, false);
+                    var w = details.width;
+                    var h = details.height;
+                    if (Player.consumeNextBoxBigger()) {
+                        w = Math.min(600, w * 1.5);
+                        h = Math.min(400, h * 1.5);
+                    }
+                    Cbbox.setSize(w, h, false);
                     BossController.startAttack(enemy, Cbbox.getBound(), details.patternName);
                 }
                 break;
@@ -228,6 +234,13 @@ var Combat = (function() {
                     Soul.setSoulMode(Soul.SOUL_MODE.RED);
                     Cbbox.setSize(574, 140, false);
                     Player.resetBuffs();
+                    if (typeof Player !== 'undefined' && Player.isPoisonEnemy && Player.isPoisonEnemy()) {
+                        var _enemy = Cgroup.getEnemy(selectStateEnemy);
+                        if (_enemy && _enemy.mercyHP !== undefined) {
+                            _enemy.mercyHP = Math.max(0, _enemy.mercyHP - 15);
+                            Sound.playSound("damage", true);
+                        }
+                    }
                     combatState = COMBAT_STATE.MAIN;
                     Writer.setupText(Cgroup.getText());
                 }

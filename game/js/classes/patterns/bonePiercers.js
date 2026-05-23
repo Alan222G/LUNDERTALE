@@ -54,32 +54,17 @@ BonePiercersPattern.prototype.update = function(dt) {
             targetY = bb[1] + Math.random() * boxH;
         }
         
-        this.piercers.push({
-            startX: startX,
-            startY: startY,
-            targetX: targetX,
-            targetY: targetY,
-            timer: 0,
-            telegraphTime: 0.6,
-            travelTime: 0.4,
-            lingerTime: 0.2,
-            width: 10,
-            fired: false,
-            currentX: startX,
-            currentY: startY
-        });
-        
-        // Occasionally spawn a pair
-        if (Math.random() > 0.6 && this.elapsed > 2) {
-            var offset = 40;
+        var numPiercers = 3 + Math.floor(Math.random() * 2); // 3 or 4
+        for (var k = 0; k < numPiercers; k++) {
+            var offset = (k - (numPiercers/2)) * 40; // Spread around center
             this.piercers.push({
                 startX: startX + (edge >= 2 ? 0 : offset),
                 startY: startY + (edge < 2 ? 0 : offset),
                 targetX: targetX + (edge >= 2 ? 0 : offset),
                 targetY: targetY + (edge < 2 ? 0 : offset),
                 timer: 0,
-                telegraphTime: 0.6,
-                travelTime: 0.4,
+                telegraphTime: 0.5,
+                travelTime: 0.22, // Faster
                 lingerTime: 0.2,
                 width: 10,
                 fired: false,

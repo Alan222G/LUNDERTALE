@@ -862,7 +862,7 @@ var Overworld = (function() {
                     ctx.textAlign = "left";
                     var isEq = Inventory.isEquipped(catalogIndex);
                     ctx.fillStyle = isEq ? "#0F0" : "#888";
-                    ctx.fillText(isEq ? "Equipado (" + equippedCount + "/3)" : "Presiona Z para equipar (" + equippedCount + "/3)", 40, 240);
+                    ctx.fillText(isEq ? "Equipado (" + equippedCount + "/6)" : "Presiona Z para equipar (" + equippedCount + "/6)", 40, 240);
                     ctx.fillStyle = "#888";
                     ctx.fillText("[X] Exit", 40, 265);
                     

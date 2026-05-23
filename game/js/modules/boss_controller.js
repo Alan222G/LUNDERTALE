@@ -208,6 +208,11 @@ var BossController = (function() {
         currentPattern = createPattern(patternName);
         if (currentPattern) {
             currentPattern.generateBullets(battleBox);
+            if (typeof Player !== "undefined" && Player.consumeNextAttackHalfDuration()) {
+                if (currentPattern.duration) {
+                    currentPattern.duration = Math.max(1, currentPattern.duration / 2);
+                }
+            }
         }
 
         // Set soul mode based on enemy phase
@@ -258,6 +263,15 @@ var BossController = (function() {
                     // Trigger brutal passives
                     if (enemy && typeof enemy.onHitPlayer === 'function') {
                         enemy.onHitPlayer(finalDmg);
+                    }
+                    
+                    // Item Effect: Espejo del Vacío (Reflection)
+                    if (typeof Player !== 'undefined' && Player.getReflectionRate && Player.getReflectionRate() > 0) {
+                        var reflectDmg = Math.floor(finalDmg * Player.getReflectionRate());
+                        if (enemy && enemy.mercyHP !== undefined) {
+                            enemy.mercyHP = Math.max(0, enemy.mercyHP - reflectDmg);
+                            Sound.playSound("ting", true); // Feedback sound
+                        }
                     }
                 }
             }
