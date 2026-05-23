@@ -112,9 +112,13 @@ Enemy.prototype.draw = function(ctx) {
     ctx.translate(-370, -200);
     
     if (this.renderType === "supermassive_blackhole") {
+        ctx.save(); ctx.translate(370, 190); ctx.scale(1.5, 1.5); ctx.translate(-370, -190);
         this.drawSupermassiveBlackHole(ctx);
+        ctx.restore();
     } else if (this.renderType === "blackhole") {
+        ctx.save(); ctx.translate(370, 190); ctx.scale(1.5, 1.5); ctx.translate(-370, -190);
         this.drawBlackHole(ctx);
+        ctx.restore();
     } else if (this.renderType === "seraph") {
         this.drawSeraph(ctx);
     } else if (this.renderType === "ophanim") {
@@ -667,7 +671,7 @@ Enemy.prototype.drawSeraph = function(ctx) {
     var time = this.timeCounter;
     ctx.save();
     ctx.translate(370, 160);
-    ctx.scale(1.35, 1.35);
+    ctx.scale(1.8, 1.8);
     var cx = 0, cy = 0;
     
     // Soft divine aura
@@ -746,7 +750,7 @@ Enemy.prototype.drawOphanim = function(ctx) {
     var time = this.timeCounter;
     ctx.save();
     ctx.translate(370, 170);
-    ctx.scale(1.35, 1.35);
+    ctx.scale(1.8, 1.8);
     var cx = 0, cy = 0;
     
     // Intense divine aura
@@ -842,7 +846,7 @@ Enemy.prototype.drawThrone = function(ctx) {
     }
     
     ctx.translate(370, 170);
-    ctx.scale(1.35, 1.35);
+    ctx.scale(1.8, 1.8);
     var cx = 0, cy = 0;
     
     // Massive raging aura
