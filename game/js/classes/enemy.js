@@ -2684,7 +2684,7 @@ Enemy.prototype.drawSachielAngelic = function(ctx) {
 Enemy.prototype.drawGodzilla = function(ctx) {
     var time = this.timeCounter;
     var bossX = 370;
-    var bossY = 150;
+    var bossY = 140; // centered front-facing
     
     // Determine state
     var isCharged = this.renderType === "godzilla_charged";
@@ -2697,14 +2697,17 @@ Enemy.prototype.drawGodzilla = function(ctx) {
     var spineInnerColor = "#FFFFFF";
     
     if (isMeltdown) {
-        glowColor = "rgba(255, 90, 0, 0.8)";
-        auraColor = "rgba(230, 40, 0, 0.15)";
-        eyeColor = "#FF5500";
-        spineInnerColor = "#FFE0B0";
+        // Vibrant Pink for evolved/meltdown canon state
+        glowColor = "rgba(255, 0, 160, 0.85)";
+        auraColor = "rgba(255, 0, 100, 0.18)";
+        eyeColor = "#FF00AA";
+        spineInnerColor = "#FFAAFF";
     } else if (!isCharged) {
         // Normal state: dimmer blue glow
-        glowColor = "rgba(0, 100, 200, 0.5)";
+        glowColor = "rgba(0, 100, 200, 0.55)";
         auraColor = "rgba(0, 50, 150, 0.08)";
+        eyeColor = "#00A0FF";
+        spineInnerColor = "#E6F5FF";
     }
     
     // Shaking / Trembling
@@ -2726,14 +2729,14 @@ Enemy.prototype.drawGodzilla = function(ctx) {
     
     ctx.save();
     
-    // Breathing scale factor
+    // Breathing scale factor (symmetrical)
     var breath = 1.0 + Math.sin(time * 2.5) * 0.02;
     
     // 1. Ambient radiation aura behind the figure
-    var auraPulse = 180 + Math.sin(time * 4) * 20;
+    var auraPulse = 190 + Math.sin(time * 4) * 20;
     var auraGrad = ctx.createRadialGradient(bossX, bossY + 40, 10, bossX, bossY + 40, auraPulse);
     auraGrad.addColorStop(0, auraColor);
-    auraGrad.addColorStop(0.5, isMeltdown ? "rgba(180, 20, 0, 0.05)" : "rgba(0, 30, 100, 0.03)");
+    auraGrad.addColorStop(0.5, isMeltdown ? "rgba(180, 0, 120, 0.04)" : "rgba(0, 30, 100, 0.03)");
     auraGrad.addColorStop(1, "rgba(0,0,0,0)");
     ctx.fillStyle = auraGrad;
     ctx.beginPath();
@@ -2743,266 +2746,270 @@ Enemy.prototype.drawGodzilla = function(ctx) {
     // 2. RADIATION PARTICLES (floating in the air)
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
-    var pCount = isMeltdown ? 20 : (isCharged ? 15 : 6);
+    var pCount = isMeltdown ? 22 : (isCharged ? 16 : 8);
     for (var i = 0; i < pCount; i++) {
         var pAngle = time * 0.5 + i * 2.3;
-        var pDist = 60 + (i * 12 + time * 30) % 130;
+        var pDist = 60 + (i * 12 + time * 35) % 140;
         var px = bossX + Math.cos(pAngle) * pDist;
-        var py = bossY + 40 + Math.sin(pAngle * 1.5) * pDist * 0.8 - 40;
+        var py = bossY + 40 + Math.sin(pAngle * 1.5) * pDist * 0.8 - 30;
         var pSize = 1.5 + Math.sin(time * 3 + i) * 1.0;
         if (pSize < 0.5) pSize = 0.5;
-        ctx.fillStyle = isMeltdown ? "rgba(255, 120, 30, 0.6)" : "rgba(80, 200, 255, 0.5)";
+        ctx.fillStyle = isMeltdown ? "rgba(255, 0, 180, 0.6)" : "rgba(80, 200, 255, 0.5)";
         ctx.shadowBlur = 6;
-        ctx.shadowColor = isMeltdown ? "#FF6A00" : "#00B2FF";
+        ctx.shadowColor = isMeltdown ? "#FF00A0" : "#00B2FF";
         ctx.beginPath();
         ctx.arc(px, py, pSize, 0, Math.PI * 2);
         ctx.fill();
     }
     ctx.restore();
     
-    // 3. SWAYING SCALY TAIL (drawn behind Godzilla's body)
+    // 3. BACKGROUND SWAYING TAIL
+    // It sways behind shoulders, visible on the left or right
     ctx.save();
-    ctx.strokeStyle = "#1A2222"; // Dark charcoal scaly skin
-    ctx.lineWidth = 25;
+    var tailSway = Math.sin(time * 2.0) * 45;
+    ctx.strokeStyle = "#151D1D";
+    ctx.lineWidth = 18;
     ctx.lineCap = "round";
-    ctx.lineJoin = "round";
     ctx.beginPath();
-    ctx.moveTo(bossX - 30, bossY + 90);
-    // Draw segmented tail with wave motion
-    var tailPoints = [];
-    var segmentCount = 8;
-    for (var tSeg = 0; tSeg <= segmentCount; tSeg++) {
-        var ratio = tSeg / segmentCount;
-        var tx = bossX - 50 - ratio * 150;
-        // Wave sway: lower frequency at base, higher at tip
-        var swayAngle = time * 3.5 - ratio * 4.5;
-        var ty = bossY + 95 + Math.sin(swayAngle) * (15 + ratio * 35);
-        tailPoints.push({ x: tx, y: ty, size: 25 * (1 - ratio * 0.7) });
-    }
-    
-    // Draw the tail spine line
-    ctx.beginPath();
-    ctx.moveTo(bossX - 30, bossY + 90);
-    for (var i = 0; i < tailPoints.length; i++) {
-        ctx.lineTo(tailPoints[i].x, tailPoints[i].y);
-    }
-    ctx.strokeStyle = "#1D2727";
-    ctx.lineWidth = 26;
+    ctx.moveTo(bossX - 20, bossY + 100);
+    ctx.quadraticCurveTo(bossX - 70 + tailSway, bossY + 60, bossX - 110 + tailSway * 1.2, bossY + 20 + Math.cos(time * 2.0) * 15);
     ctx.stroke();
     
-    // Draw tail segments individually to give scaly appearance
-    for (var i = 0; i < tailPoints.length; i++) {
-        ctx.fillStyle = "#161D1D";
+    // Draw glowing spines on the background tail
+    ctx.fillStyle = glowColor;
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = glowColor;
+    for (var ts = 0; ts < 3; ts++) {
+        var tx = bossX - 80 + tailSway * 1.1 + ts * 15;
+        var ty = bossY + 45 + Math.cos(time * 2.0) * 10 - ts * 5;
         ctx.beginPath();
-        ctx.arc(tailPoints[i].x, tailPoints[i].y, tailPoints[i].size, 0, Math.PI * 2);
+        ctx.moveTo(tx, ty);
+        ctx.lineTo(tx - 6, ty - 12);
+        ctx.lineTo(tx + 6, ty);
+        ctx.closePath();
         ctx.fill();
-        
-        // Highlight scales on tail
-        ctx.fillStyle = "#222D2D";
-        ctx.beginPath();
-        ctx.arc(tailPoints[i].x + 3, tailPoints[i].y - 3, tailPoints[i].size * 0.7, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Glowing tail spines!
-        var spineHeight = tailPoints[i].size * 0.6;
-        if (spineHeight > 3) {
+    }
+    ctx.restore();
+    
+    // 4. SYMMETRICAL DORSAL SPINES (LEFT AND RIGHT SIDES)
+    // Left Spines
+    var leftSpines = [
+        { x: bossX - 45, y: bossY + 50, size: 26, angle: -0.4 },
+        { x: bossX - 60, y: bossY + 75, size: 36, angle: -0.6 },
+        { x: bossX - 72, y: bossY + 105, size: 32, angle: -0.7 },
+        { x: bossX - 40, y: bossY + 22, size: 16, angle: -0.2 }
+    ];
+    // Right Spines (Mirrored)
+    var rightSpines = [
+        { x: bossX + 45, y: bossY + 50, size: 26, angle: 0.4 },
+        { x: bossX + 60, y: bossY + 75, size: 36, angle: 0.6 },
+        { x: bossX + 72, y: bossY + 105, size: 32, angle: 0.7 },
+        { x: bossX + 40, y: bossY + 22, size: 16, angle: 0.2 }
+    ];
+    
+    function drawSpineSet(spinesList, isLeft) {
+        for (var sIdx = 0; sIdx < spinesList.length; sIdx++) {
+            var sp = spinesList[sIdx];
             ctx.save();
-            ctx.translate(tailPoints[i].x, tailPoints[i].y);
-            ctx.rotate(0.3 - i * 0.15 + Math.sin(time * 3 - i * 0.5) * 0.05);
-            ctx.shadowBlur = isCharged || isMeltdown ? 12 : 4;
+            ctx.translate(sp.x, sp.y);
+            ctx.rotate(sp.angle);
+            
+            ctx.shadowBlur = isCharged || isMeltdown ? 15 : 6;
             ctx.shadowColor = glowColor;
-            ctx.fillStyle = glowColor;
+            
+            // Dark outer ridge of spine
+            ctx.fillStyle = "#121A1A";
             ctx.beginPath();
-            ctx.moveTo(-tailPoints[i].size * 0.2, -tailPoints[i].size * 0.8);
-            ctx.lineTo(0, -tailPoints[i].size * 0.8 - spineHeight);
-            ctx.lineTo(tailPoints[i].size * 0.2, -tailPoints[i].size * 0.8);
+            ctx.moveTo(0, 0);
+            ctx.lineTo(-sp.size * 0.5, -sp.size * 0.3);
+            ctx.lineTo(-sp.size * 0.2, -sp.size * 0.8);
+            ctx.lineTo(-sp.size * 0.8, -sp.size * 1.1);
+            ctx.lineTo(0, -sp.size * 1.3);
+            ctx.lineTo(sp.size * 0.4, -sp.size * 0.7);
             ctx.closePath();
             ctx.fill();
+            
+            // Glowing core of spine
+            var pulseScale = 0.75 + Math.sin(time * 5.5 - sIdx) * 0.25;
+            ctx.fillStyle = glowColor;
+            ctx.beginPath();
+            ctx.moveTo(0, -sp.size * 0.2);
+            ctx.lineTo(-sp.size * 0.4, -sp.size * 0.5);
+            ctx.lineTo(-sp.size * 0.6 * pulseScale, -sp.size * 0.9 * pulseScale);
+            ctx.lineTo(0, -sp.size * 0.9 * pulseScale);
+            ctx.lineTo(sp.size * 0.2, -sp.size * 0.5);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Ultra bright center
+            if (isCharged || isMeltdown) {
+                ctx.fillStyle = spineInnerColor;
+                ctx.beginPath();
+                ctx.arc(-sp.size * 0.2, -sp.size * 0.6, sp.size * 0.22 * pulseScale, 0, Math.PI * 2);
+                ctx.fill();
+            }
             ctx.restore();
         }
     }
-    ctx.restore();
     
-    // 4. MAIN BODY AND CHEST (Massive reptilian chest)
+    drawSpineSet(leftSpines, true);
+    drawSpineSet(rightSpines, false);
+    
+    // 5. MASSIVE SYMMETRICAL SHOULDERS AND NECK
     ctx.save();
     ctx.scale(breath, breath);
     
-    // Draw dorsal plates on the back (Spines) - Left side behind neck
-    var spines = [
-        { x: bossX - 45, y: bossY + 45, size: 28 },
-        { x: bossX - 58, y: bossY + 68, size: 40 },
-        { x: bossX - 65, y: bossY + 95, size: 34 },
-        { x: bossX - 40, y: bossY + 20, size: 16 }
-    ];
-    
-    for (var sIdx = 0; sIdx < spines.length; sIdx++) {
-        var sp = spines[sIdx];
-        ctx.save();
-        ctx.shadowBlur = isCharged || isMeltdown ? 15 : 6;
-        ctx.shadowColor = glowColor;
-        
-        // Dark outer ridge
-        ctx.fillStyle = "#121A1A";
-        ctx.beginPath();
-        ctx.moveTo(sp.x, sp.y);
-        ctx.lineTo(sp.x - sp.size * 0.9, sp.y - sp.size * 0.3);
-        ctx.lineTo(sp.x - sp.size * 0.5, sp.y - sp.size * 0.8);
-        ctx.lineTo(sp.x - sp.size * 1.2, sp.y - sp.size * 1.1);
-        ctx.lineTo(sp.x - sp.size * 0.2, sp.y - sp.size * 1.3);
-        ctx.lineTo(sp.x + sp.size * 0.2, sp.y - sp.size * 0.6);
-        ctx.closePath();
-        ctx.fill();
-        
-        // Glowing core of the dorsal plate
-        var pulseScale = 0.7 + Math.sin(time * 5 - sIdx) * 0.3;
-        ctx.fillStyle = glowColor;
-        ctx.beginPath();
-        ctx.moveTo(sp.x - sp.size * 0.2, sp.y - sp.size * 0.2);
-        ctx.lineTo(sp.x - sp.size * 0.6, sp.y - sp.size * 0.5);
-        ctx.lineTo(sp.x - sp.size * 0.9 * pulseScale, sp.y - sp.size * 0.8 * pulseScale);
-        ctx.lineTo(sp.x - sp.size * 0.2, sp.y - sp.size * 0.9 * pulseScale);
-        ctx.closePath();
-        ctx.fill();
-        
-        // Ultra bright inner glow
-        if (isCharged || isMeltdown) {
-            ctx.fillStyle = spineInnerColor;
-            ctx.beginPath();
-            ctx.arc(sp.x - sp.size * 0.4, sp.y - sp.size * 0.6, sp.size * 0.25 * pulseScale, 0, Math.PI * 2);
-            ctx.fill();
-        }
-        ctx.restore();
-    }
-    
-    // 5. SHOULDER AND NECK
-    // Draw scaly neck background
+    // Base Chest/Shoulders
     ctx.fillStyle = "#182020";
     ctx.beginPath();
-    ctx.moveTo(bossX - 50, bossY + 120);
-    ctx.quadraticCurveTo(bossX - 60, bossY + 50, bossX - 25, bossY - 10); // Back of neck
-    ctx.lineTo(bossX + 30, bossY + 20); // Front throat
-    ctx.quadraticCurveTo(bossX + 50, bossY + 80, bossX + 70, bossY + 120); // Front chest
+    ctx.moveTo(bossX - 75, bossY + 120);
+    ctx.quadraticCurveTo(bossX - 60, bossY + 60, bossX - 35, bossY + 25); // Left neck
+    ctx.lineTo(bossX + 35, bossY + 25); // Right neck
+    ctx.quadraticCurveTo(bossX + 60, bossY + 60, bossX + 75, bossY + 120); // Right shoulder
     ctx.closePath();
     ctx.fill();
     
-    // Scaly texture lines on the neck
+    // Symmetrical scaly neck texture folds
     ctx.strokeStyle = "#101616";
     ctx.lineWidth = 2.5;
-    for (var nLine = 0; nLine < 6; nLine++) {
+    for (var nLine = 0; nLine < 5; nLine++) {
         ctx.beginPath();
-        ctx.moveTo(bossX - 45 + nLine * 5, bossY + 40 + nLine * 10);
-        ctx.quadraticCurveTo(bossX - 10 + nLine * 5, bossY + 55 + nLine * 8, bossX + 35 + nLine * 3, bossY + 70 + nLine * 6);
+        // Symmetrical curve on left side of neck
+        ctx.moveTo(bossX - 45 + nLine * 2, bossY + 45 + nLine * 12);
+        ctx.quadraticCurveTo(bossX - 25, bossY + 55 + nLine * 10, bossX, bossY + 60 + nLine * 8);
+        // Symmetrical curve on right side of neck
+        ctx.moveTo(bossX + 45 - nLine * 2, bossY + 45 + nLine * 12);
+        ctx.quadraticCurveTo(bossX + 25, bossY + 55 + nLine * 10, bossX, bossY + 60 + nLine * 8);
         ctx.stroke();
     }
     
-    // Massive chest plate scales
+    // Symmetrical chest plates
     ctx.fillStyle = "#222C2C";
     ctx.beginPath();
-    ctx.moveTo(bossX - 10, bossY + 80);
-    ctx.lineTo(bossX + 30, bossY + 60);
-    ctx.lineTo(bossX + 55, bossY + 95);
-    ctx.lineTo(bossX + 10, bossY + 115);
+    ctx.moveTo(bossX - 45, bossY + 105);
+    ctx.lineTo(bossX - 15, bossY + 85);
+    ctx.lineTo(bossX, bossY + 95);
+    ctx.lineTo(bossX + 15, bossY + 85);
+    ctx.lineTo(bossX + 45, bossY + 105);
+    ctx.lineTo(bossX, bossY + 122);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
     
-    // 6. GIANT HEAD (Reptilian snarl)
+    // 6. SYMMETRICAL FRONT-FACING HEAD
     ctx.save();
-    ctx.translate(bossX - 5, bossY - 5);
+    ctx.translate(bossX, bossY + 15);
     
-    // Head shape base
+    // Main head contour (front-facing)
     ctx.fillStyle = "#1B2424";
     ctx.beginPath();
-    ctx.moveTo(-45, 0); // Back of head
-    ctx.quadraticCurveTo(-40, -40, -10, -50); // Crown/Skull roof
-    ctx.lineTo(45, -35); // Snout tip top
-    ctx.lineTo(48, -20); // Nose tip front
-    ctx.lineTo(25, -12); // Upper jaw bottom
-    ctx.quadraticCurveTo(-10, -5, -45, 5); // Neck connection
+    ctx.moveTo(-32, 0); // Bottom left jaw
+    ctx.quadraticCurveTo(-38, -30, -22, -45); // Left skull side
+    ctx.quadraticCurveTo(0, -56, 22, -45); // Crown
+    ctx.quadraticCurveTo(38, -30, 32, 0); // Right skull side
+    ctx.quadraticCurveTo(0, 10, -32, 0); // Chin
     ctx.closePath();
     ctx.fill();
+    ctx.stroke();
     
-    // Brow ridge / crest
+    // Symmetrical brow ridge / forehead crest
     ctx.fillStyle = "#263232";
     ctx.beginPath();
-    ctx.moveTo(-15, -46);
-    ctx.quadraticCurveTo(5, -48, 25, -38);
-    ctx.lineTo(10, -32);
+    ctx.moveTo(-20, -42);
+    ctx.quadraticCurveTo(0, -48, 20, -42);
+    ctx.quadraticCurveTo(0, -32, -20, -42);
     ctx.closePath();
     ctx.fill();
     
-    // Lower jaw (Snarl)
-    ctx.fillStyle = "#151D1D";
+    // Snout / Nose ridge (centered vertical structure)
+    ctx.fillStyle = "#1F2929";
     ctx.beginPath();
-    ctx.moveTo(15, -13);
-    ctx.lineTo(45, -20); // Front tooth line
-    ctx.lineTo(40, -6); // Chin front
-    ctx.quadraticCurveTo(20, -2, -15, -4); // Jawline
+    ctx.moveTo(-10, -36);
+    ctx.lineTo(10, -36);
+    ctx.lineTo(13, -18);
+    ctx.lineTo(-13, -18);
     ctx.closePath();
     ctx.fill();
     
-    // Mouth interior (glowing atomic energy inside the snarl)
+    // Symmetrical nostrils
+    ctx.fillStyle = "#0A0D0D";
+    ctx.beginPath();
+    ctx.arc(-5, -20, 2, 0, Math.PI*2);
+    ctx.arc(5, -20, 2, 0, Math.PI*2);
+    ctx.fill();
+    
+    // Snarl mouth cavity (centered snarling mouth)
     ctx.save();
     ctx.shadowBlur = isCharged || isMeltdown ? 12 : 0;
     ctx.shadowColor = glowColor;
-    ctx.fillStyle = isCharged || isMeltdown ? glowColor : "#441111"; // Glowing mouth or dark red
+    ctx.fillStyle = isCharged || isMeltdown ? glowColor : "#441111"; // Glowing atomic energy inside mouth
+    
     ctx.beginPath();
-    ctx.moveTo(10, -22);
-    ctx.lineTo(38, -25);
-    ctx.lineTo(25, -15);
-    ctx.lineTo(5, -18);
+    ctx.moveTo(-22, -12); // Left corner
+    ctx.quadraticCurveTo(0, -18, 22, -12); // Upper lip
+    ctx.quadraticCurveTo(24, 0, 0, 4); // Lower lip center
+    ctx.quadraticCurveTo(-24, 0, -22, -12);
     ctx.closePath();
     ctx.fill();
     
-    // Sharp tiny fangs/teeth
+    // Symmetrical sharp fangs/teeth
     ctx.fillStyle = "#EEE6D8";
-    for(var tCount=0; tCount < 6; tCount++) {
-        var tx = 15 + tCount * 4;
+    var teethCount = 7;
+    for (var t = 0; t < teethCount; t++) {
+        var tx = -18 + t * 6.0;
         // Upper teeth pointing down
         ctx.beginPath();
-        ctx.moveTo(tx, -23); ctx.lineTo(tx + 1.5, -20); ctx.lineTo(tx + 3, -23);
+        ctx.moveTo(tx, -14);
+        ctx.lineTo(tx + 1.5, -9);
+        ctx.lineTo(tx + 3, -14);
         ctx.fill();
         // Lower teeth pointing up
         ctx.beginPath();
-        ctx.moveTo(tx - 2, -15); ctx.lineTo(tx - 0.5, -18); ctx.lineTo(tx + 1, -15);
+        ctx.moveTo(tx, 0);
+        ctx.lineTo(tx + 1.5, -4);
+        ctx.lineTo(tx + 3, 0);
         ctx.fill();
     }
     ctx.restore();
     
-    // Nostril
-    ctx.fillStyle = "#0A0D0D";
-    ctx.beginPath();
-    ctx.arc(38, -32, 2.5, 0, Math.PI*2);
-    ctx.fill();
-    
-    // 7. GLOWING ATOMIC EYE
+    // 7. SYMMETRICAL GLOWING ATOMIC EYES (Angled, angry glare)
     ctx.save();
     ctx.shadowBlur = isCharged || isMeltdown ? 18 : 6;
     ctx.shadowColor = glowColor;
     ctx.fillStyle = eyeColor;
     
-    // Angry glowing eye slit
+    // Left eye slit (angled angry)
     ctx.beginPath();
-    ctx.moveTo(5, -34);
-    ctx.quadraticCurveTo(13, -37, 20, -32);
-    ctx.quadraticCurveTo(11, -31, 5, -34);
+    ctx.moveTo(-22, -32);
+    ctx.lineTo(-10, -29);
+    ctx.lineTo(-20, -28);
+    ctx.closePath();
     ctx.fill();
     
-    // Inner white pupil for high intensity
+    // Right eye slit (mirrored angled angry)
+    ctx.beginPath();
+    ctx.moveTo(22, -32);
+    ctx.lineTo(10, -29);
+    ctx.lineTo(20, -28);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Symmetrical inner white pupil highlights
     if (isCharged || isMeltdown) {
         ctx.fillStyle = "#FFF";
         ctx.beginPath();
-        ctx.arc(12, -33.5, 1.2, 0, Math.PI * 2);
+        ctx.arc(-15, -30, 1.2, 0, Math.PI * 2);
+        ctx.arc(15, -30, 1.2, 0, Math.PI * 2);
         ctx.fill();
     }
     ctx.restore();
     
-    // Highlight lines on snout
+    // Snout scaling details / vertical lines
     ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(0, -42);
-    ctx.lineTo(35, -28);
+    ctx.moveTo(-10, -32); ctx.lineTo(-12, -22);
+    ctx.moveTo(10, -32); ctx.lineTo(12, -22);
     ctx.stroke();
     
     ctx.restore(); // Head
