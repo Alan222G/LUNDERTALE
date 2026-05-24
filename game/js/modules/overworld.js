@@ -126,6 +126,23 @@ var Overworld = (function() {
                 });
             }
         });
+
+        // Godzilla battle trigger (Guest Group)
+        triggerList.push({
+            x: 620, y: 250, w: 40, h: 40,
+            triggered: false,
+            bossId: "godzilla",
+            label: "GODZILLA",
+            color: "rgba(0, 150, 255, 0.5)",
+            action: function() {
+                var self = this;
+                Transition.start(function() {
+                    main.gameState = main.GAME_STATE.COMBAT;
+                    Combat.init(self.bossId);
+                    Combat.setup(main.ctx);
+                });
+            }
+        });
         
         // Load boss animations
         singFrames = [
@@ -490,6 +507,65 @@ var Overworld = (function() {
                     ctx.fill();
                     
                     ctx.restore();
+                } else if (t.bossId === "godzilla") {
+                    // Epic Godzilla representation in Overworld
+                    var gTime = animTimer;
+                    var gSize = 25; // Scale size
+                    
+                    ctx.save();
+                    ctx.translate(gcx, gcy + Math.sin(gTime * 3) * 3); // Hovering wave
+                    
+                    // Radiation blue aura
+                    ctx.shadowBlur = 20;
+                    ctx.shadowColor = "rgba(0, 160, 255, 0.8)";
+                    
+                    // Body/Head outline (dark charcoal)
+                    ctx.fillStyle = "#162020";
+                    ctx.beginPath();
+                    ctx.moveTo(-gSize * 0.8, gSize * 0.8);
+                    ctx.quadraticCurveTo(-gSize * 0.6, -gSize * 0.4, -gSize * 0.2, -gSize * 0.6); // Head/Neck back
+                    ctx.lineTo(gSize * 0.5, -gSize * 0.4); // snout top
+                    ctx.lineTo(gSize * 0.6, -gSize * 0.1); // nose
+                    ctx.lineTo(gSize * 0.2, -gSize * 0.0); // mouth top
+                    ctx.lineTo(gSize * 0.5, gSize * 0.1); // jaw bottom
+                    ctx.quadraticCurveTo(gSize * 0.6, gSize * 0.6, gSize * 0.8, gSize * 0.8); // Chest
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Draw tail swaying in the background
+                    ctx.strokeStyle = "#121A1A";
+                    ctx.lineWidth = 6;
+                    ctx.lineCap = "round";
+                    ctx.beginPath();
+                    ctx.moveTo(-gSize * 0.5, gSize * 0.6);
+                    ctx.quadraticCurveTo(-gSize * 1.2 - Math.sin(gTime * 4) * 8, gSize * 0.2 + Math.cos(gTime * 3) * 6, -gSize * 1.5, gSize * 0.5 + Math.sin(gTime * 4) * 10);
+                    ctx.stroke();
+                    
+                    // Glowing blue atomic dorsal spines on back
+                    ctx.fillStyle = "rgba(0, 190, 255, 0.9)";
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = "#00B2FF";
+                    for (var s = 0; s < 3; s++) {
+                        var sx = -gSize * 0.6 + s * 8;
+                        var sy = -gSize * 0.2 + s * 6;
+                        ctx.beginPath();
+                        ctx.moveTo(sx - 3, sy);
+                        ctx.lineTo(sx - 8, sy - 8 - Math.sin(gTime * 5 + s) * 2);
+                        ctx.lineTo(sx + 1, sy + 3);
+                        ctx.closePath();
+                        ctx.fill();
+                    }
+                    
+                    // Glowing eye
+                    ctx.fillStyle = "#00FFFF";
+                    ctx.shadowBlur = 8;
+                    ctx.shadowColor = "#00FFFF";
+                    ctx.beginPath();
+                    ctx.arc(gSize * 0.1, -gSize * 0.35, 1.8, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.restore();
+                    ctx.shadowBlur = 0;
                 } else if (img && img.complete) {
                     ctx.drawImage(img, t.x, t.y, t.w, t.h);
                 } else {

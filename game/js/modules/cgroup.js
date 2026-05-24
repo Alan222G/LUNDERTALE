@@ -18,6 +18,8 @@ var Cgroup = (function() {
             setupSachiel();
         } else if (currentBossId === "paradox") {
             setupParadox();
+        } else if (currentBossId === "godzilla") {
+            setupGodzilla();
         } else {
             setupSingularity();
         }
@@ -326,8 +328,8 @@ var Cgroup = (function() {
             new Enemy({
                 name: "Paradoja",
                 checkText: "Una anomalía temporal con forma de reloj. Contiene toda la arena del tiempo.",
-                maxHP: 2500,
-                curHP: 2500,
+                maxHP: 4000,
+                curHP: 4000,
                 renderType: "hourglass",
                 atk: 11,
                 def: 8,
@@ -377,7 +379,7 @@ var Cgroup = (function() {
                     { patterns: ["temporalCollapse", "sandStream", "timeReverse", "pendulumSwing", "clockworkGears", "shatteredGlass", "glitchWalls", "entropyVortex"], soulMode: "red", renderType: "hourglass_shattered",
                       speech: ["YO HE VISTO\nTU FINAL.", "EL CICLO\nSE ROMPE.", "NO HAY\nFUTURO."] }
                 ],
-                phaseHP: [2500, 3200, 4000],
+                phaseHP: [4000, 4700, 5500],
                 karmaEnabled: false,
                 jitterEnabled: false,
                 damagePos: new Vect(370, 320, 0),
@@ -386,6 +388,80 @@ var Cgroup = (function() {
                 mercyHP: 100,
                 xpReward: 300,
                 goldReward: 200,
+            })
+        ];
+        enemies[0].bubblePos = enemies[0].damagePos.getAdd(new Vect(60, -160, 0));
+        mercies = ["Spare", "Flee"];
+        defends = [];
+    }
+
+    function setupGodzilla() {
+        enemies = [
+            new Enemy({
+                name: "Godzilla",
+                checkText: "El Rey de los Monstruos. La radiación a su alrededor es palpable.",
+                maxHP: 4500,
+                curHP: 4500,
+                renderType: "godzilla_head",
+                atk: 18,
+                def: 15,
+                defense: 1.4,
+                acts: ["Check", "Dodge", "Roar Back", "Flee"],
+                actResponses: [
+                    "* GODZILLA - ATK 18 DEF 15\n* El Titán Alfa. Su presencia es devastadora.",
+                    "* Te preparas para esquivar.\n* Tu velocidad aumenta ligeramente para el siguiente ataque.",
+                    "* Le ruges de vuelta con todas tus fuerzas.\n* Godzilla se ve desafiado. Su defensa baja temporalmente.",
+                    "* ¡No hay forma de huir del Rey de los Monstruos!"
+                ],
+                actFunctions: [
+                    function() { console.log("Checked Godzilla"); },
+                    function() {
+                        console.log("Dodged Godzilla");
+                        if (typeof Player !== "undefined" && Player.addSpeedBuff) {
+                            Player.addSpeedBuff(1.2, 1);
+                        }
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 15);
+                    },
+                    function() {
+                        console.log("Roared at Godzilla");
+                        enemies[0].defense = Math.max(0.8, enemies[0].defense - 0.2);
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 25);
+                    },
+                    function() {
+                        console.log("Flee Godzilla failed");
+                    }
+                ],
+                texts: [
+                    "* El suelo tiembla violentamente bajo tus pies.",
+                    "* Un aire caliente cargado de estática y ozono llena el lugar.",
+                    "* Las placas dorsales de Godzilla brillan con una luz azul cegadora.",
+                    "* Godzilla te observa con ojos antiguos y colosales."
+                ],
+                speech: [
+                    "SKREEEONNK!",
+                    "RROOOAAARRR!",
+                    "EL PODER\nATOMICO\nSE CARGA.",
+                    "NO ERES\nNADA ANTE\nEL REY."
+                ],
+                spriteId: "asriel",
+                attacks: ["godzillaAtomicBreath", "godzillaTailWhip"],
+                phases: [
+                    { patterns: ["godzillaTailWhip", "godzillaAtomicBreath", "wallsOBullet"], soulMode: "red", renderType: "godzilla_head",
+                      speech: ["SKREEEONNK!", "RROOOAAARRR!"] },
+                    { patterns: ["godzillaAtomicBreath", "godzillaTailWhip", "crusher", "doubleWallsOBullet"], soulMode: "red", renderType: "godzilla_charged",
+                      speech: ["EL PODER\nATOMICO\nSE CARGA.", "EL SUELO\nSE FRACTURA."] },
+                    { patterns: ["godzillaAtomicBreath", "godzillaTailWhip", "voidImplosion", "sandStream", "gravityInversion"], soulMode: "red", renderType: "godzilla_meltdown",
+                      speech: ["SKREEEONNK!", "MELTDOWN\nPROTOCOL.", "TODO SERA\nCENIZAS."] }
+                ],
+                phaseHP: [4500, 6000, 8000],
+                karmaEnabled: false,
+                jitterEnabled: true,
+                damagePos: new Vect(370, 290, 0),
+                damageVel: 120,
+                bubbleOff: 30,
+                mercyHP: 100,
+                xpReward: 1000,
+                goldReward: 500,
             })
         ];
         enemies[0].bubblePos = enemies[0].damagePos.getAdd(new Vect(60, -160, 0));

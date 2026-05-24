@@ -76,6 +76,9 @@ var BossController = (function() {
             "sachielRegeneration": function(cfg) { return new SachielRegenerationPattern(cfg || { damVal: 8, duration: 8 }); },
             "sachielHaloCrush": function(cfg) { return new SachielHaloCrushPattern(cfg || { damVal: 9, duration: 8 }); },
             "sachielBloodRain": function(cfg) { return new SachielBloodRainPattern(cfg || { damVal: 8, duration: 8 }); },
+            // --- Custom Godzilla Attacks ---
+            "godzillaAtomicBreath": function(cfg) { return new GodzillaAtomicBreathPattern(cfg || { damVal: 12, duration: 8 }); },
+            "godzillaTailWhip": function(cfg) { return new GodzillaTailWhipPattern(cfg || { damVal: 8, duration: 7 }); },
         };
     }
 
@@ -139,6 +142,10 @@ var BossController = (function() {
             w = 280; h = 280;
         } else if (patternName === "hawkingBurst") {
             w = 300; h = 300;
+        } else if (patternName === "godzillaAtomicBreath") {
+            w = 340; h = 320; // Expanded to hide behind rocks
+        } else if (patternName === "godzillaTailWhip") {
+            w = 420; h = 200; // Wide box for tail sweeping
         } else if (patternName === "sandStream") {
             w = 260; h = 280;
         } else if (patternName === "clockworkGears") {
