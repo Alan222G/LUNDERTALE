@@ -32,6 +32,34 @@ Bullet.prototype.progressMovement = function(dt) {
         return;
     }
 
+    // Radioactive Magnet Effect (attract bullets, graze to heal)
+    if (typeof Player !== "undefined" && Player.isMagnetActive && Player.isMagnetActive() && typeof Soul !== "undefined") {
+        var soulPos = Soul.getPos();
+        var scx = soulPos.x + Soul.getWidth() / 2;
+        var scy = soulPos.y + Soul.getHeight() / 2;
+        var bcx = this.x + this.width / 2;
+        var bcy = this.y + this.height / 2;
+        
+        var dx = scx - bcx;
+        var dy = scy - bcy;
+        var dist = Math.sqrt(dx * dx + dy * dy);
+        
+        if (dist > 1) {
+            var pullX = (dx / dist) * 45 * dt;
+            var pullY = (dy / dist) * 45 * dt;
+            this.x += pullX;
+            this.y += pullY;
+            
+            var soulRad = Soul.getWidth() / 2;
+            var bulletRad = this.width / 2;
+            var grazeDist = soulRad + bulletRad + 12;
+            if (dist < grazeDist && dist > (soulRad + bulletRad + 2) && !this.grazed) {
+                this.grazed = true;
+                Player.heal(5);
+            }
+        }
+    }
+
     if (this.useVelocity) {
         // Velocity-based movement (for trigonometric patterns)
         this.vx += this.ax * dt;

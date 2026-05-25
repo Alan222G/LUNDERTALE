@@ -17,6 +17,15 @@ var Player = (function() {
     var regenAmount = 0, regenTurns = 0;
     var nextBoxBigger = false;
     
+    var phoenixEggActive = false;
+    var hyperCoffee = false;
+    var thornShield = false;
+    var gravityAnchor = false;
+    var shrunk = false;
+    var giant = false;
+    var magnetActive = false;
+    var noHorizontalMovement = false;
+    
     var activeSpdBuffs = []; // {val: 0.3, turns: 1}
     var activeDefBuffs = [];
     var activeAtkBuffs = [];
@@ -31,6 +40,16 @@ var Player = (function() {
         shieldCharges = 0; shieldTurns = 0; healMultiplier = 1.0;
         selfPoison = 0; poisonEnemy = false; regenAmount = 0; regenTurns = 0;
         nextBoxBigger = false;
+        
+        phoenixEggActive = false;
+        hyperCoffee = false;
+        thornShield = false;
+        gravityAnchor = false;
+        shrunk = false;
+        giant = false;
+        magnetActive = false;
+        noHorizontalMovement = false;
+        
         activeSpdBuffs = []; activeDefBuffs = []; activeAtkBuffs = [];
         
         setSoulClass(soulClass || 0); // Keep current class, just reset HP and buffs
@@ -75,6 +94,14 @@ var Player = (function() {
             heal(regenAmount);
             regenTurns--;
         }
+        
+        if (noHorizontalMovement) noHorizontalMovement = false;
+        if (thornShield) thornShield = false;
+        if (gravityAnchor) gravityAnchor = false;
+        if (shrunk) shrunk = false;
+        if (giant) giant = false;
+        if (hyperCoffee) hyperCoffee = false;
+        if (magnetActive) magnetActive = false;
         
         // Decrement buff arrays
         for (var i = activeSpdBuffs.length - 1; i >= 0; i--) {
@@ -121,12 +148,29 @@ var Player = (function() {
             return false; // Absorbed
         }
 
+        if (thornShield) {
+            thornShield = false;
+            Sound.playSound("ting", true);
+            var enemy = Cgroup.getEnemy(0);
+            if (enemy) {
+                enemy.mercyHP = Math.max(0, enemy.mercyHP - 30);
+            }
+            return false; // Blocked by thorn shield, mercy damage done!
+        }
+
         var dmg = value;
         if (permanentGravityDust) dmg *= 1.2;
 
         Sound.playSound("damage", true);
         hpCur -= dmg;
         if (hpCur <= 0) {
+            if (phoenixEggActive) {
+                phoenixEggActive = false;
+                hpMax = Math.floor(hpMax / 2);
+                hpCur = hpMax;
+                Sound.playSound("heal", true);
+                return false; // Revived!
+            }
             hpCur = 0;
             return true; // Dead
         }
@@ -202,6 +246,23 @@ var Player = (function() {
         isPoisonEnemy: function() { return poisonEnemy; },
         setRegen: function(amount, turns) { regenAmount = amount; regenTurns = turns; },
         setNextBoxBigger: function(val) { nextBoxBigger = val; },
-        consumeNextBoxBigger: function() { if (nextBoxBigger) { nextBoxBigger = false; return true; } return false; }
+        consumeNextBoxBigger: function() { if (nextBoxBigger) { nextBoxBigger = false; return true; } return false; },
+        
+        // Brand New Dynamic Item Effects:
+        setPhoenixEggActive: function(val) { phoenixEggActive = val; },
+        setHyperCoffee: function(val) { hyperCoffee = val; if (val) { Player.addBuffSpd(1.0, 2); } },
+        isHyperCoffee: function() { return hyperCoffee; },
+        setThornShield: function(val) { thornShield = val; },
+        setGravityAnchor: function(val) { gravityAnchor = val; },
+        isGravityAnchor: function() { return gravityAnchor; },
+        setShrunk: function(val) { shrunk = val; },
+        isShrunk: function() { return shrunk; },
+        setGiant: function(val) { giant = val; },
+        isGiant: function() { return giant; },
+        setMagnetActive: function(val) { magnetActive = val; },
+        isMagnetActive: function() { return magnetActive; },
+        setNoHorizontalMovement: function(val) { noHorizontalMovement = val; },
+        isNoHorizontalMovement: function() { return noHorizontalMovement; },
+        reduceMaxHP: function(amount) { hpMax = Math.max(20, hpMax - amount); hpCur = Math.min(hpCur, hpMax); }
     };
 }());

@@ -138,22 +138,24 @@ var Soul = (function() {
     function draw(ctx) {
         ctx.save();
         applySoulFilter(ctx);
+        var sw = getWidth();
+        var sh = getHeight();
         switch (state) {
             case STATE.OKAY:
-                ctx.drawImage(sprite, pos.x, pos.y);
+                ctx.drawImage(sprite, pos.x, pos.y, sw, sh);
                 break;
             case STATE.DAMAGED:
                 if (Math.floor(durationCounter * 5) % 2) {
-                    ctx.drawImage(spriteDmg, pos.x, pos.y);
+                    ctx.drawImage(spriteDmg, pos.x, pos.y, sw, sh);
                 } else {
-                    ctx.drawImage(sprite, pos.x, pos.y);
+                    ctx.drawImage(sprite, pos.x, pos.y, sw, sh);
                 }
                 break;
             case STATE.FLASH:
                 if (Math.floor(durationCounter * 50) % 5 > 2) break;
                 // Fall through
             case STATE.TRANSITION:
-                ctx.drawImage(spriteOver, pos.x, pos.y);
+                ctx.drawImage(spriteOver, pos.x, pos.y, sw, sh);
                 break;
         }
 
@@ -162,15 +164,15 @@ var Soul = (function() {
             if (soulMode === SOUL_MODE.BLUE) {
                 ctx.strokeStyle = "#00F";
                 ctx.lineWidth = 1;
-                ctx.strokeRect(pos.x - 1, pos.y - 1, soulWidth + 2, soulHeight + 2);
+                ctx.strokeRect(pos.x - 1, pos.y - 1, sw + 2, sh + 2);
             } else if (soulMode === SOUL_MODE.YELLOW) {
                 ctx.strokeStyle = "#FF0";
                 ctx.lineWidth = 1;
-                ctx.strokeRect(pos.x - 1, pos.y - 1, soulWidth + 2, soulHeight + 2);
+                ctx.strokeRect(pos.x - 1, pos.y - 1, sw + 2, sh + 2);
             } else if (soulMode === SOUL_MODE.INVERSE) {
                 ctx.strokeStyle = "#F0F";
                 ctx.lineWidth = 1;
-                ctx.strokeRect(pos.x - 1, pos.y - 1, soulWidth + 2, soulHeight + 2);
+                ctx.strokeRect(pos.x - 1, pos.y - 1, sw + 2, sh + 2);
             }
         }
         ctx.restore();
@@ -180,7 +182,7 @@ var Soul = (function() {
         ctx.save();
         ctx.globalAlpha = 1;
         applySoulFilter(ctx);
-        ctx.drawImage(sprite, posForced.x, posForced.y);
+        ctx.drawImage(sprite, posForced.x, posForced.y, getWidth(), getHeight());
         ctx.restore();
     }
 
@@ -206,6 +208,14 @@ var Soul = (function() {
 
     // Move based on soul mode
     function move(dt) {
+        if (typeof Player !== "undefined" && Player.isGravityAnchor && Player.isGravityAnchor()) {
+            var bb = Cbbox.getBound();
+            pos.x = (bb[0] + bb[2]) / 2 - getWidth() / 2;
+            pos.y = (bb[1] + bb[3]) / 2 - getHeight() / 2;
+            spx = pos.x;
+            spy = pos.y;
+            return;
+        }
         switch (soulMode) {
             case SOUL_MODE.RED:
                 moveNormal(dt);
@@ -225,15 +235,17 @@ var Soul = (function() {
     }
 
     function moveNormal(dt) {
+        var noHoriz = (typeof Player !== "undefined" && Player.isNoHorizontalMovement && Player.isNoHorizontalMovement());
         if (myKeys.isUp()) pos.y -= speed * dt;
-        if (myKeys.isRight()) pos.x += speed * dt;
+        if (myKeys.isRight() && !noHoriz) pos.x += speed * dt;
         if (myKeys.isDown()) pos.y += speed * dt;
-        if (myKeys.isLeft()) pos.x -= speed * dt;
+        if (myKeys.isLeft() && !noHoriz) pos.x -= speed * dt;
     }
 
     function moveBlue(dt) {
-        if (myKeys.isRight()) pos.x += speed * dt;
-        if (myKeys.isLeft()) pos.x -= speed * dt;
+        var noHoriz = (typeof Player !== "undefined" && Player.isNoHorizontalMovement && Player.isNoHorizontalMovement());
+        if (myKeys.isRight() && !noHoriz) pos.x += speed * dt;
+        if (myKeys.isLeft() && !noHoriz) pos.x -= speed * dt;
         blueVelY += GRAVITY * dt;
         pos.y += blueVelY * dt;
         if (myKeys.isUp() && onGround) {
@@ -243,18 +255,21 @@ var Soul = (function() {
     }
 
     function moveInverse(dt) {
+        var noHoriz = (typeof Player !== "undefined" && Player.isNoHorizontalMovement && Player.isNoHorizontalMovement());
         if (myKeys.isDown()) pos.y -= speed * dt;
-        if (myKeys.isLeft()) pos.x += speed * dt;
+        if (myKeys.isLeft() && !noHoriz) pos.x += speed * dt;
         if (myKeys.isUp()) pos.y += speed * dt;
-        if (myKeys.isRight()) pos.x -= speed * dt;
+        if (myKeys.isRight() && !noHoriz) pos.x -= speed * dt;
     }
 
     function limit(bound) {
+        var sw = getWidth();
+        var sh = getHeight();
         if (pos.x < bound[0]) pos.x = bound[0];
         if (pos.y < bound[1]) pos.y = bound[1];
-        if (pos.x + soulWidth > bound[2]) pos.x = bound[2] - soulWidth;
-        if (pos.y + soulHeight > bound[3]) {
-            pos.y = bound[3] - soulHeight;
+        if (pos.x + sw > bound[2]) pos.x = bound[2] - sw;
+        if (pos.y + sh > bound[3]) {
+            pos.y = bound[3] - sh;
             if (soulMode === SOUL_MODE.BLUE) {
                 blueVelY = 0;
                 onGround = true;
@@ -264,8 +279,24 @@ var Soul = (function() {
 
     function getPos() { return pos; }
     function setPos(x, y) { pos.x = x; pos.y = y; }
-    function getWidth() { return soulWidth; }
-    function getHeight() { return soulHeight; }
+    function getWidth() {
+        if (typeof Player !== "undefined" && Player.isShrunk && Player.isShrunk()) {
+            return soulWidth * 0.5;
+        }
+        if (typeof Player !== "undefined" && Player.isGiant && Player.isGiant()) {
+            return soulWidth * 1.8;
+        }
+        return soulWidth;
+    }
+    function getHeight() {
+        if (typeof Player !== "undefined" && Player.isShrunk && Player.isShrunk()) {
+            return soulHeight * 0.5;
+        }
+        if (typeof Player !== "undefined" && Player.isGiant && Player.isGiant()) {
+            return soulHeight * 1.8;
+        }
+        return soulHeight;
+    }
     function getState() { return state; }
     function isOkay() { return state === STATE.OKAY; }
 
