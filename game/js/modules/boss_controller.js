@@ -79,8 +79,11 @@ var BossController = (function() {
             // --- Custom Godzilla Attacks ---
             "godzillaAtomicBreath": function(cfg) { return new GodzillaAtomicBreathPattern(cfg || { damVal: 12, duration: 8 }); },
             "godzillaTailWhip": function(cfg) { return new GodzillaTailWhipPattern(cfg || { damVal: 8, duration: 7 }); },
-            "godzillaRadioactiveRain": function(cfg) { return new GodzillaRadioactiveRainPattern(cfg || { damVal: 6, duration: 8 }); },
             "godzillaNuclearPulse": function(cfg) { return new GodzillaNuclearPulsePattern(cfg || { damVal: 8, duration: 8 }); },
+            "godzillaSpineLasers": function(cfg) { return new GodzillaSpineLasersPattern(cfg || { damVal: 9, duration: 8 }); },
+            "godzillaAtomicCrush": function(cfg) { return new GodzillaAtomicCrushPattern(cfg || { damVal: 10, duration: 8 }); },
+            "godzillaRadioactiveFissure": function(cfg) { return new GodzillaRadioactiveFissurePattern(cfg || { damVal: 9, duration: 8 }); },
+            "godzillaNuclearMeltdown": function(cfg) { return new GodzillaNuclearMeltdownPattern(cfg || { damVal: 9, duration: 9 }); },
         };
     }
 
@@ -148,10 +151,16 @@ var BossController = (function() {
             w = 340; h = 320; // Expanded to hide behind rocks
         } else if (patternName === "godzillaTailWhip") {
             w = 420; h = 200; // Wide box for tail sweeping
-        } else if (patternName === "godzillaRadioactiveRain") {
-            w = 400; h = 220; // Wide box for dodging rain drops
         } else if (patternName === "godzillaNuclearPulse") {
             w = 280; h = 280; // Square box for dodging circles
+        } else if (patternName === "godzillaSpineLasers") {
+            w = 300; h = 300; // Large square for laser grid
+        } else if (patternName === "godzillaAtomicCrush") {
+            w = 280; h = 280; // Square for jaws slam
+        } else if (patternName === "godzillaRadioactiveFissure") {
+            w = 340; h = 250; // Wider box for fissure erupting
+        } else if (patternName === "godzillaNuclearMeltdown") {
+            w = 300; h = 300; // Large square for vortex + spirals
         } else if (patternName === "sandStream") {
             w = 260; h = 280;
         } else if (patternName === "clockworkGears") {

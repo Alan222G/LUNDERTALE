@@ -444,13 +444,13 @@ var Cgroup = (function() {
                     "NO ERES\nNADA ANTE\nEL REY."
                 ],
                 spriteId: "asriel",
-                attacks: ["godzillaAtomicBreath", "godzillaTailWhip", "godzillaRadioactiveRain", "godzillaNuclearPulse"],
+                attacks: ["godzillaAtomicBreath", "godzillaTailWhip", "godzillaNuclearPulse", "godzillaSpineLasers", "godzillaAtomicCrush", "godzillaRadioactiveFissure", "godzillaNuclearMeltdown"],
                 phases: [
-                    { patterns: ["godzillaTailWhip", "godzillaAtomicBreath", "godzillaRadioactiveRain", "wallsOBullet"], soulMode: "red", renderType: "godzilla_head",
+                    { patterns: ["godzillaTailWhip", "godzillaAtomicBreath", "godzillaSpineLasers", "godzillaAtomicCrush"], soulMode: "red", renderType: "godzilla_head",
                       speech: ["SKREEEONNK!", "RROOOAAARRR!"] },
-                    { patterns: ["godzillaAtomicBreath", "godzillaTailWhip", "godzillaRadioactiveRain", "godzillaNuclearPulse", "crusher", "doubleWallsOBullet"], soulMode: "red", renderType: "godzilla_charged",
+                    { patterns: ["godzillaTailWhip", "godzillaAtomicBreath", "godzillaNuclearPulse", "godzillaRadioactiveFissure"], soulMode: "red", renderType: "godzilla_charged",
                       speech: ["EL PODER\nATOMICO\nSE CARGA.", "EL SUELO\nSE FRACTURA."] },
-                    { patterns: ["godzillaAtomicBreath", "godzillaTailWhip", "godzillaRadioactiveRain", "godzillaNuclearPulse", "voidImplosion", "sandStream", "gravityInversion"], soulMode: "red", renderType: "godzilla_meltdown",
+                    { patterns: ["godzillaTailWhip", "godzillaAtomicBreath", "godzillaNuclearPulse", "godzillaNuclearMeltdown"], soulMode: "red", renderType: "godzilla_meltdown",
                       speech: ["SKREEEONNK!", "MELTDOWN\nPROTOCOL.", "TODO SERA\nCENIZAS."] }
                 ],
                 phaseHP: [4500, 6000, 8000],

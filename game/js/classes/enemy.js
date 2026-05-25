@@ -2695,6 +2695,9 @@ Enemy.prototype.drawGodzilla = function(ctx) {
     var auraColor = "rgba(0, 80, 200, 0.15)";
     var eyeColor = "#00D2FF";
     var spineInnerColor = "#FFFFFF";
+    var gillColor = "rgba(0, 190, 255, 0.65)";
+    var skinColor = "#1B2424";
+    var scaleOutline = "#101616";
     
     if (isMeltdown) {
         // Vibrant Pink for evolved/meltdown canon state
@@ -2702,23 +2705,25 @@ Enemy.prototype.drawGodzilla = function(ctx) {
         auraColor = "rgba(255, 0, 100, 0.18)";
         eyeColor = "#FF00AA";
         spineInnerColor = "#FFAAFF";
+        gillColor = "rgba(255, 0, 140, 0.75)";
     } else if (!isCharged) {
         // Normal state: dimmer blue glow
         glowColor = "rgba(0, 100, 200, 0.55)";
         auraColor = "rgba(0, 50, 150, 0.08)";
         eyeColor = "#00A0FF";
         spineInnerColor = "#E6F5FF";
+        gillColor = "rgba(0, 110, 220, 0.4)";
     }
     
-    // Shaking / Trembling
+    // Shaking / Trembling (Imposing heavy titan feel)
     var shakeX = 0;
     var shakeY = 0;
     if (isCharged) {
-        shakeX = (Math.random() - 0.5) * 3;
-        shakeY = (Math.random() - 0.5) * 2;
-    } else if (isMeltdown) {
         shakeX = (Math.random() - 0.5) * 4;
         shakeY = (Math.random() - 0.5) * 3;
+    } else if (isMeltdown) {
+        shakeX = (Math.random() - 0.5) * 6;
+        shakeY = (Math.random() - 0.5) * 4;
     } else {
         shakeX = Math.sin(time * 6) * 0.8;
         shakeY = Math.cos(time * 5) * 0.5;
@@ -2730,267 +2735,411 @@ Enemy.prototype.drawGodzilla = function(ctx) {
     ctx.save();
     
     // Breathing scale factor (symmetrical)
-    var breath = 1.0 + Math.sin(time * 2.5) * 0.02;
+    var breath = 1.0 + Math.sin(time * 2.2) * 0.022;
     
-    // 1. Ambient radiation aura behind the figure
-    var auraPulse = 190 + Math.sin(time * 4) * 20;
+    // 1. Heat steam / radiation wave effect (translucent rising waves in background)
+    ctx.save();
+    ctx.globalAlpha = isMeltdown ? 0.35 : (isCharged ? 0.22 : 0.08);
+    ctx.strokeStyle = isMeltdown ? "#FF0080" : "#00A0FF";
+    ctx.lineWidth = 3;
+    for (var w = 0; w < 8; w++) {
+        var wX = bossX - 180 + w * 51;
+        var wSway = Math.sin(time * 3 + w) * 12;
+        ctx.beginPath();
+        ctx.moveTo(wX + wSway, bossY + 160);
+        ctx.quadraticCurveTo(wX - wSway, bossY + 50, wX + wSway * 1.5, bossY - 80);
+        ctx.stroke();
+    }
+    ctx.restore();
+    
+    // 2. Ambient double-layered radiation aura behind the figure
+    var auraPulse = 220 + Math.sin(time * 4) * 25;
     var auraGrad = ctx.createRadialGradient(bossX, bossY + 40, 10, bossX, bossY + 40, auraPulse);
     auraGrad.addColorStop(0, auraColor);
-    auraGrad.addColorStop(0.5, isMeltdown ? "rgba(180, 0, 120, 0.04)" : "rgba(0, 30, 100, 0.03)");
+    auraGrad.addColorStop(0.4, isMeltdown ? "rgba(220, 0, 120, 0.08)" : "rgba(0, 80, 200, 0.06)");
+    auraGrad.addColorStop(0.8, isMeltdown ? "rgba(100, 0, 50, 0.01)" : "rgba(0, 20, 80, 0.01)");
     auraGrad.addColorStop(1, "rgba(0,0,0,0)");
     ctx.fillStyle = auraGrad;
     ctx.beginPath();
     ctx.arc(bossX, bossY + 40, auraPulse, 0, Math.PI * 2);
     ctx.fill();
     
-    // 2. RADIATION PARTICLES (floating in the air)
+    // 3. RADIATION PARTICLES / ASH (floating upwards and swirling)
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
-    var pCount = isMeltdown ? 22 : (isCharged ? 16 : 8);
+    var pCount = isMeltdown ? 32 : (isCharged ? 22 : 10);
     for (var i = 0; i < pCount; i++) {
-        var pAngle = time * 0.5 + i * 2.3;
-        var pDist = 60 + (i * 12 + time * 35) % 140;
-        var px = bossX + Math.cos(pAngle) * pDist;
-        var py = bossY + 40 + Math.sin(pAngle * 1.5) * pDist * 0.8 - 30;
-        var pSize = 1.5 + Math.sin(time * 3 + i) * 1.0;
+        var pAngle = time * 0.35 + i * 1.8;
+        var pDist = 40 + (i * 12 + time * 35) % 160;
+        var px = bossX + Math.cos(pAngle) * pDist + Math.sin(time * 2 + i) * 6;
+        var py = bossY + 140 - ((i * 18 + time * 65) % 240); // Floats straight up
+        var pSize = 1.5 + Math.sin(time * 3 + i) * 0.9;
         if (pSize < 0.5) pSize = 0.5;
-        ctx.fillStyle = isMeltdown ? "rgba(255, 0, 180, 0.6)" : "rgba(80, 200, 255, 0.5)";
-        ctx.shadowBlur = 6;
-        ctx.shadowColor = isMeltdown ? "#FF00A0" : "#00B2FF";
+        ctx.fillStyle = isMeltdown ? "rgba(255, 50, 200, 0.75)" : "rgba(100, 220, 255, 0.65)";
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = isMeltdown ? "#FF00B2" : "#00D2FF";
         ctx.beginPath();
         ctx.arc(px, py, pSize, 0, Math.PI * 2);
         ctx.fill();
     }
     ctx.restore();
     
-    // 3. BACKGROUND SWAYING TAIL
-    // It sways behind shoulders, visible on the left or right
+    // 4. HIGH QUALITY SEGMENTED BACKGROUND SWAYING TAIL
     ctx.save();
-    var tailSway = Math.sin(time * 2.0) * 45;
-    ctx.strokeStyle = "#151D1D";
-    ctx.lineWidth = 18;
-    ctx.lineCap = "round";
-    ctx.beginPath();
-    ctx.moveTo(bossX - 20, bossY + 100);
-    ctx.quadraticCurveTo(bossX - 70 + tailSway, bossY + 60, bossX - 110 + tailSway * 1.2, bossY + 20 + Math.cos(time * 2.0) * 15);
-    ctx.stroke();
-    
-    // Draw glowing spines on the background tail
-    ctx.fillStyle = glowColor;
-    ctx.shadowBlur = 10;
-    ctx.shadowColor = glowColor;
-    for (var ts = 0; ts < 3; ts++) {
-        var tx = bossX - 80 + tailSway * 1.1 + ts * 15;
-        var ty = bossY + 45 + Math.cos(time * 2.0) * 10 - ts * 5;
+    for (var seg = 0; seg < 12; seg++) {
+        var tRatio = seg / 11;
+        var segSway = Math.sin(time * 2.2 - tRatio * 2.5) * 55;
+        // Calculate coordinates along a natural sinuous curve
+        var segX = bossX - 35 - tRatio * 110 + segSway;
+        var segY = bossY + 115 - tRatio * 70 + Math.cos(time * 2.2 - tRatio * 2) * 12;
+        var segRad = 24 * (1 - tRatio * 0.65);
+        
+        // Draw segment shadow/body
+        ctx.fillStyle = "#141B1B";
         ctx.beginPath();
-        ctx.moveTo(tx, ty);
-        ctx.lineTo(tx - 6, ty - 12);
-        ctx.lineTo(tx + 6, ty);
-        ctx.closePath();
+        ctx.arc(segX, segY, segRad, 0, Math.PI * 2);
         ctx.fill();
+        
+        // Draw scale outlines on segments
+        ctx.strokeStyle = "#0E1212";
+        ctx.lineWidth = 2.2;
+        ctx.stroke();
+        
+        // Draw glowing spines on top of tail segments (symmetrical alignment)
+        if (seg > 1 && seg % 2 === 0) {
+            ctx.save();
+            ctx.fillStyle = glowColor;
+            ctx.shadowBlur = 12;
+            ctx.shadowColor = glowColor;
+            ctx.translate(segX, segY - segRad + 3);
+            ctx.rotate(-0.3 - tRatio * 0.6);
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(-segRad * 0.3, -segRad * 0.7);
+            ctx.lineTo(segRad * 0.2, 0);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        }
     }
     ctx.restore();
     
-    // 4. SYMMETRICAL DORSAL SPINES (LEFT AND RIGHT SIDES)
-    // Left Spines
+    // 5. THREE-LAYERED JAGGED DORSAL SPINES (LEFT, CENTER, RIGHT)
+    // Towering crystalline spikes that pulse in order
     var leftSpines = [
-        { x: bossX - 45, y: bossY + 50, size: 26, angle: -0.4 },
-        { x: bossX - 60, y: bossY + 75, size: 36, angle: -0.6 },
-        { x: bossX - 72, y: bossY + 105, size: 32, angle: -0.7 },
-        { x: bossX - 40, y: bossY + 22, size: 16, angle: -0.2 }
+        { x: bossX - 48, y: bossY + 45, size: 26, angle: -0.38 },
+        { x: bossX - 62, y: bossY + 68, size: 40, angle: -0.58 },
+        { x: bossX - 74, y: bossY + 95, size: 36, angle: -0.72 },
+        { x: bossX - 82, y: bossY + 120, size: 28, angle: -0.84 }
     ];
-    // Right Spines (Mirrored)
     var rightSpines = [
-        { x: bossX + 45, y: bossY + 50, size: 26, angle: 0.4 },
-        { x: bossX + 60, y: bossY + 75, size: 36, angle: 0.6 },
-        { x: bossX + 72, y: bossY + 105, size: 32, angle: 0.7 },
-        { x: bossX + 40, y: bossY + 22, size: 16, angle: 0.2 }
+        { x: bossX + 48, y: bossY + 45, size: 26, angle: 0.38 },
+        { x: bossX + 62, y: bossY + 68, size: 40, angle: 0.58 },
+        { x: bossX + 74, y: bossY + 95, size: 36, angle: 0.72 },
+        { x: bossX + 82, y: bossY + 120, size: 28, angle: 0.84 }
+    ];
+    var centerSpines = [
+        { x: bossX - 5, y: bossY + 15, size: 16, angle: -0.05 },
+        { x: bossX + 5, y: bossY + 15, size: 16, angle: 0.05 },
+        { x: bossX, y: bossY - 8, size: 14, angle: 0.0 }
     ];
     
-    function drawSpineSet(spinesList, isLeft) {
+    function drawSpineSet(spinesList, isCenter) {
         for (var sIdx = 0; sIdx < spinesList.length; sIdx++) {
             var sp = spinesList[sIdx];
             ctx.save();
             ctx.translate(sp.x, sp.y);
             ctx.rotate(sp.angle);
             
-            ctx.shadowBlur = isCharged || isMeltdown ? 15 : 6;
+            ctx.shadowBlur = isCharged || isMeltdown ? 20 : 8;
             ctx.shadowColor = glowColor;
             
-            // Dark outer ridge of spine
-            ctx.fillStyle = "#121A1A";
+            // Highly jagged complex outer spine shape (poly with 8 vertices)
+            ctx.fillStyle = isCenter ? "#101616" : "#131C1C";
             ctx.beginPath();
             ctx.moveTo(0, 0);
-            ctx.lineTo(-sp.size * 0.5, -sp.size * 0.3);
-            ctx.lineTo(-sp.size * 0.2, -sp.size * 0.8);
-            ctx.lineTo(-sp.size * 0.8, -sp.size * 1.1);
-            ctx.lineTo(0, -sp.size * 1.3);
-            ctx.lineTo(sp.size * 0.4, -sp.size * 0.7);
+            ctx.lineTo(-sp.size * 0.35, -sp.size * 0.2);
+            ctx.lineTo(-sp.size * 0.55, -sp.size * 0.55);
+            ctx.lineTo(-sp.size * 0.15, -sp.size * 0.75);
+            ctx.lineTo(-sp.size * 0.85, -sp.size * 1.15);
+            ctx.lineTo(0, -sp.size * 1.55);
+            ctx.lineTo(sp.size * 0.45, -sp.size * 1.1);
+            ctx.lineTo(sp.size * 0.25, -sp.size * 0.6);
             ctx.closePath();
             ctx.fill();
             
-            // Glowing core of spine
+            // Glowing core of spine (basalt energy cracks)
             var pulseScale = 0.75 + Math.sin(time * 5.5 - sIdx) * 0.25;
             ctx.fillStyle = glowColor;
             ctx.beginPath();
             ctx.moveTo(0, -sp.size * 0.2);
-            ctx.lineTo(-sp.size * 0.4, -sp.size * 0.5);
-            ctx.lineTo(-sp.size * 0.6 * pulseScale, -sp.size * 0.9 * pulseScale);
-            ctx.lineTo(0, -sp.size * 0.9 * pulseScale);
-            ctx.lineTo(sp.size * 0.2, -sp.size * 0.5);
+            ctx.lineTo(-sp.size * 0.25, -sp.size * 0.45);
+            ctx.lineTo(-sp.size * 0.55 * pulseScale, -sp.size * 0.9 * pulseScale);
+            ctx.lineTo(0, -sp.size * 1.15 * pulseScale);
+            ctx.lineTo(sp.size * 0.25 * pulseScale, -sp.size * 0.8 * pulseScale);
             ctx.closePath();
             ctx.fill();
             
-            // Ultra bright center
+            // Ultra bright hot core
             if (isCharged || isMeltdown) {
                 ctx.fillStyle = spineInnerColor;
                 ctx.beginPath();
-                ctx.arc(-sp.size * 0.2, -sp.size * 0.6, sp.size * 0.22 * pulseScale, 0, Math.PI * 2);
+                ctx.arc(-sp.size * 0.05, -sp.size * 0.7, sp.size * 0.28 * pulseScale, 0, Math.PI * 2);
                 ctx.fill();
             }
             ctx.restore();
         }
     }
     
-    drawSpineSet(leftSpines, true);
+    // Draw background/side spine sets
+    drawSpineSet(leftSpines, false);
     drawSpineSet(rightSpines, false);
+    drawSpineSet(centerSpines, true);
     
-    // 5. MASSIVE SYMMETRICAL SHOULDERS AND NECK
+    // 6. MASSIVE SHOULDERS, NECK PLATES AND CHEST
     ctx.save();
     ctx.scale(breath, breath);
     
-    // Base Chest/Shoulders
-    ctx.fillStyle = "#182020";
+    // Base neck silhouette (Much bulkier/wider shoulders than before)
+    ctx.fillStyle = "#161E1E";
     ctx.beginPath();
-    ctx.moveTo(bossX - 75, bossY + 120);
-    ctx.quadraticCurveTo(bossX - 60, bossY + 60, bossX - 35, bossY + 25); // Left neck
-    ctx.lineTo(bossX + 35, bossY + 25); // Right neck
-    ctx.quadraticCurveTo(bossX + 60, bossY + 60, bossX + 75, bossY + 120); // Right shoulder
+    ctx.moveTo(bossX - 110, bossY + 130);
+    ctx.quadraticCurveTo(bossX - 80, bossY + 60, bossX - 44, bossY + 22); // Left neck
+    ctx.lineTo(bossX + 44, bossY + 22); // Right neck
+    ctx.quadraticCurveTo(bossX + 80, bossY + 60, bossX + 110, bossY + 130); // Right shoulder
     ctx.closePath();
     ctx.fill();
     
-    // Symmetrical scaly neck texture folds
-    ctx.strokeStyle = "#101616";
-    ctx.lineWidth = 2.5;
-    for (var nLine = 0; nLine < 5; nLine++) {
+    // --- Scale Plating Texture (Heavy muscular shoulders) ---
+    ctx.fillStyle = "#202A2A";
+    ctx.strokeStyle = scaleOutline;
+    ctx.lineWidth = 1.8;
+    
+    var shoulderScales = [
+        // Left side scales
+        { x: bossX - 85, y: bossY + 110, w: 22, h: 12 },
+        { x: bossX - 68, y: bossY + 95, w: 20, h: 11 },
+        { x: bossX - 52, y: bossY + 75, w: 16, h: 9 },
+        // Right side scales
+        { x: bossX + 85, y: bossY + 110, w: 22, h: 12 },
+        { x: bossX + 68, y: bossY + 95, w: 20, h: 11 },
+        { x: bossX + 52, y: bossY + 75, w: 16, h: 9 }
+    ];
+    
+    for (var s = 0; s < shoulderScales.length; s++) {
+        var sc = shoulderScales[s];
         ctx.beginPath();
-        // Symmetrical curve on left side of neck
-        ctx.moveTo(bossX - 45 + nLine * 2, bossY + 45 + nLine * 12);
-        ctx.quadraticCurveTo(bossX - 25, bossY + 55 + nLine * 10, bossX, bossY + 60 + nLine * 8);
-        // Symmetrical curve on right side of neck
-        ctx.moveTo(bossX + 45 - nLine * 2, bossY + 45 + nLine * 12);
-        ctx.quadraticCurveTo(bossX + 25, bossY + 55 + nLine * 10, bossX, bossY + 60 + nLine * 8);
+        ctx.ellipse(sc.x, sc.y, sc.w, sc.h, 0.22 * (s < 3 ? -1 : 1), 0, Math.PI * 2);
+        ctx.fill();
         ctx.stroke();
     }
     
-    // Symmetrical chest plates
-    ctx.fillStyle = "#222C2C";
-    ctx.beginPath();
-    ctx.moveTo(bossX - 45, bossY + 105);
-    ctx.lineTo(bossX - 15, bossY + 85);
-    ctx.lineTo(bossX, bossY + 95);
-    ctx.lineTo(bossX + 15, bossY + 85);
-    ctx.lineTo(bossX + 45, bossY + 105);
-    ctx.lineTo(bossX, bossY + 122);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
+    // Symmetrical chest armor plates (Thick interlocking plates with center line)
+    ctx.fillStyle = "#273434";
+    for (var rIdx = 0; rIdx < 3; rIdx++) {
+        var ry = bossY + 90 + rIdx * 14;
+        var rWidth = 46 - rIdx * 6;
+        var rHeight = 10;
+        
+        // Left plate
+        ctx.beginPath();
+        ctx.moveTo(bossX - rWidth, ry);
+        ctx.lineTo(bossX - rWidth * 0.4, ry - 3);
+        ctx.lineTo(bossX - 2, ry);
+        ctx.lineTo(bossX - 2, ry + rHeight);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        
+        // Right plate
+        ctx.beginPath();
+        ctx.moveTo(bossX + rWidth, ry);
+        ctx.lineTo(bossX + rWidth * 0.4, ry - 3);
+        ctx.lineTo(bossX + 2, ry);
+        ctx.lineTo(bossX + 2, ry + rHeight);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+    }
     
-    // 6. SYMMETRICAL FRONT-FACING HEAD
+    // --- Glowing Nuclear Gills / Neck Cracks ---
+    ctx.save();
+    ctx.strokeStyle = gillColor;
+    ctx.lineWidth = 3.5;
+    ctx.lineCap = "round";
+    ctx.shadowBlur = 12;
+    ctx.shadowColor = gillColor;
+    var gillPulse = 0.5 + Math.sin(time * 5.0) * 0.5;
+    ctx.globalAlpha = 0.3 + gillPulse * 0.7;
+    
+    for (var gLine = 0; gLine < 3; gLine++) {
+        var gy = bossY + 45 + gLine * 15;
+        var gLength = 22 + gLine * 6;
+        // Left gills
+        ctx.beginPath();
+        ctx.moveTo(bossX - 38 + gLine * 2, gy);
+        ctx.quadraticCurveTo(bossX - 26, gy + 6, bossX - 38 + gLength, gy + 3);
+        ctx.stroke();
+        // Right gills
+        ctx.beginPath();
+        ctx.moveTo(bossX + 38 - gLine * 2, gy);
+        ctx.quadraticCurveTo(bossX + 26, gy + 6, bossX + 38 - gLength, gy + 3);
+        ctx.stroke();
+    }
+    ctx.restore();
+    
+    // --- Charging Energy Veins (Crawl down neck and chest in charged states) ---
+    if (isCharged || isMeltdown) {
+        ctx.save();
+        ctx.strokeStyle = gillColor;
+        ctx.lineWidth = 1.8;
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = gillColor;
+        ctx.globalAlpha = 0.4 + Math.sin(time * 8) * 0.4;
+        
+        // Draw branching lines on chest
+        ctx.beginPath();
+        ctx.moveTo(bossX - 10, bossY + 80); ctx.lineTo(bossX - 22, bossY + 110);
+        ctx.moveTo(bossX + 10, bossY + 80); ctx.lineTo(bossX + 22, bossY + 110);
+        ctx.moveTo(bossX - 30, bossY + 60); ctx.lineTo(bossX - 45, bossY + 90);
+        ctx.moveTo(bossX + 30, bossY + 60); ctx.lineTo(bossX + 45, bossY + 90);
+        ctx.stroke();
+        ctx.restore();
+    }
+    
+    // 7. FRONT-FACING HEAD (Heavy brow, wrinkles, snarling snout)
     ctx.save();
     ctx.translate(bossX, bossY + 15);
     
-    // Main head contour (front-facing)
-    ctx.fillStyle = "#1B2424";
+    // Head shape base (Front-facing jaws)
+    ctx.fillStyle = skinColor;
     ctx.beginPath();
-    ctx.moveTo(-32, 0); // Bottom left jaw
-    ctx.quadraticCurveTo(-38, -30, -22, -45); // Left skull side
-    ctx.quadraticCurveTo(0, -56, 22, -45); // Crown
-    ctx.quadraticCurveTo(38, -30, 32, 0); // Right skull side
-    ctx.quadraticCurveTo(0, 10, -32, 0); // Chin
+    ctx.moveTo(-35, 0); // Bottom left jaw
+    ctx.quadraticCurveTo(-41, -34, -25, -48); // Left skull side
+    ctx.quadraticCurveTo(0, -60, 25, -48); // Crown
+    ctx.quadraticCurveTo(41, -34, 35, 0); // Right skull side
+    ctx.quadraticCurveTo(0, 12, -35, 0); // Chin
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
     
-    // Symmetrical brow ridge / forehead crest
-    ctx.fillStyle = "#263232";
+    // Snarl skin wrinkles above snout
+    ctx.strokeStyle = scaleOutline;
+    ctx.lineWidth = 2;
+    for (var w = 0; w < 3; w++) {
+        var wy = -38 + w * 6;
+        ctx.beginPath();
+        ctx.moveTo(-12, wy);
+        ctx.quadraticCurveTo(0, wy - 4, 12, wy);
+        ctx.stroke();
+    }
+    
+    // Forehead scale textures (overlapping layers)
+    ctx.fillStyle = "#243232";
+    for (var fs = 0; fs < 3; fs++) {
+        var fsY = -50 + fs * 7;
+        var fsW = 18 - fs * 3;
+        ctx.beginPath();
+        ctx.moveTo(-fsW, fsY);
+        ctx.quadraticCurveTo(0, fsY - 3, fsW, fsY);
+        ctx.quadraticCurveTo(0, fsY + 3, -fsW, fsY);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+    }
+    
+    // Snout / Nose ridge (Thick, textured centered structure)
+    ctx.fillStyle = "#1E2A2A";
     ctx.beginPath();
-    ctx.moveTo(-20, -42);
-    ctx.quadraticCurveTo(0, -48, 20, -42);
-    ctx.quadraticCurveTo(0, -32, -20, -42);
+    ctx.moveTo(-13, -36);
+    ctx.lineTo(13, -36);
+    ctx.lineTo(16, -18);
+    ctx.lineTo(-16, -18);
     ctx.closePath();
     ctx.fill();
+    ctx.stroke();
     
-    // Snout / Nose ridge (centered vertical structure)
-    ctx.fillStyle = "#1F2929";
+    // Symmetrical nostrils (flared style)
+    ctx.fillStyle = "#090C0C";
     ctx.beginPath();
-    ctx.moveTo(-10, -36);
-    ctx.lineTo(10, -36);
-    ctx.lineTo(13, -18);
-    ctx.lineTo(-13, -18);
-    ctx.closePath();
+    ctx.arc(-6, -20, 2.5, 0, Math.PI * 2);
+    ctx.arc(6, -20, 2.5, 0, Math.PI * 2);
     ctx.fill();
     
-    // Symmetrical nostrils
-    ctx.fillStyle = "#0A0D0D";
-    ctx.beginPath();
-    ctx.arc(-5, -20, 2, 0, Math.PI*2);
-    ctx.arc(5, -20, 2, 0, Math.PI*2);
-    ctx.fill();
-    
-    // Snarl mouth cavity (centered snarling mouth)
+    // Snarl mouth cavity (centered snarling mouth glowing with gradient)
     ctx.save();
-    ctx.shadowBlur = isCharged || isMeltdown ? 12 : 0;
+    ctx.shadowBlur = isCharged || isMeltdown ? 15 : 0;
     ctx.shadowColor = glowColor;
-    ctx.fillStyle = isCharged || isMeltdown ? glowColor : "#441111"; // Glowing atomic energy inside mouth
+    
+    var mouthGrad = ctx.createRadialGradient(0, -5, 2, 0, -5, 25);
+    if (isCharged || isMeltdown) {
+        mouthGrad.addColorStop(0, "#FFFFFF");
+        mouthGrad.addColorStop(0.35, eyeColor);
+        mouthGrad.addColorStop(1, glowColor);
+    } else {
+        mouthGrad.addColorStop(0, "#881111");
+        mouthGrad.addColorStop(0.6, "#441111");
+        mouthGrad.addColorStop(1, "#180505");
+    }
+    ctx.fillStyle = mouthGrad;
     
     ctx.beginPath();
-    ctx.moveTo(-22, -12); // Left corner
-    ctx.quadraticCurveTo(0, -18, 22, -12); // Upper lip
-    ctx.quadraticCurveTo(24, 0, 0, 4); // Lower lip center
-    ctx.quadraticCurveTo(-24, 0, -22, -12);
+    ctx.moveTo(-25, -12); // Left corner
+    ctx.quadraticCurveTo(0, -18, 25, -12); // Upper lip
+    ctx.quadraticCurveTo(27, 2, 0, 6); // Lower lip center
+    ctx.quadraticCurveTo(-27, 2, -25, -12);
     ctx.closePath();
     ctx.fill();
     
-    // Symmetrical sharp fangs/teeth
-    ctx.fillStyle = "#EEE6D8";
-    var teethCount = 7;
+    // Draw tongue inside mouth
+    ctx.fillStyle = isCharged || isMeltdown ? glowColor : "#661122";
+    ctx.beginPath();
+    ctx.moveTo(-11, 2);
+    ctx.quadraticCurveTo(0, -4, 11, 2);
+    ctx.quadraticCurveTo(0, 5, -11, 2);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Symmetrical sharp fangs/teeth (Longer, jagged, terrifying double rows)
+    ctx.fillStyle = "#F5ECD8";
+    var teethCount = 10;
     for (var t = 0; t < teethCount; t++) {
-        var tx = -18 + t * 6.0;
-        // Upper teeth pointing down
+        var tx = -22 + t * 4.6;
+        // Upper teeth pointing down (varying lengths)
+        var tLen = 6.5 + (t % 3 === 0 ? 3.5 : 0);
         ctx.beginPath();
         ctx.moveTo(tx, -14);
-        ctx.lineTo(tx + 1.5, -9);
+        ctx.lineTo(tx + 1.5, -14 + tLen);
         ctx.lineTo(tx + 3, -14);
         ctx.fill();
         // Lower teeth pointing up
         ctx.beginPath();
-        ctx.moveTo(tx, 0);
-        ctx.lineTo(tx + 1.5, -4);
-        ctx.lineTo(tx + 3, 0);
+        ctx.moveTo(tx, 2);
+        ctx.lineTo(tx + 1.5, 2 - tLen * 0.75);
+        ctx.lineTo(tx + 3, 2);
         ctx.fill();
     }
     ctx.restore();
     
-    // 7. SYMMETRICAL GLOWING ATOMIC EYES (Angled, angry glare)
+    // 8. GLOWING ATOMIC EYES (Angled, angry glare under thick brow)
     ctx.save();
-    ctx.shadowBlur = isCharged || isMeltdown ? 18 : 6;
+    ctx.shadowBlur = isCharged || isMeltdown ? 20 : 7;
     ctx.shadowColor = glowColor;
     ctx.fillStyle = eyeColor;
     
     // Left eye slit (angled angry)
     ctx.beginPath();
-    ctx.moveTo(-22, -32);
-    ctx.lineTo(-10, -29);
-    ctx.lineTo(-20, -28);
+    ctx.moveTo(-24, -34);
+    ctx.lineTo(-11, -31);
+    ctx.lineTo(-22, -30);
     ctx.closePath();
     ctx.fill();
     
     // Right eye slit (mirrored angled angry)
     ctx.beginPath();
-    ctx.moveTo(22, -32);
-    ctx.lineTo(10, -29);
-    ctx.lineTo(20, -28);
+    ctx.moveTo(23, -34);
+    ctx.lineTo(10, -31);
+    ctx.lineTo(21, -30);
     ctx.closePath();
     ctx.fill();
     
@@ -2998,19 +3147,71 @@ Enemy.prototype.drawGodzilla = function(ctx) {
     if (isCharged || isMeltdown) {
         ctx.fillStyle = "#FFF";
         ctx.beginPath();
-        ctx.arc(-15, -30, 1.2, 0, Math.PI * 2);
-        ctx.arc(15, -30, 1.2, 0, Math.PI * 2);
+        ctx.arc(-16, -32, 1.2, 0, Math.PI * 2);
+        ctx.arc(16, -32, 1.2, 0, Math.PI * 2);
         ctx.fill();
     }
     ctx.restore();
     
-    // Snout scaling details / vertical lines
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
-    ctx.lineWidth = 1;
+    // Brow ridge highlights (glowing above eye slits)
+    ctx.strokeStyle = gillColor;
+    ctx.lineWidth = 1.8;
     ctx.beginPath();
-    ctx.moveTo(-10, -32); ctx.lineTo(-12, -22);
-    ctx.moveTo(10, -32); ctx.lineTo(12, -22);
+    ctx.moveTo(-25, -37); ctx.lineTo(-12, -34);
+    ctx.moveTo(25, -37); ctx.lineTo(12, -34);
     ctx.stroke();
+    
+    // --- Energy Suction / Absorption Lines (Rushing into his mouth when charging) ---
+    if (isCharged || isMeltdown) {
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        ctx.strokeStyle = glowColor;
+        ctx.lineWidth = 1;
+        for (var ep = 0; ep < 8; ep++) {
+            var epAngle = time * 3.5 + ep * (Math.PI / 4);
+            var epDist = 130 - ((time * 95 + ep * 30) % 120);
+            if (epDist < 8) continue;
+            var epx = Math.cos(epAngle) * epDist;
+            var epy = -6 + Math.sin(epAngle) * epDist;
+            ctx.beginPath();
+            ctx.moveTo(epx, epy);
+            ctx.lineTo(epx * 0.7, epy * 0.7); // lines pointing to jaws
+            ctx.stroke();
+            
+            // Suction spark
+            ctx.fillStyle = eyeColor;
+            ctx.beginPath();
+            ctx.arc(epx, epy, 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.restore();
+    }
+    
+    // --- Electric Spine Crackles / Lightning Arcs (Spawning randomly around him) ---
+    if (isCharged || isMeltdown) {
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        ctx.strokeStyle = eyeColor;
+        ctx.lineWidth = 1.5;
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = eyeColor;
+        
+        if (Math.random() < 0.3) {
+            ctx.beginPath();
+            ctx.moveTo(-60 - Math.random() * 20, 20 + Math.random() * 60);
+            ctx.lineTo(-40 - Math.random() * 10, Math.random() * 30);
+            ctx.lineTo(-20 - Math.random() * 10, -20 - Math.random() * 20);
+            ctx.stroke();
+        }
+        if (Math.random() < 0.3) {
+            ctx.beginPath();
+            ctx.moveTo(60 + Math.random() * 20, 20 + Math.random() * 60);
+            ctx.lineTo(40 + Math.random() * 10, Math.random() * 30);
+            ctx.lineTo(20 + Math.random() * 10, -20 - Math.random() * 20);
+            ctx.stroke();
+        }
+        ctx.restore();
+    }
     
     ctx.restore(); // Head
     ctx.restore(); // Body scale

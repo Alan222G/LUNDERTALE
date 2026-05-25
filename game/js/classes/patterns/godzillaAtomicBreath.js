@@ -97,7 +97,7 @@ GodzillaAtomicBreathPattern.prototype.update = function(dt) {
                 width: 12,
                 height: 12,
                 speed: 0,
-                damVal: 5, // Medium damage for sparks
+                damVal: 2, // Halved spark damage
                 rotation: 0,
                 fadeSpeed: 1.0,
                 color: "#FF00E5", // Pink/Blue depending on meltdown, let's use neon purple/magenta

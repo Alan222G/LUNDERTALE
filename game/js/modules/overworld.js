@@ -508,80 +508,64 @@ var Overworld = (function() {
                     
                     ctx.restore();
                 } else if (t.bossId === "godzilla") {
-                    // Epic Godzilla representation in Overworld (Front-facing)
+                    // Epic Godzilla representation in Overworld (Side-profile facing Left/Center)
                     var gTime = animTimer;
                     var gSize = 25; // Scale size
                     
                     ctx.save();
-                    ctx.translate(gcx, gcy + Math.sin(gTime * 3) * 3); // Hovering wave
+                    // Shift center slightly to align with overworld grid
+                    ctx.translate(gcx, gcy + Math.sin(gTime * 3.5) * 2.5);
                     
-                    // Radiation blue aura
-                    ctx.shadowBlur = 20;
-                    ctx.shadowColor = "rgba(0, 160, 255, 0.8)";
+                    // SCALE -1 on X so the right-facing path is flipped to face LEFT (towards the center/player spawn)
+                    ctx.scale(-1, 1);
                     
-                    // Body/Head outline (dark charcoal, front-facing symmetric snarl)
-                    ctx.fillStyle = "#162020";
-                    ctx.beginPath();
-                    ctx.moveTo(-gSize * 0.7, gSize * 0.8);
-                    ctx.quadraticCurveTo(-gSize * 0.6, -gSize * 0.4, -gSize * 0.3, -gSize * 0.6); // Left neck/skull side
-                    ctx.quadraticCurveTo(0, -gSize * 0.8, gSize * 0.3, -gSize * 0.6); // Crown
-                    ctx.quadraticCurveTo(gSize * 0.6, -gSize * 0.4, gSize * 0.7, gSize * 0.8); // Right neck/skull side
-                    ctx.closePath();
-                    ctx.fill();
+                    // Radiation blue aura glow
+                    ctx.shadowBlur = 18;
+                    ctx.shadowColor = "rgba(0, 160, 255, 0.85)";
                     
-                    // Symmetrical chest plates
-                    ctx.fillStyle = "#111818";
-                    ctx.beginPath();
-                    ctx.moveTo(-gSize * 0.4, gSize * 0.8);
-                    ctx.lineTo(0, gSize * 0.5);
-                    ctx.lineTo(gSize * 0.4, gSize * 0.8);
-                    ctx.closePath();
-                    ctx.fill();
-                    
-                    // Draw tail swaying in the background on the left side
+                    // Draw tail swaying in the background (rendered on the right side under scale(-1, 1))
                     ctx.strokeStyle = "#121A1A";
-                    ctx.lineWidth = 5;
+                    ctx.lineWidth = 6;
                     ctx.lineCap = "round";
                     ctx.beginPath();
-                    ctx.moveTo(-gSize * 0.4, gSize * 0.6);
-                    ctx.quadraticCurveTo(-gSize * 1.0 + Math.sin(gTime * 3) * 6, gSize * 0.2 + Math.cos(gTime * 3) * 4, -gSize * 1.3, gSize * 0.4 + Math.sin(gTime * 3) * 8);
+                    ctx.moveTo(-gSize * 0.5, gSize * 0.6);
+                    ctx.quadraticCurveTo(-gSize * 1.2 - Math.sin(gTime * 4.0) * 8, gSize * 0.2 + Math.cos(gTime * 3.5) * 5, -gSize * 1.5, gSize * 0.5 + Math.sin(gTime * 4.0) * 9);
                     ctx.stroke();
                     
-                    // Glowing blue atomic dorsal spines on both sides (left and right)
-                    ctx.fillStyle = "rgba(0, 190, 255, 0.9)";
+                    // Body/Head outline (dark charcoal)
+                    ctx.fillStyle = "#162020";
+                    ctx.beginPath();
+                    ctx.moveTo(-gSize * 0.8, gSize * 0.8);
+                    ctx.quadraticCurveTo(-gSize * 0.6, -gSize * 0.4, -gSize * 0.2, -gSize * 0.6); // Head/Neck back
+                    ctx.lineTo(gSize * 0.5, -gSize * 0.4); // snout top
+                    ctx.lineTo(gSize * 0.6, -gSize * 0.1); // nose
+                    ctx.lineTo(gSize * 0.2, -gSize * 0.0); // mouth top
+                    ctx.lineTo(gSize * 0.5, gSize * 0.1); // jaw bottom
+                    ctx.quadraticCurveTo(gSize * 0.6, gSize * 0.6, gSize * 0.8, gSize * 0.8); // Chest
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Glowing blue atomic dorsal spines on back
+                    ctx.fillStyle = "rgba(0, 190, 255, 0.95)";
                     ctx.shadowBlur = 10;
                     ctx.shadowColor = "#00B2FF";
-                    
-                    // Left spines
-                    for (var s = 0; s < 3; s++) {
-                        var sx = -gSize * 0.4 - s * 4;
-                        var sy = -gSize * 0.2 + s * 8;
+                    for (var s = 0; s < 4; s++) {
+                        var sx = -gSize * 0.65 + s * 7.5;
+                        var sy = -gSize * 0.25 + s * 5.5;
                         ctx.beginPath();
-                        ctx.moveTo(sx, sy);
-                        ctx.lineTo(sx - 8 - Math.sin(gTime * 4 + s) * 2, sy - 4);
-                        ctx.lineTo(sx + 2, sy + 4);
-                        ctx.closePath();
-                        ctx.fill();
-                    }
-                    // Right spines
-                    for (var s = 0; s < 3; s++) {
-                        var sx = gSize * 0.4 + s * 4;
-                        var sy = -gSize * 0.2 + s * 8;
-                        ctx.beginPath();
-                        ctx.moveTo(sx, sy);
-                        ctx.lineTo(sx + 8 + Math.sin(gTime * 4 + s) * 2, sy - 4);
-                        ctx.lineTo(sx - 2, sy + 4);
+                        ctx.moveTo(sx - 2, sy);
+                        ctx.lineTo(sx - 7, sy - 8 - Math.sin(gTime * 4.5 + s) * 2);
+                        ctx.lineTo(sx + 1, sy + 3);
                         ctx.closePath();
                         ctx.fill();
                     }
                     
-                    // Symmetrical glowing eyes
+                    // Glowing eye
                     ctx.fillStyle = "#00FFFF";
                     ctx.shadowBlur = 8;
                     ctx.shadowColor = "#00FFFF";
                     ctx.beginPath();
-                    ctx.arc(-gSize * 0.15, -gSize * 0.35, 1.8, 0, Math.PI * 2);
-                    ctx.arc(gSize * 0.15, -gSize * 0.35, 1.8, 0, Math.PI * 2);
+                    ctx.arc(gSize * 0.15, -gSize * 0.38, 1.8, 0, Math.PI * 2);
                     ctx.fill();
                     
                     ctx.restore();
