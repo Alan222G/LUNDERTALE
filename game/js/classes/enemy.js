@@ -3578,10 +3578,21 @@ Enemy.prototype.drawVader = function(ctx) {
         ctx.translate(-42, 22);
         ctx.rotate(Math.sin(time * 3.8) * 0.06 - 0.22);
 
+        // Hombrera lateral en 3D para robustez
+        var shoulderGrad = ctx.createLinearGradient(-15, -15, 10, 10);
+        shoulderGrad.addColorStop(0, "#333333");
+        shoulderGrad.addColorStop(0.5, "#151515");
+        shoulderGrad.addColorStop(1, "#020202");
+        ctx.fillStyle = shoulderGrad;
+        ctx.beginPath();
+        ctx.arc(-8, 12, 12, 0, Math.PI * 2);
+        ctx.fill();
+
         // Arm sleeve with realistic folds
         var armGrad = ctx.createLinearGradient(-8, 30, -20, -5);
         armGrad.addColorStop(0, "#080808");
-        armGrad.addColorStop(0.5, "#151515");
+        armGrad.addColorStop(0.4, "#181818");
+        armGrad.addColorStop(0.7, "#282828");
         armGrad.addColorStop(1, "#020202");
         ctx.fillStyle = armGrad;
         
@@ -3594,35 +3605,88 @@ Enemy.prototype.drawVader = function(ctx) {
         ctx.fill();
 
         // Arm specular fold highlights
-        ctx.strokeStyle = "rgba(255,255,255,0.08)";
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = "rgba(255,255,255,0.12)";
+        ctx.lineWidth = 2.2;
         ctx.beginPath(); ctx.moveTo(-16, 25); ctx.lineTo(-22, 5); ctx.stroke();
 
         // Detailed leather glove fist
-        ctx.fillStyle = "#1a1a1a";
+        var gloveGrad = ctx.createRadialGradient(-20, -5, 2, -20, -5, 8);
+        gloveGrad.addColorStop(0, "#2c2c2c");
+        gloveGrad.addColorStop(0.7, "#141414");
+        gloveGrad.addColorStop(1, "#020202");
+        ctx.fillStyle = gloveGrad;
         ctx.beginPath();
-        ctx.arc(-20, -5, 7.5, 0, Math.PI * 2);
+        ctx.arc(-20, -5, 8.0, 0, Math.PI * 2);
         ctx.fill();
         
-        // Individual clenched leather fingers
-        ctx.fillStyle = "#252525";
-        ctx.fillRect(-26, -10, 5, 4);
-        ctx.fillRect(-25, -6, 5, 4);
-        ctx.fillRect(-24, -2, 5, 4);
+        // Individual clenched leather fingers with specular gloss
+        ctx.fillStyle = "#2a2a2a";
+        ctx.fillRect(-27, -11, 6, 4);
+        ctx.fillRect(-26, -7, 6, 4);
+        ctx.fillRect(-25, -3, 6, 4);
 
-        // Sinister Dark Force Sparks (Electric purple lightning)
-        ctx.strokeStyle = "#8A2BE2"; // Purple energy
-        ctx.shadowColor = "#BA55D3";
-        ctx.shadowBlur = 12;
+        // --- EFECTO DE ENERGÍA SITH / FUERZA DE PLASMA PREMIUM ---
+        ctx.save();
+        ctx.globalCompositeOperation = "screen";
+
+        // 1. Núcleo de plasma fluctuante en la mano
+        var forcePulse = 1.0 + Math.sin(time * 12) * 0.12;
+        var plasmaGrad = ctx.createRadialGradient(-20, -5, 1, -20, -5, 22 * forcePulse);
+        plasmaGrad.addColorStop(0, "rgba(255, 255, 255, 0.95)");
+        plasmaGrad.addColorStop(0.3, "rgba(186, 85, 211, 0.8)");
+        plasmaGrad.addColorStop(0.7, "rgba(138, 43, 226, 0.35)");
+        plasmaGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+        ctx.fillStyle = plasmaGrad;
+        ctx.beginPath();
+        ctx.arc(-20, -5, 24 * forcePulse, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 2. Rayos Sith en zigzag dinámicos
         ctx.lineWidth = 1.8;
-        for (var fs = 0; fs < 4; fs++) {
-            var sx = -20 + (Math.random() - 0.5) * 35;
-            var sy = -5 + (Math.random() - 0.5) * 35;
+        ctx.shadowBlur = 14;
+        for (var fs = 0; fs < 6; fs++) {
+            var angle = (fs / 6) * Math.PI * 2 + Math.sin(time * 5) * 0.5;
+            var dist = 22 + Math.random() * 18;
+            var targetX = -20 + Math.cos(angle) * dist;
+            var targetY = -5 + Math.sin(angle) * dist;
+
+            // Generate zigzag points
+            var curX = -20;
+            var curY = -5;
+            var steps = 3;
             ctx.beginPath();
-            ctx.moveTo(-20, -5);
-            ctx.lineTo(sx, sy);
+            ctx.moveTo(curX, curY);
+            ctx.strokeStyle = fs % 2 === 0 ? "#BA55D3" : "#00FFFF"; // Alternating violet/cyan electric lightning
+            ctx.shadowColor = ctx.strokeStyle;
+            
+            for (var st = 1; st <= steps; st++) {
+                var ratio = st / steps;
+                var nextX = -20 + Math.cos(angle) * dist * ratio + (Math.random() - 0.5) * 8;
+                var nextY = -5 + Math.sin(angle) * dist * ratio + (Math.random() - 0.5) * 8;
+                ctx.lineTo(nextX, nextY);
+                curX = nextX;
+                curY = nextY;
+            }
             ctx.stroke();
         }
+
+        // 3. Partículas de plasma flotantes ascendentes
+        for (var pt = 0; pt < 4; pt++) {
+            var pSeed = time * 3 + pt;
+            var px = -20 + Math.sin(pSeed * 7) * 16;
+            var py = -5 - ((pSeed * 25) % 45);
+            var pAlpha = 1.0 - (Math.abs(py - (-5)) / 45);
+            var pSize = 1.5 + (pSeed % 3.0);
+
+            ctx.fillStyle = "rgba(218, 112, 214, " + pAlpha + ")";
+            ctx.shadowColor = "#FF00FF";
+            ctx.shadowBlur = 8;
+            ctx.beginPath();
+            ctx.arc(px, py, pSize, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        ctx.restore();
         ctx.restore();
     }
 

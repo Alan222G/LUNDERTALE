@@ -1,12 +1,13 @@
-// vaderImperialBarrage.js — Red Imperial laser beams rain down with warning indicators
+// vaderImperialBarrage.js — Sith Force Dome. An expanding force field pushing player to edges while rotating saber blades sweep the perimeter.
 var VaderImperialBarragePattern = function(config) {
     BulletPattern.call(this, config);
-    this.duration = config.duration || 8;
+    this.duration = config.duration || 8.0;
     this.elapsed = 0;
-    this.spawnTimer = 0;
-    this.spawnInterval = 0.8; // Every 0.8s spawn a laser
     this.damVal = config.damVal || 9;
-    this.lasers = []; // { x, w, warning, duration, active }
+    
+    this.domeRadius = 0.0;
+    this.maxDomeRadius = 82;
+    this.blades = []; // { angle, speed, distance }
 };
 
 VaderImperialBarragePattern.prototype = Object.create(BulletPattern.prototype);
@@ -14,125 +15,172 @@ VaderImperialBarragePattern.prototype = Object.create(BulletPattern.prototype);
 VaderImperialBarragePattern.prototype.generateBullets = function(battleBox) {
     BulletPattern.prototype.generateBullets.call(this, battleBox);
     this.elapsed = 0;
-    this.spawnTimer = 0.5; // Start quickly
-    this.lasers = [];
+    this.domeRadius = 0;
+    this.blades = [];
+
+    // Spawn 3 rotating energy blades
+    for (var i = 0; i < 3; i++) {
+        this.blades.push({
+            angle: i * (Math.PI * 2 / 3),
+            speed: 2.2, // rotation speed
+            dist: 115
+        });
+    }
 };
 
 VaderImperialBarragePattern.prototype.update = function(dt) {
     this.elapsed += dt;
-    this.spawnTimer += dt;
 
-    if (this.spawnTimer >= this.spawnInterval && this.elapsed < this.duration - 1.5) {
-        this.spawnTimer = 0;
-        this.spawnLaser();
+    var bb = Cbbox.getBound();
+    var centerX = (bb[0] + bb[2]) / 2;
+    var centerY = (bb[1] + bb[3]) / 2;
+
+    // Expanding dome radius based on time (grows then shrinks slightly)
+    var progress = this.elapsed / this.duration;
+    if (progress < 0.65) {
+        this.domeRadius = this.maxDomeRadius * Math.sin((progress / 0.65) * (Math.PI / 2));
+    } else {
+        this.domeRadius = this.maxDomeRadius * Math.sin(((1.0 - progress) / 0.35) * (Math.PI / 2));
     }
 
-    // Update lasers
-    for (var i = this.lasers.length - 1; i >= 0; i--) {
-        var l = this.lasers[i];
-        if (l.warning > 0) {
-            l.warning -= dt;
-            if (l.warning <= 0) {
-                l.active = true;
-                Sound.playSound("impact", true); // Laser blast sound
-            }
-        } else if (l.active) {
-            l.duration -= dt;
-            if (l.duration <= 0) {
-                l.active = false;
-                this.lasers.splice(i, 1);
-            }
+    // Force push player outwards if they touch the expanding dome
+    if (typeof Soul !== "undefined" && Soul.getPos && this.domeRadius > 5) {
+        var spos = Soul.getPos();
+        var spw = Soul.getWidth();
+        var sph = Soul.getHeight();
+        var px = spos.x + spw / 2;
+        var py = spos.y + sph / 2;
+
+        var dx = px - centerX;
+        var dy = py - centerY;
+        var dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < this.domeRadius) {
+            // Push player out to the boundary of the dome
+            var pushFactor = (this.domeRadius - dist) + 4;
+            var angle = Math.atan2(dy, dx);
+            if (dist === 0) angle = Math.random() * Math.PI * 2;
+            spos.x += Math.cos(angle) * pushFactor;
+            spos.y += Math.sin(angle) * pushFactor;
         }
+    }
+
+    // Update rotating blades
+    for (var i = 0; i < this.blades.length; i++) {
+        var b = this.blades[i];
+        b.angle += b.speed * dt;
+        
+        // Helix pulsing distance
+        b.dist = 90 + Math.sin(this.elapsed * 4 + i) * 20;
     }
 
     BulletPattern.prototype.update.call(this, dt);
 };
 
-VaderImperialBarragePattern.prototype.spawnLaser = function() {
-    var bb = Cbbox.getBound();
-    var bbW = bb[2] - bb[0];
-
-    // Pick random X lane
-    var lx = bb[0] + Math.random() * (bbW - 30) + 15;
-    this.lasers.push({
-        x: lx,
-        w: 16,
-        warning: 0.75, // 0.75 seconds warning
-        duration: 0.45, // active for 0.45s
-        active: false
-    });
-};
-
 VaderImperialBarragePattern.prototype.checkCollision = function(sx, sy, sw, sh) {
+    var cx = sx + sw / 2;
+    var cy = sy + sh / 2;
+    var radius = (sw + sh) / 4;
     var bb = Cbbox.getBound();
-    
-    // Check if the player is in any active laser beam
-    for (var i = 0; i < this.lasers.length; i++) {
-        var l = this.lasers[i];
-        if (l.active) {
-            // Check bounding box intersection between player soul and vertical laser beam
-            var lx1 = l.x - l.w / 2;
-            var lx2 = l.x + l.w / 2;
-            if (rectsOverlap(lx1, bb[1], l.w, bb[3] - bb[1], sx, sy, sw, sh)) {
-                return this.damVal;
-            }
+    var centerX = (bb[0] + bb[2]) / 2;
+    var centerY = (bb[1] + bb[3]) / 2;
+
+    // 1. Check dome outline contact damage
+    var dx = cx - centerX;
+    var dy = cy - centerY;
+    var dist = Math.sqrt(dx * dx + dy * dy);
+    // Damage if touching the edge of the dome
+    if (dist < this.domeRadius + 2 && dist > this.domeRadius - 8) {
+        return this.damVal;
+    }
+
+    // 2. Check collision with rotating outer laser blades
+    for (var i = 0; i < this.blades.length; i++) {
+        var b = this.blades[i];
+        var bx = centerX + Math.cos(b.angle) * b.dist;
+        var by = centerY + Math.sin(b.angle) * b.dist;
+
+        var bdx = cx - bx;
+        var bdy = cy - by;
+        var bdist = Math.sqrt(bdx * bdx + bdy * bdy);
+        if (bdist < radius + 9) {
+            return this.damVal;
         }
     }
 
-    return BulletPattern.prototype.checkCollision.call(this, sx, sy, sw, sh);
+    return 0;
 };
 
 VaderImperialBarragePattern.prototype.draw = function(ctx) {
-    var bb = Cbbox.getBound();
     ctx.save();
+    var bb = Cbbox.getBound();
+    var centerX = (bb[0] + bb[2]) / 2;
+    var centerY = (bb[1] + bb[3]) / 2;
 
-    for (var i = 0; i < this.lasers.length; i++) {
-        var l = this.lasers[i];
+    // 1. Draw expanding Sith force dome
+    if (this.domeRadius > 1) {
+        ctx.save();
+        ctx.globalCompositeOperation = "screen";
+
+        // Red Force energy fill
+        var domeGrad = ctx.createRadialGradient(centerX, centerY, 5, centerX, centerY, this.domeRadius);
+        domeGrad.addColorStop(0, "rgba(255, 0, 0, 0.05)");
+        domeGrad.addColorStop(0.8, "rgba(139, 0, 0, 0.18)");
+        domeGrad.addColorStop(0.96, "rgba(255, 30, 30, 0.45)");
+        domeGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
         
-        if (l.warning > 0) {
-            // Draw flashing red warning guide line
-            ctx.save();
-            ctx.strokeStyle = "rgba(255, 0, 0, " + (0.3 + Math.sin(this.elapsed * 18) * 0.15) + ")";
-            ctx.lineWidth = 2.0;
-            ctx.setLineDash([5, 5]);
-            ctx.beginPath();
-            ctx.moveTo(l.x, bb[1]);
-            ctx.lineTo(l.x, bb[3]);
-            ctx.stroke();
+        ctx.fillStyle = domeGrad;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, this.domeRadius, 0, Math.PI * 2);
+        ctx.fill();
 
-            // Draw faint warning rectangle
-            ctx.fillStyle = "rgba(255, 0, 0, 0.08)";
-            ctx.fillRect(l.x - l.w / 2, bb[1], l.w, bb[3] - bb[1]);
-            ctx.restore();
-        } else if (l.active) {
-            // Draw massive glowing Imperial crimson laser beam
-            ctx.save();
-            ctx.shadowBlur = 18;
-            ctx.shadowColor = "#FF0000";
-            
-            // Outer red blast
-            ctx.fillStyle = "rgba(255, 0, 0, 0.85)";
-            ctx.fillRect(l.x - l.w / 2, bb[1], l.w, bb[3] - bb[1]);
+        // Glowing border ring
+        ctx.strokeStyle = "#FF1e1e";
+        ctx.shadowColor = "#FF0000";
+        ctx.shadowBlur = 12;
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, this.domeRadius - 1.5, 0, Math.PI * 2);
+        ctx.stroke();
 
-            // Inner hot white core
-            ctx.shadowBlur = 0;
-            ctx.fillStyle = "#FFFFFF";
-            ctx.fillRect(l.x - l.w / 4, bb[1], l.w / 2, bb[3] - bb[1]);
+        ctx.restore();
+    }
 
-            // Energy spark details
-            ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
-            for (var sp = 0; sp < 4; sp++) {
-                var spy = bb[1] + ((this.elapsed * 450 + sp * 50) % (bb[3] - bb[1]));
-                ctx.fillRect(l.x - 3, spy, 6, 2);
-            }
-            
-            ctx.restore();
-        }
+    // 2. Draw rotating blades
+    for (var i = 0; i < this.blades.length; i++) {
+        var b = this.blades[i];
+        var bx = centerX + Math.cos(b.angle) * b.dist;
+        var by = centerY + Math.sin(b.angle) * b.dist;
+
+        ctx.save();
+        ctx.globalCompositeOperation = "screen";
+        ctx.translate(bx, by);
+        ctx.rotate(b.angle * 4); // spin blade individually
+
+        ctx.shadowBlur = 14;
+        ctx.shadowColor = "#FF0055";
+
+        // Outer red slash arc
+        ctx.strokeStyle = "#FF3366";
+        ctx.lineWidth = 5.0;
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.arc(0, 0, 10, -1.0, 1.0);
+        ctx.stroke();
+
+        // White core
+        ctx.strokeStyle = "#FFFFFF";
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.arc(0, 0, 10, -0.6, 0.6);
+        ctx.stroke();
+
+        ctx.restore();
     }
 
     ctx.restore();
 };
 
 VaderImperialBarragePattern.prototype.isOver = function() {
-    return this.elapsed >= this.duration && this.lasers.length === 0;
+    return this.elapsed >= this.duration;
 };
