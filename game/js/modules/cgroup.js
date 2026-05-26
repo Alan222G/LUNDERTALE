@@ -518,9 +518,9 @@ var Cgroup = (function() {
                 spriteId: "asriel",
                 attacks: ["vaderSaberThrow", "vaderForceChoke", "vaderImperialBarrage", "voidImplosion"],
                 phases: [
-                    { patterns: ["vaderSaberThrow", "vaderImperialBarrage"], soulMode: "red", renderType: "vader_normal",
+                    { patterns: ["vaderSaberThrow", "vaderImperialBarrage", "gravityWell", "pulsarBeam"], soulMode: "red", renderType: "vader_normal",
                       speech: ["TE HE ESTADO\nESPERANDO.", "UNIRTE AL\nLADO OSCURO\nES TU DESTINO.", "EL PODER DE\nLA FUERZA\nES ABSOLUTO."] },
-                    { patterns: ["vaderForceChoke", "vaderSaberThrow", "vaderImperialBarrage"], soulMode: "red", renderType: "vader_force",
+                    { patterns: ["vaderForceChoke", "vaderSaberThrow", "vaderImperialBarrage", "annihilationGrid"], soulMode: "red", renderType: "vader_force",
                       speech: ["SIENTES EL AHOGO\nDEL LADO\nOSCURO?", "SUBESTIMAS EL\nPODER DE\nLA FUERZA.", "NO HAY\nESCAPE."] },
                     { patterns: ["vaderForceChoke", "vaderSaberThrow", "vaderImperialBarrage", "voidImplosion"], soulMode: "red", renderType: "vader_rage",
                       speech: ["¡ES INUTIL\nRESISTIRSE!", "¡SIENTE LA IRA\nDEL LORD SITH!", "¡VILLANO!\nNO ME\nVENCERAS."] }

@@ -3226,191 +3226,344 @@ Enemy.prototype.drawVader = function(ctx) {
     var time = Date.now() / 1000;
     var isForce = this.renderType === "vader_force";
     var isRage = this.renderType === "vader_rage";
-    var breathe = 1.0 + Math.sin(time * 2.8) * 0.025;
+    var breathe = 1.0 + Math.sin(time * 2.5) * 0.015;
 
     ctx.save();
     ctx.translate(370, 160);
     ctx.scale(breathe, breathe);
 
-    // 1. Cape (Deep Black backdrop)
-    ctx.fillStyle = "#0A0A0A";
+    // ----------------------------------------------------
+    // 1. EL CAPOTE IMPERIAL (Majestic Cape flowing)
+    // ----------------------------------------------------
+    var capeGrad = ctx.createLinearGradient(-80, 0, 80, 0);
+    capeGrad.addColorStop(0, "#020202");
+    capeGrad.addColorStop(0.2, "#0c0c0c");
+    capeGrad.addColorStop(0.5, "#151515");
+    capeGrad.addColorStop(0.8, "#0c0c0c");
+    capeGrad.addColorStop(1, "#020202");
+    
+    ctx.fillStyle = capeGrad;
     ctx.beginPath();
-    ctx.moveTo(-50, 80);
-    ctx.quadraticCurveTo(-75, 20, -45, -20);
-    ctx.lineTo(45, -20);
-    ctx.quadraticCurveTo(75, 20, 50, 80);
-    ctx.lineTo(25, 80);
-    ctx.bezierCurveTo(15, 60, -15, 60, -25, 80);
+    ctx.moveTo(-65, 80);
+    ctx.quadraticCurveTo(-90, 15, -45, -28);
+    ctx.lineTo(45, -28);
+    ctx.quadraticCurveTo(90, 15, 65, 80);
+    ctx.lineTo(35, 80);
+    ctx.bezierCurveTo(20, 55, -20, 55, -35, 80);
     ctx.closePath();
     ctx.fill();
 
-    // Cape folds
-    ctx.strokeStyle = "#151515";
-    ctx.lineWidth = 2.5;
+    // Cape folds/creases (Volumetric lines)
+    ctx.strokeStyle = "rgba(0, 0, 0, 0.6)";
+    ctx.lineWidth = 4;
     ctx.beginPath();
-    ctx.moveTo(-25, -10); ctx.lineTo(-35, 65);
-    ctx.moveTo(25, -10); ctx.lineTo(35, 65);
+    ctx.moveTo(-35, -15); ctx.quadraticCurveTo(-45, 25, -50, 75);
+    ctx.moveTo(35, -15); ctx.quadraticCurveTo(45, 25, 50, 75);
+    ctx.moveTo(-15, -15); ctx.quadraticCurveTo(-20, 35, -22, 75);
+    ctx.moveTo(15, -15); ctx.quadraticCurveTo(20, 35, 22, 75);
     ctx.stroke();
 
-    // 2. Shoulders & Chest Armor
-    ctx.fillStyle = "#1E1E1E";
+    // ----------------------------------------------------
+    // 2. CORAZA DE HOMBROS Y TORSO HUMANO (Human proportions)
+    // ----------------------------------------------------
+    // Shoulders armor (Chest bell & Collar guards)
+    var armorGrad = ctx.createLinearGradient(-50, -10, 50, -10);
+    armorGrad.addColorStop(0, "#111111");
+    armorGrad.addColorStop(0.3, "#333333");
+    armorGrad.addColorStop(0.5, "#444444");
+    armorGrad.addColorStop(0.7, "#333333");
+    armorGrad.addColorStop(1, "#111111");
+    
+    ctx.fillStyle = armorGrad;
     ctx.beginPath();
-    ctx.moveTo(-45, 10);
-    ctx.quadraticCurveTo(0, -5, 45, 10);
-    ctx.lineTo(35, 80);
-    ctx.lineTo(-35, 80);
+    ctx.moveTo(-52, 10);
+    ctx.bezierCurveTo(-35, -8, -15, -10, 0, -8);
+    ctx.bezierCurveTo(15, -10, 35, -8, 52, 10);
+    ctx.quadraticCurveTo(55, 30, 48, 50);
+    ctx.lineTo(-48, 50);
+    ctx.quadraticCurveTo(-55, 30, -52, 10);
     ctx.closePath();
     ctx.fill();
 
-    // Shoulder stripes/guards
-    ctx.strokeStyle = "#0B0B0B";
+    // Silver and charcoal alternating stripes on collar
+    ctx.strokeStyle = "#000000";
     ctx.lineWidth = 3.5;
     ctx.beginPath();
-    ctx.moveTo(-40, 10); ctx.lineTo(-30, 80);
-    ctx.moveTo(40, 10); ctx.lineTo(30, 80);
-    ctx.moveTo(-25, 5); ctx.lineTo(-18, 80);
-    ctx.moveTo(25, 5); ctx.lineTo(18, 80);
+    ctx.moveTo(-45, 7); ctx.lineTo(-40, 50);
+    ctx.moveTo(-32, 2); ctx.lineTo(-28, 50);
+    ctx.moveTo(-18, -4); ctx.lineTo(-15, 50);
+    ctx.moveTo(18, -4); ctx.lineTo(15, 50);
+    ctx.moveTo(32, 2); ctx.lineTo(28, 50);
+    ctx.moveTo(45, 7); ctx.lineTo(40, 50);
     ctx.stroke();
 
-    // Inner black body suit
-    ctx.fillStyle = "#121212";
-    ctx.fillRect(-15, 15, 30, 65);
-
-    // 3. Chest Control Panel (Blinking buttons)
-    ctx.fillStyle = "#222222";
-    ctx.strokeStyle = "#333333";
-    ctx.lineWidth = 2;
+    // Cape Chain Clasp (Silver metal chain across chest)
+    ctx.strokeStyle = "#888888";
+    ctx.lineWidth = 2.5;
     ctx.beginPath();
-    ctx.rect(-13, 30, 26, 32);
+    ctx.moveTo(-28, 12);
+    ctx.quadraticCurveTo(0, 18, 28, 12);
+    ctx.stroke();
+
+    // Chain links dots
+    ctx.fillStyle = "#CCCCCC";
+    for (var cIdx = 0; cIdx <= 6; cIdx++) {
+        var cx = -28 + cIdx * 9.3;
+        var cy = 12 + Math.sin(cIdx * 0.5) * 1.5;
+        ctx.beginPath(); ctx.arc(cx, cy, 1.8, 0, Math.PI * 2); ctx.fill();
+    }
+
+    // Main torso and black body suit (highly proportional waist)
+    ctx.fillStyle = "#141414";
+    ctx.beginPath();
+    ctx.moveTo(-30, 50);
+    ctx.lineTo(30, 50);
+    ctx.lineTo(24, 90);
+    ctx.lineTo(-24, 90);
+    ctx.closePath();
+    ctx.fill();
+
+    // Ribbed leather texture lines on body suit
+    ctx.strokeStyle = "#080808";
+    ctx.lineWidth = 2;
+    for (var ry = 53; ry <= 85; ry += 5) {
+        ctx.beginPath(); ctx.moveTo(-26 + (ry-50)*0.1, ry); ctx.lineTo(26 - (ry-50)*0.1, ry); ctx.stroke();
+    }
+
+    // Inner tunic lining (hanging down)
+    ctx.fillStyle = "#0c0c0c";
+    ctx.fillRect(-12, 50, 24, 40);
+
+    // ----------------------------------------------------
+    // 3. PANEL DE CONTROL DE SOPORTE VITAL (Life support box)
+    // ----------------------------------------------------
+    ctx.fillStyle = "#1e1e1e";
+    ctx.strokeStyle = "#3a3a3a";
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.rect(-12, 56, 24, 28);
     ctx.fill(); ctx.stroke();
 
-    // Blinking lights
-    var blink = Math.floor(time * 2.5) % 2;
-    ctx.fillStyle = blink ? "#FF0000" : "#550000"; // Red led
-    ctx.fillRect(-9, 35, 6, 6);
-    ctx.fillStyle = !blink ? "#0000FF" : "#000055"; // Blue led
-    ctx.fillRect(3, 35, 6, 6);
+    // Red and Blue buttons (Blinking animation)
+    var isBlink = Math.floor(time * 2.2) % 2;
+    ctx.fillStyle = isBlink ? "#FF1e1e" : "#660000";
+    ctx.fillRect(-8, 60, 5, 5); // top-left red led
+    ctx.fillStyle = !isBlink ? "#1e5eff" : "#000066";
+    ctx.fillRect(3, 60, 5, 5); // top-right blue led
+    
+    // Green button
+    ctx.fillStyle = "#00FF00";
+    ctx.fillRect(-8, 68, 5, 3);
 
-    // Silver toggle switches
-    ctx.fillStyle = "#C0C0C0";
-    ctx.fillRect(-9, 48, 4, 10);
-    ctx.fillRect(-2, 48, 4, 10);
-    ctx.fillRect(5, 48, 4, 10);
+    // Silver switches vertical lines
+    ctx.fillStyle = "#D2D2D2";
+    ctx.fillRect(-8, 74, 3, 7);
+    ctx.fillRect(-2, 74, 3, 7);
+    ctx.fillRect(4, 74, 3, 7);
 
-    // 4. Helmet Dome (Top part)
-    ctx.fillStyle = "#1C1C1C";
+    // ----------------------------------------------------
+    // 4. CASCO DE OBSIDIANA (Highly realistic Darth Vader helmet)
+    // ----------------------------------------------------
+    // We define a sleek, 3D glossy helmet look with gradients
+    
+    // Neck wrap shroud
+    ctx.fillStyle = "#090909";
     ctx.beginPath();
-    ctx.arc(0, -32, 26, Math.PI, 0, false);
+    ctx.moveTo(-16, -20);
+    ctx.lineTo(-24, -4);
+    ctx.lineTo(24, -4);
+    ctx.lineTo(16, -20);
+    ctx.closePath();
     ctx.fill();
 
-    // Glossy Highlight on Dome
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
-    ctx.lineWidth = 2;
+    // Helmet Shroud Flare (the back bell curving down to the shoulders)
+    var flareGrad = ctx.createLinearGradient(-32, -18, 32, -18);
+    flareGrad.addColorStop(0, "#080808");
+    flareGrad.addColorStop(0.3, "#181818");
+    flareGrad.addColorStop(0.5, "#252525");
+    flareGrad.addColorStop(0.7, "#181818");
+    flareGrad.addColorStop(1, "#080808");
+    ctx.fillStyle = flareGrad;
+    
     ctx.beginPath();
-    ctx.arc(0, -32, 23, -Math.PI * 0.8, -Math.PI * 0.4);
+    ctx.moveTo(-24, -30);
+    ctx.bezierCurveTo(-38, -12, -40, 2, -42, 10);
+    ctx.lineTo(-16, 5);
+    ctx.lineTo(0, -10);
+    ctx.lineTo(16, 5);
+    ctx.lineTo(42, 10);
+    ctx.bezierCurveTo(40, 2, 38, -12, 24, -30);
+    ctx.closePath();
+    ctx.fill();
     ctx.stroke();
 
-    // 5. Helmet Flare (sides of mask)
-    ctx.fillStyle = "#1A1A1A";
+    // Helmet Dome (Polished black skull top)
+    var domeGrad = ctx.createRadialGradient(-5, -38, 2, 0, -32, 25);
+    domeGrad.addColorStop(0, "#484848");
+    domeGrad.addColorStop(0.4, "#222222");
+    domeGrad.addColorStop(1, "#090909");
+    ctx.fillStyle = domeGrad;
     ctx.beginPath();
-    ctx.moveTo(-26, -32);
-    ctx.lineTo(-34, -12);
-    ctx.lineTo(-12, -10);
-    ctx.lineTo(0, -22);
-    ctx.lineTo(12, -10);
-    ctx.lineTo(34, -12);
-    ctx.lineTo(26, -32);
+    ctx.arc(0, -32, 25, Math.PI, 0, false);
+    ctx.fill();
+
+    // Sharp specular reflection running down the center of the helmet (3D metallic effect)
+    ctx.fillStyle = "rgba(255, 255, 255, 0.22)";
+    ctx.beginPath();
+    ctx.ellipse(0, -42, 3, 10, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.arc(0, -32, 23.5, -Math.PI * 0.8, -Math.PI * 0.4);
+    ctx.stroke();
+
+    // Helmet brow ridge (The majestic aggressive forehead line)
+    ctx.fillStyle = "#121212";
+    ctx.beginPath();
+    ctx.moveTo(-25, -31);
+    ctx.bezierCurveTo(-15, -28, 0, -29, 0, -29);
+    ctx.bezierCurveTo(0, -29, 15, -28, 25, -31);
+    ctx.lineTo(25, -28);
+    ctx.bezierCurveTo(15, -25, 0, -26, 0, -26);
+    ctx.bezierCurveTo(0, -26, -15, -25, -25, -28);
     ctx.closePath();
     ctx.fill();
 
-    // 6. Mask Face (eyes, nose bridge, snout)
-    ctx.fillStyle = "#0F0F0F";
+    // ----------------------------------------------------
+    // 5. MASCARA FACIAL (Aggressive Sith Skull Mask)
+    // ----------------------------------------------------
+    var faceGrad = ctx.createLinearGradient(-15, -25, 15, -25);
+    faceGrad.addColorStop(0, "#080808");
+    faceGrad.addColorStop(0.5, "#1c1c1c");
+    faceGrad.addColorStop(1, "#080808");
+    ctx.fillStyle = faceGrad;
     ctx.beginPath();
-    ctx.moveTo(-13, -24);
-    ctx.lineTo(13, -24);
-    ctx.lineTo(10, -8);
-    ctx.lineTo(-10, -8);
+    ctx.moveTo(-15, -27);
+    ctx.lineTo(15, -27);
+    ctx.lineTo(12, -7);
+    ctx.lineTo(-12, -7);
     ctx.closePath();
     ctx.fill();
 
-    // Eyes (Dark lenses)
-    ctx.fillStyle = "#2D0A0A";
+    // Cheeks specular metallic highlight (Giving 3D cheekbones)
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.ellipse(-7, -20, 5, 3.5, 0.1, 0, Math.PI * 2);
-    ctx.ellipse(7, -20, 5, 3.5, -0.1, 0, Math.PI * 2);
+    ctx.moveTo(-12, -18); ctx.lineTo(-6, -12);
+    ctx.moveTo(12, -18); ctx.lineTo(6, -12);
+    ctx.stroke();
+
+    // Eyes Lenses (Slightly angled humanistic skull-like eye sockets)
+    ctx.fillStyle = "#000000";
+    ctx.beginPath();
+    ctx.ellipse(-7.5, -21, 5.5, 4.2, 0.12, 0, Math.PI * 2);
+    ctx.ellipse(7.5, -21, 5.5, 4.2, -0.12, 0, Math.PI * 2);
     ctx.fill();
 
-    // Glowing Sith Red eyes
+    // Glossy glass reflection on lenses
+    ctx.fillStyle = "rgba(255, 255, 255, 0.18)";
+    ctx.beginPath();
+    ctx.ellipse(-6, -22, 1.8, 0.8, -0.2, 0, Math.PI * 2);
+    ctx.ellipse(9, -22, 1.8, 0.8, -0.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Threatening glowing Sith crimson pupils
     ctx.save();
-    ctx.shadowBlur = 8;
-    ctx.shadowColor = "#FF0000";
-    ctx.fillStyle = "rgba(255, 0, 0, 0.9)";
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = "#FF1e1e";
+    ctx.fillStyle = "#FF1e1e";
     ctx.beginPath();
-    ctx.arc(-7, -20, 1.8, 0, Math.PI * 2);
-    ctx.arc(7, -20, 1.8, 0, Math.PI * 2);
+    ctx.arc(-8, -20.5, 1.5, 0, Math.PI * 2);
+    ctx.arc(8, -20.5, 1.5, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
 
-    // Silver Nose bridge & Grille
-    ctx.strokeStyle = "#555555";
-    ctx.lineWidth = 1.5;
+    // Nose bridge and breathing triangular snout
+    ctx.strokeStyle = "#444444";
+    ctx.lineWidth = 1.8;
     ctx.beginPath();
-    // Nose bridge
-    ctx.moveTo(0, -21); ctx.lineTo(0, -14);
-    // Triangular mouth grille
-    ctx.moveTo(-4, -14); ctx.lineTo(4, -14);
-    ctx.lineTo(0, -6); ctx.closePath();
+    ctx.moveTo(0, -21); ctx.lineTo(0, -13);
     ctx.stroke();
 
-    ctx.fillStyle = "#0B0B0B";
-    ctx.fill();
+    // Breathing Grille structure (centered triangular metallic guard)
+    ctx.fillStyle = "#0c0c0c";
+    ctx.strokeStyle = "#383838";
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(-5.5, -13);
+    ctx.lineTo(5.5, -13);
+    ctx.lineTo(0, -4);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
 
-    // Grille details
-    ctx.strokeStyle = "#C0C0C0";
+    // Metallic silver grill mesh bars
+    ctx.strokeStyle = "#BFBFBF";
     ctx.lineWidth = 0.8;
     ctx.beginPath();
-    ctx.moveTo(-3, -12); ctx.lineTo(-1, -7);
-    ctx.moveTo(3, -12); ctx.lineTo(1, -7);
-    ctx.moveTo(0, -14); ctx.lineTo(0, -6);
+    ctx.moveTo(-4, -12); ctx.lineTo(-1.2, -6);
+    ctx.moveTo(4, -12); ctx.lineTo(1.2, -6);
+    ctx.moveTo(-2, -12.5); ctx.lineTo(-0.6, -5.5);
+    ctx.moveTo(2, -12.5); ctx.lineTo(0.6, -5.5);
+    ctx.moveTo(0, -13); ctx.lineTo(0, -4.5);
     ctx.stroke();
 
-    // Silver tusks (metallic corners)
-    ctx.fillStyle = "#DCDCDC";
-    ctx.fillRect(-6, -8, 2, 2.5);
-    ctx.fillRect(4, -8, 2, 2.5);
+    // Chrome corner tusks
+    ctx.fillStyle = "#EAEAEA";
+    ctx.fillRect(-7.5, -7.5, 2.2, 2.5);
+    ctx.fillRect(5.3, -7.5, 2.2, 2.5);
 
-    // 7. Phase Specific Overlays
+    // ----------------------------------------------------
+    // 6. PHASE SPECIFIC VISUAL OVERLAYS
+    // ----------------------------------------------------
 
     // FASE 2: Force Hand Raised (Left side of screen/Vader's right hand)
     if (isForce) {
         ctx.save();
-        ctx.translate(-35, 20);
-        ctx.rotate(Math.sin(time * 4) * 0.08 - 0.2);
+        ctx.translate(-42, 22);
+        ctx.rotate(Math.sin(time * 3.8) * 0.06 - 0.22);
 
-        // Arm sleeve
-        ctx.fillStyle = "#121212";
+        // Arm sleeve with realistic folds
+        var armGrad = ctx.createLinearGradient(-8, 30, -20, -5);
+        armGrad.addColorStop(0, "#080808");
+        armGrad.addColorStop(0.5, "#151515");
+        armGrad.addColorStop(1, "#020202");
+        ctx.fillStyle = armGrad;
+        
         ctx.beginPath();
-        ctx.moveTo(-5, 45);
-        ctx.lineTo(-25, 0);
-        ctx.lineTo(-12, -8);
-        ctx.lineTo(5, 45);
+        ctx.moveTo(-6, 45);
+        ctx.lineTo(-26, 0);
+        ctx.lineTo(-14, -8);
+        ctx.lineTo(6, 45);
         ctx.closePath();
         ctx.fill();
 
-        // Leather Glove/Fist
-        ctx.fillStyle = "#1E1E1E";
-        ctx.beginPath();
-        ctx.arc(-20, -5, 7, 0, Math.PI*2);
-        ctx.fill();
+        // Arm specular fold highlights
+        ctx.strokeStyle = "rgba(255,255,255,0.08)";
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(-16, 25); ctx.lineTo(-22, 5); ctx.stroke();
 
-        // Dark Force Sparks
-        ctx.strokeStyle = "#BA55D3";
-        ctx.shadowColor = "#DA70D6";
-        ctx.shadowBlur = 10;
-        ctx.lineWidth = 1.5;
-        for (var fs = 0; fs < 3; fs++) {
-            var sx = -20 + (Math.random() - 0.5) * 25;
-            var sy = -5 + (Math.random() - 0.5) * 25;
+        // Detailed leather glove fist
+        ctx.fillStyle = "#1a1a1a";
+        ctx.beginPath();
+        ctx.arc(-20, -5, 7.5, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Individual clenched leather fingers
+        ctx.fillStyle = "#252525";
+        ctx.fillRect(-26, -10, 5, 4);
+        ctx.fillRect(-25, -6, 5, 4);
+        ctx.fillRect(-24, -2, 5, 4);
+
+        // Sinister Dark Force Sparks
+        ctx.strokeStyle = "#8A2BE2"; // Purple-indigo energy
+        ctx.shadowColor = "#BA55D3";
+        ctx.shadowBlur = 12;
+        ctx.lineWidth = 1.8;
+        for (var fs = 0; fs < 4; fs++) {
+            var sx = -20 + (Math.random() - 0.5) * 35;
+            var sy = -5 + (Math.random() - 0.5) * 35;
             ctx.beginPath();
             ctx.moveTo(-20, -5);
             ctx.lineTo(sx, sy);
@@ -3419,75 +3572,95 @@ Enemy.prototype.drawVader = function(ctx) {
         ctx.restore();
     }
 
-    // FASE 3: Battle Damaged Armor + Cracked Mask with glowing blue/red wires
+    // FASE 3: Battle Damaged Armor + Cracked Mask with glowing wires & Cybernetic eye
     if (isRage) {
-        // Vapor venting from armor
-        ctx.fillStyle = "rgba(220, 220, 220, " + (0.15 + Math.sin(time * 8) * 0.07) + ")";
+        // Vapor escaping from punctured chest suit vents
+        ctx.fillStyle = "rgba(230, 230, 230, " + (0.16 + Math.sin(time * 9) * 0.08) + ")";
         for (var vp = 0; vp < 3; vp++) {
-            var vpx = -25 + vp * 25 + Math.sin(time * 6 + vp) * 4;
-            var vpy = 20 - (time * 60 + vp * 20) % 50;
+            var vpx = -35 + vp * 35 + Math.sin(time * 5 + vp) * 6;
+            var vpy = 15 - (time * 75 + vp * 25) % 65;
             ctx.beginPath();
-            ctx.arc(vpx, vpy, 8 + (20 - vpy) * 0.15, 0, Math.PI * 2);
+            ctx.arc(vpx, vpy, 6 + (15 - vpy) * 0.12, 0, Math.PI * 2);
             ctx.fill();
         }
 
-        // Crack on the right side of the mask (revealing burned skin and bright cybernetic eye)
-        ctx.fillStyle = "#E9967A"; // Anakin's scar tissue
+        // Crack on the right side of the mask (showing cybernetic details)
+        var scarColor = "rgba(180, 80, 70, 0.85)"; // Damaged organic tissue
+        ctx.fillStyle = scarColor;
         ctx.beginPath();
-        ctx.moveTo(6, -23);
-        ctx.lineTo(16, -23);
-        ctx.lineTo(14, -13);
-        ctx.lineTo(4, -13);
+        ctx.moveTo(6.5, -23.5);
+        ctx.lineTo(16.5, -23.5);
+        ctx.lineTo(14.5, -12.5);
+        ctx.lineTo(4.5, -12.5);
         ctx.closePath();
         ctx.fill();
 
-        // Cybernetic bright red glowing pupil
-        ctx.shadowBlur = 12;
+        // Exposed metal skeleton underneath helmet
+        ctx.fillStyle = "#555555";
+        ctx.fillRect(8.5, -20, 4, 6);
+        ctx.fillStyle = "#999999";
+        ctx.fillRect(9.5, -18, 2, 4);
+
+        // Cybernetic bright red glowing pupil (extremely intense)
+        ctx.shadowBlur = 14;
         ctx.shadowColor = "#FF0000";
-        ctx.fillStyle = "#FFF";
+        ctx.fillStyle = "#FFFFFF";
         ctx.beginPath();
-        ctx.arc(10, -18, 1.2, 0, Math.PI * 2);
+        ctx.arc(10.5, -17.5, 1.2, 0, Math.PI * 2);
         ctx.fill();
 
-        // Electric sparks around crack
-        ctx.strokeStyle = "#00FFFF"; ctx.lineWidth = 1; ctx.shadowColor = "#00FFFF";
-        if (Math.random() < 0.4) {
+        // Sparks popping around the cybernetic implant
+        ctx.strokeStyle = "#00FFFF"; ctx.lineWidth = 1.2; ctx.shadowColor = "#00FFFF";
+        if (Math.random() < 0.45) {
             ctx.beginPath();
-            ctx.moveTo(8, -15);
-            ctx.lineTo(12 + (Math.random() - 0.5) * 8, -12 + (Math.random() - 0.5) * 8);
+            ctx.moveTo(10, -17);
+            ctx.lineTo(14 + (Math.random() - 0.5) * 10, -15 + (Math.random() - 0.5) * 10);
             ctx.stroke();
         }
     }
 
-    // 8. Lightsaber (Always active for Fase 1 and 3)
+    // ----------------------------------------------------
+    // 7. SABLE DE LUZ ROJO (Always active in Fase 1 and 3)
+    // ----------------------------------------------------
     if (!isForce) {
         ctx.save();
         // Hand grip positioning (Right side of screen/Vader's left hand)
-        ctx.translate(35, 45);
-        ctx.rotate(0.35 + Math.sin(time * 3) * 0.04);
+        ctx.translate(36, 48);
+        ctx.rotate(0.32 + Math.sin(time * 2.5) * 0.03);
 
-        // Leather glove
-        ctx.fillStyle = "#1E1E1E";
+        // Leather glove with finger details
+        ctx.fillStyle = "#1e1e1e";
         ctx.beginPath();
-        ctx.arc(0, 0, 7, 0, Math.PI * 2);
+        ctx.arc(0, 0, 7.5, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.fillStyle = "#080808";
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 8.5, 4.5, 0.4, 0, Math.PI * 2);
         ctx.fill();
 
-        // Hilt
-        ctx.fillStyle = "#C0C0C0";
-        ctx.fillRect(-3, -12, 6, 12);
-        ctx.fillStyle = "#000";
-        ctx.fillRect(-3, -9, 6, 2);
-        ctx.fillRect(-3, -5, 6, 2);
+        // Sleek metallic lightsaber hilt
+        ctx.fillStyle = "#999999";
+        ctx.fillRect(-3.5, -14, 7, 14);
+        
+        // Hilt grips (black ribs)
+        ctx.fillStyle = "#111111";
+        ctx.fillRect(-3.5, -11, 7, 2);
+        ctx.fillRect(-3.5, -7, 7, 2);
+        
+        // Red activation switch
+        ctx.fillStyle = "#FF0000";
+        ctx.fillRect(2.0, -9, 2, 2);
 
-        // Glowing red blade (White core, huge red glow)
-        ctx.shadowBlur = 20;
+        // Ominous glowing red blade (Solid white core + huge red glow)
+        ctx.shadowBlur = 24;
         ctx.shadowColor = "#FF0000";
-        ctx.strokeStyle = "#FFFFFF"; // Solid white core
-        ctx.lineWidth = 3.5;
+        ctx.strokeStyle = "#FFFFFF"; // Solid pure white core
+        ctx.lineWidth = 3.8;
         ctx.lineCap = "round";
         ctx.beginPath();
-        ctx.moveTo(0, -12);
-        ctx.lineTo(0, -95);
+        ctx.moveTo(0, -14);
+        ctx.lineTo(0, -102);
         ctx.stroke();
 
         ctx.restore();
@@ -3495,4 +3668,3 @@ Enemy.prototype.drawVader = function(ctx) {
 
     ctx.restore();
 };
-

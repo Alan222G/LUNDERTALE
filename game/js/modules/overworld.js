@@ -289,13 +289,6 @@ var Overworld = (function() {
         if (!active) return;
 
         ctx.save();
-        
-        // Scale and center the overworld map visually to prevent boss clustering
-        var scaleActive = !catalogActive;
-        if (scaleActive) {
-            ctx.translate((main.WIDTH - main.WIDTH * 0.85) / 2, (main.HEIGHT - main.HEIGHT * 0.85) / 2);
-            ctx.scale(0.85, 0.85);
-        }
 
         // Draw background
         if (bgImage.complete) {

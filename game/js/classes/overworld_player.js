@@ -1,7 +1,7 @@
 // overworld_player.js — Player character in the overworld
 var OverworldPlayer = function() {
-    this.x = 370;
-    this.y = 290;
+    this.x = 320;
+    this.y = 240;
     this.width = 20;
     this.height = 30;
     this.speed = 100;
@@ -62,8 +62,8 @@ OverworldPlayer.prototype.update = function(dt, map) {
     // Boundary check
     if (nx < 0) nx = 0;
     if (ny < 0) ny = 0;
-    if (nx > 740 - this.width) nx = 740 - this.width;
-    if (ny > 580 - this.height) ny = 580 - this.height;
+    if (nx > 640 - this.width) nx = 640 - this.width;
+    if (ny > 480 - this.height) ny = 480 - this.height;
 
     this.x = nx;
     this.y = ny;
