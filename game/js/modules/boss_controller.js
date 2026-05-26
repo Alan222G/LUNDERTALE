@@ -79,11 +79,13 @@ var BossController = (function() {
             // --- Custom Godzilla Attacks ---
             "godzillaAtomicBreath": function(cfg) { return new GodzillaAtomicBreathPattern(cfg || { damVal: 12, duration: 8 }); },
             "godzillaTailWhip": function(cfg) { return new GodzillaTailWhipPattern(cfg || { damVal: 8, duration: 7 }); },
-            "godzillaNuclearPulse": function(cfg) { return new GodzillaNuclearPulsePattern(cfg || { damVal: 8, duration: 8 }); },
             "godzillaSpineLasers": function(cfg) { return new GodzillaSpineLasersPattern(cfg || { damVal: 9, duration: 8 }); },
             "godzillaAtomicCrush": function(cfg) { return new GodzillaAtomicCrushPattern(cfg || { damVal: 10, duration: 8 }); },
             "godzillaRadioactiveFissure": function(cfg) { return new GodzillaRadioactiveFissurePattern(cfg || { damVal: 9, duration: 8 }); },
-            "godzillaNuclearMeltdown": function(cfg) { return new GodzillaNuclearMeltdownPattern(cfg || { damVal: 9, duration: 9 }); },
+            "godzillaClawSlash": function(cfg) { return new GodzillaClawSlashPattern(cfg || { damVal: 9, duration: 8 }); },
+            "godzillaAtomicSpit": function(cfg) { return new GodzillaAtomicSpitPattern(cfg || { damVal: 8, duration: 7.5 }); },
+            "godzillaBurningRain": function(cfg) { return new GodzillaBurningRainPattern(cfg || { damVal: 8, duration: 7.5 }); },
+            "godzillaMeltdownSpikes": function(cfg) { return new GodzillaMeltdownSpikesPattern(cfg || { damVal: 9, duration: 8 }); },
         };
     }
 

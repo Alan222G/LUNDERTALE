@@ -198,25 +198,29 @@ GodzillaSpineLasersPattern.prototype.draw = function(ctx) {
 };
 
 GodzillaSpineLasersPattern.prototype.checkCollision = function(sx, sy, sw, sh) {
-    var playerCenterX = sx + sw / 2;
-    var playerCenterY = sy + sh / 2;
-    
     for (var i = 0; i < this.lasers.length; i++) {
         var las = this.lasers[i];
         if (!las.fired) continue;
         
-        // Active laser collision check
         var halfThick = las.thickness / 2;
-        if (las.x1 === las.x2) {
+        var lx, ly, lw, lh;
+        
+        if (Math.abs(las.x1 - las.x2) < 0.01) {
             // Vertical laser line
-            if (playerCenterX >= las.x1 - halfThick - 4 && playerCenterX <= las.x1 + halfThick + 4) {
-                return this.damVal;
-            }
+            lx = las.x1 - halfThick;
+            ly = Math.min(las.y1, las.y2);
+            lw = las.thickness;
+            lh = Math.abs(las.y1 - las.y2);
         } else {
             // Horizontal laser line
-            if (playerCenterY >= las.y1 - halfThick - 4 && playerCenterY <= las.y1 + halfThick + 4) {
-                return this.damVal;
-            }
+            lx = Math.min(las.x1, las.x2);
+            ly = las.y1 - halfThick;
+            lw = Math.abs(las.x1 - las.x2);
+            lh = las.thickness;
+        }
+        
+        if (rectsOverlap(lx, ly, lw, lh, sx, sy, sw, sh)) {
+            return this.damVal;
         }
     }
     

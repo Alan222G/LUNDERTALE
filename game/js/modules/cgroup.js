@@ -72,7 +72,7 @@ var Cgroup = (function() {
                 attacks: ["bulletRain"],
                 phases: [
                     { patterns: ["bulletRain", "wallsOBullet", "gravityWell"], soulMode: "red", renderType: "blackhole" },
-                    { patterns: ["spiralShot", "gasterBlaster", "pulsarBeam", "eventHorizon", "accretionSpiral", "hawkingBurst"], soulMode: "red", renderType: "supermassive_blackhole" }
+                    { patterns: ["spiralShot", "gasterBlaster", "pulsarBeam", "eventHorizon", "accretionSpiral"], soulMode: "red", renderType: "supermassive_blackhole" }
                 ],
                 phaseHP: [3600, 4200],
                 karmaEnabled: false,
@@ -304,7 +304,7 @@ var Cgroup = (function() {
                       speech: ["...", "...", "..."] },
                     { patterns: ["causalLightBeam", "bonePiercers", "coreEruption", "sachielRibCage", "sachielCrossExplosion"], soulMode: "red", renderType: "sachiel_mutated",
                       speech: ["GRRRR...", "THE CORE\nHUNGERS.", "YOU CANNOT\nSTOP IT."] },
-                    { patterns: ["causalLightBeam", "bonePiercers", "coreEruption", "bloodBoil", "sachielAtField", "sachielLonginus", "sachielCoreLaser", "sachielRegeneration", "sachielHaloCrush", "sachielBloodRain"], soulMode: "red", renderType: "sachiel",
+                    { patterns: ["causalLightBeam", "bonePiercers", "coreEruption", "bloodBoil", "sachielAtField", "sachielLonginus", "sachielCoreLaser", "sachielRegeneration", "sachielBloodRain"], soulMode: "red", renderType: "sachiel",
                       speech: ["RAAAGH!", "I WILL\nDEVOUR\nYOU.", "BLOOD\nBOILS."] }
                 ],
                 phaseHP: [3000, 3500, 9000],
@@ -400,8 +400,8 @@ var Cgroup = (function() {
             new Enemy({
                 name: "Godzilla",
                 checkText: "El Rey de los Monstruos. La radiación a su alrededor es palpable.",
-                maxHP: 4500,
-                curHP: 4500,
+                maxHP: 3200,
+                curHP: 3200,
                 renderType: "godzilla_head",
                 atk: 18,
                 def: 15,
@@ -444,16 +444,16 @@ var Cgroup = (function() {
                     "NO ERES\nNADA ANTE\nEL REY."
                 ],
                 spriteId: "asriel",
-                attacks: ["godzillaAtomicBreath", "godzillaTailWhip", "godzillaNuclearPulse", "godzillaSpineLasers", "godzillaAtomicCrush", "godzillaRadioactiveFissure", "godzillaNuclearMeltdown"],
+                attacks: ["godzillaAtomicBreath", "godzillaTailWhip", "godzillaSpineLasers", "godzillaAtomicCrush", "godzillaRadioactiveFissure", "godzillaClawSlash", "godzillaAtomicSpit", "godzillaBurningRain", "godzillaMeltdownSpikes"],
                 phases: [
                     { patterns: ["godzillaTailWhip", "godzillaAtomicBreath", "godzillaSpineLasers", "godzillaAtomicCrush"], soulMode: "red", renderType: "godzilla_head",
                       speech: ["SKREEEONNK!", "RROOOAAARRR!"] },
-                    { patterns: ["godzillaTailWhip", "godzillaAtomicBreath", "godzillaNuclearPulse", "godzillaRadioactiveFissure"], soulMode: "red", renderType: "godzilla_charged",
+                    { patterns: ["godzillaTailWhip", "godzillaAtomicBreath", "godzillaRadioactiveFissure", "godzillaClawSlash", "godzillaAtomicSpit"], soulMode: "red", renderType: "godzilla_charged",
                       speech: ["EL PODER\nATOMICO\nSE CARGA.", "EL SUELO\nSE FRACTURA."] },
-                    { patterns: ["godzillaTailWhip", "godzillaAtomicBreath", "godzillaNuclearPulse", "godzillaNuclearMeltdown"], soulMode: "red", renderType: "godzilla_meltdown",
+                    { patterns: ["godzillaTailWhip", "godzillaAtomicBreath", "godzillaBurningRain", "godzillaMeltdownSpikes"], soulMode: "red", renderType: "godzilla_meltdown",
                       speech: ["SKREEEONNK!", "MELTDOWN\nPROTOCOL.", "TODO SERA\nCENIZAS."] }
                 ],
-                phaseHP: [4500, 6000, 8000],
+                phaseHP: [3200, 4700, 6700],
                 karmaEnabled: false,
                 jitterEnabled: true,
                 damagePos: new Vect(370, 290, 0),
