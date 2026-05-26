@@ -94,6 +94,8 @@ var BossController = (function() {
             "vaderForcePush": function(cfg) { return new VaderForcePushPattern(cfg || { damVal: 8, duration: 8 }); },
             "vaderForceCrush": function(cfg) { return new VaderForceCrushPattern(cfg || { damVal: 10, duration: 8 }); },
             "vaderTIEStrike": function(cfg) { return new VaderTIEStrikePattern(cfg || { damVal: 8, duration: 8 }); },
+            "vaderStormtrooper": function(cfg) { return new VaderStormtrooperPattern(cfg || { damVal: 7, duration: 8 }); },
+            "vaderForceLevitation": function(cfg) { return new VaderForceLevitationPattern(cfg || { damVal: 9, duration: 8 }); },
         };
     }
 
@@ -237,6 +239,10 @@ var BossController = (function() {
             w = 400; h = 160;
         } else if (patternName === "vaderTIEStrike") {
             w = 280; h = 280;
+        } else if (patternName === "vaderStormtrooper") {
+            w = 280; h = 280;
+        } else if (patternName === "vaderForceLevitation") {
+            w = 300; h = 300;
         }
 
         return { patternName: patternName, width: w, height: h };

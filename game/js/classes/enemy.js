@@ -3270,9 +3270,9 @@ Enemy.prototype.drawVader = function(ctx) {
     ctx.fillStyle = capeGrad;
     ctx.beginPath();
     ctx.moveTo(-65, 80);
-    ctx.quadraticCurveTo(-90, 15, -45, -28);
-    ctx.lineTo(45, -28);
-    ctx.quadraticCurveTo(90, 15, 65, 80);
+    ctx.quadraticCurveTo(-90, 25, -45, -3);
+    ctx.lineTo(45, -3);
+    ctx.quadraticCurveTo(90, 25, 65, 80);
     ctx.lineTo(35, 80);
     ctx.bezierCurveTo(20, 55, -20, 55, -35, 80);
     ctx.closePath();
@@ -3282,10 +3282,10 @@ Enemy.prototype.drawVader = function(ctx) {
     ctx.strokeStyle = "rgba(0, 0, 0, 0.6)";
     ctx.lineWidth = 4;
     ctx.beginPath();
-    ctx.moveTo(-35, -15); ctx.quadraticCurveTo(-45, 25, -50, 75);
-    ctx.moveTo(35, -15); ctx.quadraticCurveTo(45, 25, 50, 75);
-    ctx.moveTo(-15, -15); ctx.quadraticCurveTo(-20, 35, -22, 75);
-    ctx.moveTo(15, -15); ctx.quadraticCurveTo(20, 35, 22, 75);
+    ctx.moveTo(-35, 5); ctx.quadraticCurveTo(-45, 30, -50, 75);
+    ctx.moveTo(35, 5); ctx.quadraticCurveTo(45, 30, 50, 75);
+    ctx.moveTo(-15, 2); ctx.quadraticCurveTo(-20, 35, -22, 75);
+    ctx.moveTo(15, 2); ctx.quadraticCurveTo(20, 35, 22, 75);
     ctx.stroke();
 
     // ----------------------------------------------------
