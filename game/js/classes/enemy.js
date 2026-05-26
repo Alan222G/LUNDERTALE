@@ -3218,7 +3218,7 @@ Enemy.prototype.drawGodzilla = function(ctx) {
     }
     
     ctx.restore(); // Head
-    ctx.restore(); // Body scale
+    ctx.restore(); // Body
     ctx.restore(); // Main save
 };
 
@@ -3231,6 +3231,31 @@ Enemy.prototype.drawVader = function(ctx) {
     ctx.save();
     ctx.translate(370, 160);
     ctx.scale(breathe, breathe);
+
+    // ----------------------------------------------------
+    // 0. AURA SITH FLUIDA (Ominous dark side aura surrounding Vader)
+    // ----------------------------------------------------
+    if (isForce || isRage) {
+        ctx.save();
+        ctx.globalCompositeOperation = "screen";
+        var pulse = 1.0 + Math.sin(time * 6) * 0.15;
+        var auraGrad = ctx.createRadialGradient(0, 0, 15, 0, 0, 110 * pulse);
+        if (isRage) {
+            auraGrad.addColorStop(0, "rgba(255, 0, 0, 0.28)");
+            auraGrad.addColorStop(0.4, "rgba(139, 0, 0, 0.18)");
+            auraGrad.addColorStop(0.8, "rgba(75, 0, 130, 0.08)");
+            auraGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+        } else {
+            auraGrad.addColorStop(0, "rgba(138, 43, 226, 0.25)");
+            auraGrad.addColorStop(0.5, "rgba(75, 0, 130, 0.15)");
+            auraGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+        }
+        ctx.fillStyle = auraGrad;
+        ctx.beginPath();
+        ctx.arc(0, 0, 120 * pulse, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    }
 
     // ----------------------------------------------------
     // 1. EL CAPOTE IMPERIAL (Majestic Cape flowing)
@@ -3364,37 +3389,28 @@ Enemy.prototype.drawVader = function(ctx) {
     // ----------------------------------------------------
     // 4. CASCO DE OBSIDIANA (Highly realistic Darth Vader helmet)
     // ----------------------------------------------------
-    // We define a sleek, 3D glossy helmet look with gradients
     
-    // Neck wrap shroud
-    ctx.fillStyle = "#090909";
-    ctx.beginPath();
-    ctx.moveTo(-16, -20);
-    ctx.lineTo(-24, -4);
-    ctx.lineTo(24, -4);
-    ctx.lineTo(16, -20);
-    ctx.closePath();
-    ctx.fill();
-
-    // Helmet Shroud Flare (the back bell curving down to the shoulders)
-    var flareGrad = ctx.createLinearGradient(-32, -18, 32, -18);
+    // Helmet Shroud Flare (Proportional Sith wings - max width ±32px instead of 42px)
+    var flareGrad = ctx.createLinearGradient(-26, -18, 26, -18);
     flareGrad.addColorStop(0, "#080808");
-    flareGrad.addColorStop(0.3, "#181818");
-    flareGrad.addColorStop(0.5, "#252525");
-    flareGrad.addColorStop(0.7, "#181818");
+    flareGrad.addColorStop(0.3, "#1a1a1a");
+    flareGrad.addColorStop(0.5, "#282828");
+    flareGrad.addColorStop(0.7, "#1a1a1a");
     flareGrad.addColorStop(1, "#080808");
     ctx.fillStyle = flareGrad;
     
     ctx.beginPath();
-    ctx.moveTo(-24, -30);
-    ctx.bezierCurveTo(-38, -12, -40, 2, -42, 10);
-    ctx.lineTo(-16, 5);
+    ctx.moveTo(-22, -30);
+    ctx.bezierCurveTo(-28, -12, -30, 2, -32, 8);
+    ctx.lineTo(-14, 4);
     ctx.lineTo(0, -10);
-    ctx.lineTo(16, 5);
-    ctx.lineTo(42, 10);
-    ctx.bezierCurveTo(40, 2, 38, -12, 24, -30);
+    ctx.lineTo(14, 4);
+    ctx.lineTo(32, 8);
+    ctx.bezierCurveTo(30, 2, 28, -12, 22, -30);
     ctx.closePath();
     ctx.fill();
+    ctx.strokeStyle = "#000000";
+    ctx.lineWidth = 1.2;
     ctx.stroke();
 
     // Helmet Dome (Polished black skull top)
@@ -3430,6 +3446,44 @@ Enemy.prototype.drawVader = function(ctx) {
     ctx.bezierCurveTo(0, -26, -15, -25, -25, -28);
     ctx.closePath();
     ctx.fill();
+
+    // ----------------------------------------------------
+    // 4.5 EL CUELLO MECÁNICO E IMPONENTE (A solid, cybernetic neck)
+    // Conectando el casco con los hombros por detrás de la barbilla
+    // ----------------------------------------------------
+    var neckGrad = ctx.createLinearGradient(-12, -15, 12, -15);
+    neckGrad.addColorStop(0, "#0e0e0e");
+    neckGrad.addColorStop(0.3, "#252525");
+    neckGrad.addColorStop(0.5, "#383838");
+    neckGrad.addColorStop(0.7, "#252525");
+    neckGrad.addColorStop(1, "#0e0e0e");
+    ctx.fillStyle = neckGrad;
+    
+    ctx.beginPath();
+    ctx.moveTo(-11, -17);
+    ctx.quadraticCurveTo(-11, -5, -12.5, 6);
+    ctx.lineTo(12.5, 6);
+    ctx.quadraticCurveTo(11, -5, 11, -17);
+    ctx.closePath();
+    ctx.fill();
+
+    // Costillas mecánicas verticales de cuero acanalado/metalizado
+    ctx.strokeStyle = "#050505";
+    ctx.lineWidth = 2.0;
+    ctx.beginPath();
+    ctx.moveTo(-7, -15); ctx.lineTo(-8.5, 5);
+    ctx.moveTo(-2, -16); ctx.lineTo(-2, 6);
+    ctx.moveTo(2, -16); ctx.lineTo(2, 6);
+    ctx.moveTo(7, -15); ctx.lineTo(8.5, 5);
+    ctx.stroke();
+
+    // Collarín plateado metálico inferior
+    ctx.strokeStyle = "#444444";
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(-12.5, 4);
+    ctx.quadraticCurveTo(0, 6.5, 12.5, 4);
+    ctx.stroke();
 
     // ----------------------------------------------------
     // 5. MASCARA FACIAL (Aggressive Sith Skull Mask)
@@ -3556,8 +3610,8 @@ Enemy.prototype.drawVader = function(ctx) {
         ctx.fillRect(-25, -6, 5, 4);
         ctx.fillRect(-24, -2, 5, 4);
 
-        // Sinister Dark Force Sparks
-        ctx.strokeStyle = "#8A2BE2"; // Purple-indigo energy
+        // Sinister Dark Force Sparks (Electric purple lightning)
+        ctx.strokeStyle = "#8A2BE2"; // Purple energy
         ctx.shadowColor = "#BA55D3";
         ctx.shadowBlur = 12;
         ctx.lineWidth = 1.8;
@@ -3574,61 +3628,85 @@ Enemy.prototype.drawVader = function(ctx) {
 
     // FASE 3: Battle Damaged Armor + Cracked Mask with glowing wires & Cybernetic eye
     if (isRage) {
-        // Vapor escaping from punctured chest suit vents
-        ctx.fillStyle = "rgba(230, 230, 230, " + (0.16 + Math.sin(time * 9) * 0.08) + ")";
+        // Vapor escaping from punctured chest suit vents (Fluido real)
+        ctx.fillStyle = "rgba(220, 220, 220, " + (0.18 + Math.sin(time * 12) * 0.08) + ")";
         for (var vp = 0; vp < 3; vp++) {
             var vpx = -35 + vp * 35 + Math.sin(time * 5 + vp) * 6;
-            var vpy = 15 - (time * 75 + vp * 25) % 65;
+            var vpy = 18 - (time * 85 + vp * 35) % 55;
             ctx.beginPath();
-            ctx.arc(vpx, vpy, 6 + (15 - vpy) * 0.12, 0, Math.PI * 2);
+            ctx.arc(vpx, vpy, 5 + (18 - vpy) * 0.15, 0, Math.PI * 2);
             ctx.fill();
         }
 
-        // Crack on the right side of the mask (showing cybernetic details)
-        var scarColor = "rgba(180, 80, 70, 0.85)"; // Damaged organic tissue
+        // Gran sección de la máscara rota revelando el cráneo metálico y cables
+        var scarColor = "rgba(150, 40, 30, 0.9)"; // Tejido quemado
         ctx.fillStyle = scarColor;
         ctx.beginPath();
-        ctx.moveTo(6.5, -23.5);
-        ctx.lineTo(16.5, -23.5);
-        ctx.lineTo(14.5, -12.5);
-        ctx.lineTo(4.5, -12.5);
+        ctx.moveTo(5, -24);
+        ctx.lineTo(17, -24);
+        ctx.lineTo(15, -10);
+        ctx.lineTo(3, -10);
         ctx.closePath();
         ctx.fill();
 
-        // Exposed metal skeleton underneath helmet
-        ctx.fillStyle = "#555555";
-        ctx.fillRect(8.5, -20, 4, 6);
-        ctx.fillStyle = "#999999";
-        ctx.fillRect(9.5, -18, 2, 4);
+        // Cráneo cibernético metálico
+        ctx.fillStyle = "#444444";
+        ctx.fillRect(7, -22, 7, 10);
+        ctx.fillStyle = "#777777";
+        ctx.fillRect(8.5, -20, 4, 7);
 
-        // Cybernetic bright red glowing pupil (extremely intense)
-        ctx.shadowBlur = 14;
-        ctx.shadowColor = "#FF0000";
-        ctx.fillStyle = "#FFFFFF";
+        // Cables expuestos quemados (colores de cobre, rojo, azul)
+        ctx.strokeStyle = "#B87333"; // Cobre
+        ctx.lineWidth = 1.0;
         ctx.beginPath();
-        ctx.arc(10.5, -17.5, 1.2, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.moveTo(7, -14); ctx.quadraticCurveTo(9, -8, 8, -6);
+        ctx.stroke();
 
-        // Sparks popping around the cybernetic implant
-        ctx.strokeStyle = "#00FFFF"; ctx.lineWidth = 1.2; ctx.shadowColor = "#00FFFF";
-        if (Math.random() < 0.45) {
+        ctx.strokeStyle = "#0000FF"; // Azul eléctrico
+        ctx.beginPath();
+        ctx.moveTo(14, -13); ctx.quadraticCurveTo(12, -7, 13, -5);
+        ctx.stroke();
+
+        // Ojo cibernético extremadamente brillante (rojo Sith)
+        ctx.save();
+        ctx.shadowBlur = 16;
+        ctx.shadowColor = "#FF0000";
+        ctx.fillStyle = "#FF3333";
+        ctx.beginPath();
+        ctx.arc(10.5, -17, 2.2, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.fillStyle = "#FFFFFF"; // Destello central puro
+        ctx.beginPath();
+        ctx.arc(10.5, -17, 0.8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // Chispas eléctricas (Cian/Celeste de cortocircuito) parpadeando
+        ctx.save();
+        ctx.strokeStyle = "#00FFFF";
+        ctx.lineWidth = 1.2;
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = "#00FFFF";
+        if (Math.random() < 0.5) {
             ctx.beginPath();
             ctx.moveTo(10, -17);
-            ctx.lineTo(14 + (Math.random() - 0.5) * 10, -15 + (Math.random() - 0.5) * 10);
+            ctx.lineTo(15 + (Math.random() - 0.5) * 12, -14 + (Math.random() - 0.5) * 12);
             ctx.stroke();
         }
+        ctx.restore();
     }
 
     // ----------------------------------------------------
-    // 7. SABLE DE LUZ ROJO (Always active in Fase 1 and 3)
+    // 7. SABLE DE LUZ ROJO IMPERIAL (With plasma sparks and intense core glow)
     // ----------------------------------------------------
     if (!isForce) {
         ctx.save();
-        // Hand grip positioning (Right side of screen/Vader's left hand)
+        // Posicionamiento de la empuñadura (Mano de Vader a la derecha de la pantalla)
         ctx.translate(36, 48);
         ctx.rotate(0.32 + Math.sin(time * 2.5) * 0.03);
 
-        // Leather glove with finger details
+        // Guante de cuero negro con pliegues
         ctx.fillStyle = "#1e1e1e";
         ctx.beginPath();
         ctx.arc(0, 0, 7.5, 0, Math.PI * 2);
@@ -3639,29 +3717,59 @@ Enemy.prototype.drawVader = function(ctx) {
         ctx.ellipse(0, 0, 8.5, 4.5, 0.4, 0, Math.PI * 2);
         ctx.fill();
 
-        // Sleek metallic lightsaber hilt
-        ctx.fillStyle = "#999999";
+        // Empuñadura metálica de sable de luz
+        ctx.fillStyle = "#888888";
         ctx.fillRect(-3.5, -14, 7, 14);
         
-        // Hilt grips (black ribs)
+        // Relieves negros de agarre
         ctx.fillStyle = "#111111";
         ctx.fillRect(-3.5, -11, 7, 2);
         ctx.fillRect(-3.5, -7, 7, 2);
         
-        // Red activation switch
+        // Botón de activación rojo
         ctx.fillStyle = "#FF0000";
         ctx.fillRect(2.0, -9, 2, 2);
 
-        // Ominous glowing red blade (Solid white core + huge red glow)
-        ctx.shadowBlur = 24;
+        // --- EFECTO SABLE PREMIUM ---
+        // 1. Aura gigante de resplandor externo
+        ctx.save();
+        ctx.globalCompositeOperation = "screen";
+        ctx.shadowBlur = 38;
         ctx.shadowColor = "#FF0000";
-        ctx.strokeStyle = "#FFFFFF"; // Solid pure white core
-        ctx.lineWidth = 3.8;
+        ctx.strokeStyle = "rgba(255, 0, 0, 0.35)";
+        ctx.lineWidth = 11;
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.moveTo(0, -14);
+        ctx.lineTo(0, -104);
+        ctx.stroke();
+        ctx.restore();
+
+        // 2. Núcleo sólido blanco y borde rojo
+        ctx.shadowBlur = 18;
+        ctx.shadowColor = "#FF0000";
+        ctx.strokeStyle = "#FFFFFF"; // Núcleo blanco
+        ctx.lineWidth = 3.6;
         ctx.lineCap = "round";
         ctx.beginPath();
         ctx.moveTo(0, -14);
         ctx.lineTo(0, -102);
         ctx.stroke();
+
+        // 3. Pequeñas chispas de plasma de luz Sith (Flickering effect)
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = "#FF3333";
+        ctx.lineWidth = 1.0;
+        for (var spk = 0; spk < 2; spk++) {
+            if (Math.random() < 0.5) {
+                var spkY = -14 - Math.random() * 85;
+                var spkX = (Math.random() - 0.5) * 8;
+                ctx.beginPath();
+                ctx.moveTo(0, spkY);
+                ctx.lineTo(spkX, spkY + (Math.random() - 0.5) * 6);
+                ctx.stroke();
+            }
+        }
 
         ctx.restore();
     }

@@ -174,6 +174,18 @@ var Player = (function() {
         return false;
     }
 
+    function checkPhoenixRevive() {
+        if (phoenixEggActive) {
+            phoenixEggActive = false;
+            hpMax = Math.floor(hpMax / 2);
+            if (hpMax < 20) hpMax = 20; // Asegurar vida jugable mínima
+            hpCur = hpMax;
+            Sound.playSound("heal", true);
+            return true; // ¡Resucitado!
+        }
+        return false;
+    }
+
     function damage(value) {
         if (invulnerableTurns > 0) return false; // Immune
         
@@ -199,11 +211,7 @@ var Player = (function() {
         Sound.playSound("damage", true);
         hpCur -= dmg;
         if (hpCur <= 0) {
-            if (phoenixEggActive) {
-                phoenixEggActive = false;
-                hpMax = Math.floor(hpMax / 2);
-                hpCur = hpMax;
-                Sound.playSound("heal", true);
+            if (checkPhoenixRevive()) {
                 return false; // Revived!
             }
             hpCur = 0;
@@ -228,19 +236,31 @@ var Player = (function() {
             var drain = Math.min(karmaBuffer, 8 * dt);
             hpCur -= drain;
             karmaBuffer -= drain;
-            if (hpCur <= 0) { hpCur = 0; return true; }
+            if (hpCur <= 0) {
+                if (checkPhoenixRevive()) return false;
+                hpCur = 0;
+                return true;
+            }
         }
         
         if (bleedTimer > 0) {
             bleedTimer -= dt;
             // Drain 1 HP per second
             hpCur -= (1.0 * dt);
-            if (hpCur <= 0) { hpCur = 0; return true; }
+            if (hpCur <= 0) {
+                if (checkPhoenixRevive()) return false;
+                hpCur = 0;
+                return true;
+            }
         }
         
         if (selfPoison > 0) {
             hpCur -= (selfPoison * dt);
-            if (hpCur <= 0) { hpCur = 0; return true; }
+            if (hpCur <= 0) {
+                if (checkPhoenixRevive()) return false;
+                hpCur = 0;
+                return true;
+            }
         }
         
         if (soulClass === 14) {

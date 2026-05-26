@@ -90,6 +90,10 @@ var BossController = (function() {
             "vaderSaberThrow": function(cfg) { return new VaderSaberThrowPattern(cfg || { damVal: 9, duration: 8 }); },
             "vaderForceChoke": function(cfg) { return new VaderForceChokePattern(cfg || { damVal: 8, duration: 8 }); },
             "vaderImperialBarrage": function(cfg) { return new VaderImperialBarragePattern(cfg || { damVal: 9, duration: 8 }); },
+            "vaderLethalStrike": function(cfg) { return new VaderLethalStrikePattern(cfg || { damVal: 9, duration: 8 }); },
+            "vaderForcePush": function(cfg) { return new VaderForcePushPattern(cfg || { damVal: 8, duration: 8 }); },
+            "vaderForceCrush": function(cfg) { return new VaderForceCrushPattern(cfg || { damVal: 10, duration: 8 }); },
+            "vaderTIEStrike": function(cfg) { return new VaderTIEStrikePattern(cfg || { damVal: 8, duration: 8 }); },
         };
     }
 
@@ -225,6 +229,14 @@ var BossController = (function() {
             w = 300; h = 300;
         } else if (patternName === "voidImplosion") {
             w = 340; h = 340;
+        } else if (patternName === "vaderLethalStrike") {
+            w = 260; h = 260;
+        } else if (patternName === "vaderForcePush") {
+            w = 340; h = 180;
+        } else if (patternName === "vaderForceCrush") {
+            w = 400; h = 160;
+        } else if (patternName === "vaderTIEStrike") {
+            w = 280; h = 280;
         }
 
         return { patternName: patternName, width: w, height: h };

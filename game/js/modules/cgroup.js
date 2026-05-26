@@ -516,13 +516,13 @@ var Cgroup = (function() {
                     "LA RESISTENCIA\nES INUTIL."
                 ],
                 spriteId: "asriel",
-                attacks: ["vaderSaberThrow", "vaderForceChoke", "vaderImperialBarrage", "voidImplosion"],
+                attacks: ["vaderSaberThrow", "vaderForceChoke", "vaderImperialBarrage", "vaderLethalStrike", "vaderForcePush", "vaderForceCrush", "vaderTIEStrike"],
                 phases: [
-                    { patterns: ["vaderSaberThrow", "vaderImperialBarrage", "gravityWell", "pulsarBeam"], soulMode: "red", renderType: "vader_normal",
+                    { patterns: ["vaderSaberThrow", "vaderImperialBarrage", "vaderLethalStrike", "vaderTIEStrike"], soulMode: "red", renderType: "vader_normal",
                       speech: ["TE HE ESTADO\nESPERANDO.", "UNIRTE AL\nLADO OSCURO\nES TU DESTINO.", "EL PODER DE\nLA FUERZA\nES ABSOLUTO."] },
-                    { patterns: ["vaderForceChoke", "vaderSaberThrow", "vaderImperialBarrage", "annihilationGrid"], soulMode: "red", renderType: "vader_force",
+                    { patterns: ["vaderForceChoke", "vaderSaberThrow", "vaderForcePush", "vaderTIEStrike"], soulMode: "red", renderType: "vader_force",
                       speech: ["SIENTES EL AHOGO\nDEL LADO\nOSCURO?", "SUBESTIMAS EL\nPODER DE\nLA FUERZA.", "NO HAY\nESCAPE."] },
-                    { patterns: ["vaderForceChoke", "vaderSaberThrow", "vaderImperialBarrage", "voidImplosion"], soulMode: "red", renderType: "vader_rage",
+                    { patterns: ["vaderForceChoke", "vaderLethalStrike", "vaderForceCrush", "vaderForcePush"], soulMode: "red", renderType: "vader_rage",
                       speech: ["¡ES INUTIL\nRESISTIRSE!", "¡SIENTE LA IRA\nDEL LORD SITH!", "¡VILLANO!\nNO ME\nVENCERAS."] }
                 ],
                 phaseHP: [3000, 3800, 4800],
