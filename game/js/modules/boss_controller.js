@@ -96,6 +96,12 @@ var BossController = (function() {
             "vaderTIEStrike": function(cfg) { return new VaderTIEStrikePattern(cfg || { damVal: 8, duration: 8 }); },
             "vaderStormtrooper": function(cfg) { return new VaderStormtrooperPattern(cfg || { damVal: 7, duration: 8 }); },
             "vaderForceLevitation": function(cfg) { return new VaderForceLevitationPattern(cfg || { damVal: 9, duration: 8 }); },
+            "vaderDeathStarLaser": function(cfg) { return new VaderDeathStarLaserPattern(cfg || { damVal: 12, duration: 8 }); },
+            "vaderForcePull": function(cfg) { return new VaderForcePullPattern(cfg || { damVal: 8, duration: 8 }); },
+            "vaderSaberShield": function(cfg) { return new VaderSaberShieldPattern(cfg || { damVal: 8, duration: 8 }); },
+            "vaderImperialMarch": function(cfg) { return new VaderImperialMarchPattern(cfg || { damVal: 8, duration: 8 }); },
+            "vaderRedemptionShock": function(cfg) { return new VaderRedemptionShockPattern(cfg || { damVal: 9, duration: 8 }); },
+            "vaderDarkPresence": function(cfg) { return new VaderDarkPresencePattern(cfg || { damVal: 9, duration: 8 }); },
         };
     }
 
@@ -243,6 +249,18 @@ var BossController = (function() {
             w = 280; h = 280;
         } else if (patternName === "vaderForceLevitation") {
             w = 300; h = 300;
+        } else if (patternName === "vaderDeathStarLaser") {
+            w = 400; h = 180;
+        } else if (patternName === "vaderForcePull") {
+            w = 300; h = 300;
+        } else if (patternName === "vaderSaberShield") {
+            w = 280; h = 280;
+        } else if (patternName === "vaderImperialMarch") {
+            w = 320; h = 260;
+        } else if (patternName === "vaderRedemptionShock") {
+            w = 300; h = 300;
+        } else if (patternName === "vaderDarkPresence") {
+            w = 320; h = 320;
         }
 
         return { patternName: patternName, width: w, height: h };
