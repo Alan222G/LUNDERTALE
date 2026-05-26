@@ -26,12 +26,24 @@ var Combat = (function() {
         Cgroup.setup(bossId);
 
         Sound.pauseSoundHard("bgm_overworld");
-        if (bossId === "singularity" || bossId === "ramiel" || bossId === "paradox" || bossId === "sachiel") {
+        
+        // Pause all potential boss tracks first
+        Sound.pauseSoundHard("bgm_singularity");
+        Sound.pauseSoundHard("bgm_seraphina");
+        Sound.pauseSoundHard("bgm_evangelion");
+        Sound.pauseSoundHard("bgm_paradox");
+        Sound.pauseSoundHard("bgm_godzilla");
+
+        if (bossId === "ramiel" || bossId === "sachiel") {
+            Sound.playSound("bgm_evangelion", true);
+        } else if (bossId === "paradox") {
+            Sound.playSound("bgm_paradox", true);
+        } else if (bossId === "godzilla") {
+            Sound.playSound("bgm_godzilla", true);
+        } else if (bossId === "singularity" || bossId === "vader") {
             Sound.playSound("bgm_singularity", true);
-            Sound.pauseSoundHard("bgm_seraphina");
         } else {
             Sound.playSound("bgm_seraphina", true);
-            Sound.pauseSoundHard("bgm_singularity");
         }
     }
 

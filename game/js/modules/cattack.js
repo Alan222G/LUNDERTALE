@@ -70,6 +70,10 @@ var Cattack = (function() {
                             healthTextPos.x -= (totalDamage.charAt(i) == 1) ? 10 : 16;
                         }
                         Cgroup.dealDamage(Combat.getSelectStateEnemy(), totalDamage);
+                        if (typeof Player !== "undefined" && Player.getSoulClass && Player.getSoulClass() === 18) {
+                            var healAmt = Math.floor(parseInt(totalDamage) * 0.10);
+                            if (healAmt > 0) Player.heal(healAmt);
+                        }
                         Sound.playSound("impact", true);
                         triggerShake(5, 300);
                         attackState = ATTACK_STATE.DAMAGE;

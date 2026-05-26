@@ -20,6 +20,8 @@ var Cgroup = (function() {
             setupParadox();
         } else if (currentBossId === "godzilla") {
             setupGodzilla();
+        } else if (currentBossId === "vader") {
+            setupVader();
         } else {
             setupSingularity();
         }
@@ -462,6 +464,76 @@ var Cgroup = (function() {
                 mercyHP: 100,
                 xpReward: 1000,
                 goldReward: 500,
+            })
+        ];
+        enemies[0].bubblePos = enemies[0].damagePos.getAdd(new Vect(60, -160, 0));
+        mercies = ["Spare", "Flee"];
+        defends = [];
+    }
+
+    function setupVader() {
+        enemies = [
+            new Enemy({
+                name: "Darth Vader",
+                checkText: "El Lord Sith. Su respiración pesada resuena en la Fuerza.",
+                maxHP: 3000,
+                curHP: 3000,
+                renderType: "vader_normal",
+                atk: 22,
+                def: 18,
+                defense: 1.5,
+                acts: ["Check", "Defy", "Bribe", "Flee"],
+                actResponses: [
+                    "* DARTH VADER - ATK 22 DEF 18\n* Sientes la inmensa presión del Lado Oscuro.",
+                    "* Desafías a Darth Vader con determinación.\n* Vader levanta su mano. Sientes un leve ahogo en la garganta.",
+                    "* Intentas sobornar al Lord Sith con unos créditos galácticos.\n* Vader destruye los créditos con su sable. 'Tus trucos no funcionan conmigo'.",
+                    "* ¡No hay forma de huir del Lado Oscuro!"
+                ],
+                actFunctions: [
+                    function() { console.log("Checked Vader"); },
+                    function() {
+                        console.log("Defied Vader");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 20);
+                    },
+                    function() {
+                        console.log("Bribed Vader");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 5);
+                    },
+                    function() {
+                        console.log("Flee Vader failed");
+                    }
+                ],
+                texts: [
+                    "* Una respiración profunda y mecánica resuena en la sala.",
+                    "* El aire se siente denso y opresivo.",
+                    "* Una luz roja ilumina el rostro de Vader.",
+                    "* Sientes la perturbación en la Fuerza."
+                ],
+                speech: [
+                    "...",
+                    "UNIRTE A MI\nES TU UNICO\nCAMINO.",
+                    "SUBESTIMAS EL\nPODER DEL\nLADO OSCURO.",
+                    "LA RESISTENCIA\nES INUTIL."
+                ],
+                spriteId: "asriel",
+                attacks: ["vaderSaberThrow", "vaderForceChoke", "vaderImperialBarrage", "voidImplosion"],
+                phases: [
+                    { patterns: ["vaderSaberThrow", "vaderImperialBarrage"], soulMode: "red", renderType: "vader_normal",
+                      speech: ["TE HE ESTADO\nESPERANDO.", "UNIRTE AL\nLADO OSCURO\nES TU DESTINO.", "EL PODER DE\nLA FUERZA\nES ABSOLUTO."] },
+                    { patterns: ["vaderForceChoke", "vaderSaberThrow", "vaderImperialBarrage"], soulMode: "red", renderType: "vader_force",
+                      speech: ["SIENTES EL AHOGO\nDEL LADO\nOSCURO?", "SUBESTIMAS EL\nPODER DE\nLA FUERZA.", "NO HAY\nESCAPE."] },
+                    { patterns: ["vaderForceChoke", "vaderSaberThrow", "vaderImperialBarrage", "voidImplosion"], soulMode: "red", renderType: "vader_rage",
+                      speech: ["¡ES INUTIL\nRESISTIRSE!", "¡SIENTE LA IRA\nDEL LORD SITH!", "¡VILLANO!\nNO ME\nVENCERAS."] }
+                ],
+                phaseHP: [3000, 3800, 4800],
+                karmaEnabled: false,
+                jitterEnabled: false,
+                damagePos: new Vect(370, 290, 0),
+                damageVel: 120,
+                bubbleOff: 30,
+                mercyHP: 100,
+                xpReward: 1200,
+                goldReward: 600,
             })
         ];
         enemies[0].bubblePos = enemies[0].damagePos.getAdd(new Vect(60, -160, 0));

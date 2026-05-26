@@ -133,6 +133,16 @@ var Soul = (function() {
         else if (sClass === 7) ctx.filter = "hue-rotate(300deg) saturate(1.5)"; // Pink
         else if (sClass === 8) ctx.filter = "hue-rotate(285deg) saturate(0.8)"; // Dark Purple
         else if (sClass === 9) ctx.filter = "grayscale(100%) brightness(1.5)"; // White
+        else if (sClass === 10) ctx.filter = "hue-rotate(20deg) saturate(2) brightness(1.2)"; // Phoenix
+        else if (sClass === 11) ctx.filter = "hue-rotate(140deg) saturate(0.8) brightness(0.9)"; // Giant
+        else if (sClass === 12) ctx.filter = "hue-rotate(330deg) saturate(1.8)"; // Tiny
+        else if (sClass === 13) ctx.filter = "hue-rotate(90deg) saturate(1.3) brightness(0.85)"; // Thorn
+        else if (sClass === 14) ctx.filter = "grayscale(80%) contrast(1.5) brightness(0.8)"; // Iron
+        else if (sClass === 15) ctx.filter = "hue-rotate(50deg) saturate(3) brightness(1.5)"; // Caffeine
+        else if (sClass === 16) ctx.filter = "hue-rotate(200deg) saturate(2.5) contrast(1.2)"; // Magnetic
+        else if (sClass === 17) ctx.filter = "hue-rotate(185deg) saturate(1.2) brightness(1.4)"; // Crystal
+        else if (sClass === 18) ctx.filter = "hue-rotate(350deg) saturate(2.5) brightness(0.8)"; // Vampire
+        else if (sClass === 19) ctx.filter = "hue-rotate(" + ((Date.now() / 4) % 360) + "deg) saturate(2)"; // Chaos (Rainbow)
     }
 
     function draw(ctx) {

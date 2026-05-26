@@ -53,6 +53,13 @@ var Player = (function() {
         activeSpdBuffs = []; activeDefBuffs = []; activeAtkBuffs = [];
         
         setSoulClass(soulClass || 0); // Keep current class, just reset HP and buffs
+
+        // Passives based on soulClass
+        if (soulClass === 10) { phoenixEggActive = true; } // Phoenix Heart
+        if (soulClass === 13) { thornShield = true; } // Thorn Heart
+        if (soulClass === 14) { noHorizontalMovement = true; } // Iron Heart
+        if (soulClass === 15) { selfPoison = 1.0; } // Caffeine Heart
+        if (soulClass === 16) { magnetActive = true; } // Magnetic Heart
     }
 
     function setSoulClass(classId) {
@@ -68,6 +75,16 @@ var Player = (function() {
             case 7: hpMax = 100; baseSpd = 1.4; baseAtk = 1.2; baseDef = 0.9; break;
             case 8: hpMax = 130; baseSpd = 1.0; baseAtk = 1.0; baseDef = 1.1; break;
             case 9: hpMax = 90;  baseSpd = 1.2; baseAtk = 0.9; baseDef = 0.8; break;
+            case 10: hpMax = 80;  baseSpd = 1.0; baseAtk = 1.0; baseDef = 1.0; break; // Phoenix
+            case 11: hpMax = 160; baseSpd = 0.7; baseAtk = 1.2; baseDef = 1.8; break; // Giant
+            case 12: hpMax = 70;  baseSpd = 1.2; baseAtk = 1.0; baseDef = 0.7; break; // Tiny
+            case 13: hpMax = 100; baseSpd = 1.0; baseAtk = 1.0; baseDef = 1.0; break; // Thorn
+            case 14: hpMax = 150; baseSpd = 0.5; baseAtk = 1.0; baseDef = 2.5; break; // Iron
+            case 15: hpMax = 110; baseSpd = 1.8; baseAtk = 1.1; baseDef = 0.8; break; // Caffeine
+            case 16: hpMax = 90;  baseSpd = 1.0; baseAtk = 1.0; baseDef = 1.0; break; // Magnetic
+            case 17: hpMax = 100; baseSpd = 1.0; baseAtk = 1.0; baseDef = 0.8; break; // Crystal
+            case 18: hpMax = 90;  baseSpd = 1.1; baseAtk = 1.2; baseDef = 1.0; break; // Vampire
+            case 19: hpMax = 100; baseSpd = 1.0; baseAtk = 1.0; baseDef = 1.0; break; // Chaos
         }
         hpCur = hpMax;
         recalculateBuffs();
@@ -102,6 +119,24 @@ var Player = (function() {
         if (giant) giant = false;
         if (hyperCoffee) hyperCoffee = false;
         if (magnetActive) magnetActive = false;
+
+        // Refresh/Restore passives based on active soulClass
+        if (soulClass === 13) { thornShield = true; } // Re-charge Thorn Heart shield
+        if (soulClass === 14) { noHorizontalMovement = true; } // Iron Heart restriction
+        if (soulClass === 15) { selfPoison = 1.0; } // Caffeine Heart poison
+        if (soulClass === 16) { magnetActive = true; } // Magnetic Heart pull
+        if (soulClass === 19) {
+            // Chaos Heart: random soul mode
+            if (typeof Soul !== "undefined" && Soul.setSoulMode) {
+                var modes = [Soul.SOUL_MODE.RED, Soul.SOUL_MODE.BLUE, Soul.SOUL_MODE.YELLOW, Soul.SOUL_MODE.INVERSE];
+                var randMode = modes[Math.floor(Math.random() * modes.length)];
+                Soul.setSoulMode(randMode);
+            }
+            // Chaos Heart: random stats
+            baseSpd = 0.5 + Math.random() * 1.5;
+            baseAtk = 0.5 + Math.random() * 1.5;
+            baseDef = 0.5 + Math.random() * 1.5;
+        }
         
         // Decrement buff arrays
         for (var i = activeSpdBuffs.length - 1; i >= 0; i--) {
@@ -208,6 +243,11 @@ var Player = (function() {
             if (hpCur <= 0) { hpCur = 0; return true; }
         }
         
+        if (soulClass === 14) {
+            // Iron Heart regenerates 3 HP per second
+            hpCur = Math.min(hpMax, hpCur + 3.0 * dt);
+        }
+        
         return false;
     }
     function getKarma() { return karmaBuffer; }
@@ -233,7 +273,10 @@ var Player = (function() {
         // Crazy Items Effects:
         setInvulnerable: function(turns) { invulnerableTurns = turns; },
         setReflection: function(rate, turns) { reflectionRate = rate; reflectionTurns = turns; },
-        getReflectionRate: function() { return reflectionTurns > 0 ? reflectionRate : 0; },
+        getReflectionRate: function() { 
+            if (soulClass === 17) return 0.30;
+            return reflectionTurns > 0 ? reflectionRate : 0; 
+        },
         setNoSmallHeals: function(val) { noSmallHeals = val; },
         setPermanentGravityDust: function() { permanentGravityDust = true; recalculateBuffs(); },
         isPermanentGravityDust: function() { return permanentGravityDust; },
@@ -253,16 +296,17 @@ var Player = (function() {
         setHyperCoffee: function(val) { hyperCoffee = val; if (val) { Player.addBuffSpd(1.0, 2); } },
         isHyperCoffee: function() { return hyperCoffee; },
         setThornShield: function(val) { thornShield = val; },
+        isThornShield: function() { return thornShield || soulClass === 13; },
         setGravityAnchor: function(val) { gravityAnchor = val; },
         isGravityAnchor: function() { return gravityAnchor; },
         setShrunk: function(val) { shrunk = val; },
-        isShrunk: function() { return shrunk; },
+        isShrunk: function() { return shrunk || soulClass === 12; },
         setGiant: function(val) { giant = val; },
-        isGiant: function() { return giant; },
+        isGiant: function() { return giant || soulClass === 11; },
         setMagnetActive: function(val) { magnetActive = val; },
-        isMagnetActive: function() { return magnetActive; },
+        isMagnetActive: function() { return magnetActive || soulClass === 16; },
         setNoHorizontalMovement: function(val) { noHorizontalMovement = val; },
-        isNoHorizontalMovement: function() { return noHorizontalMovement; },
+        isNoHorizontalMovement: function() { return noHorizontalMovement || soulClass === 14; },
         reduceMaxHP: function(amount) { hpMax = Math.max(20, hpMax - amount); hpCur = Math.min(hpCur, hpMax); }
     };
 }());

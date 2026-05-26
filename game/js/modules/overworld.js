@@ -21,7 +21,17 @@ var Overworld = (function() {
         { name: "Corazón Celeste", desc: "Paciente. HP:140, VEL:-10%, DEF:+20%" },
         { name: "Corazón Rosa", desc: "Magnético. HP:100, VEL:+40%, ATK:+20%" },
         { name: "Corazón Púrpura Oscuro", desc: "Invertido. HP:130, DEF:+10%, Gravedad invertida" },
-        { name: "Corazón Blanco", desc: "Evasivo. HP:90, VEL:+20%, DEF:-20%" }
+        { name: "Corazón Blanco", desc: "Evasivo. HP:90, VEL:+20%, DEF:-20%" },
+        { name: "Corazón Fénix", desc: "Fénix. HP:80, Revive una vez por combate con 50% HP." },
+        { name: "Corazón Gigante", desc: "Gigante. HP:160, Escala 1.8x, +80% DEF." },
+        { name: "Corazón Diminuto", desc: "Diminuto. HP:70, Escala 0.5x, +30% daño recibido." },
+        { name: "Corazón Espinoso", desc: "Espinoso. HP:100, Escudo espinoso (bloquea 1er golpe, 30 piedad/turno)." },
+        { name: "Corazón de Hierro", desc: "Hierro. HP:150, Sin movimiento horizontal, +150% DEF, regenera 3 HP/seg." },
+        { name: "Corazón Cafeína", desc: "Cafeína. HP:110, VEL +80%, pero sufres veneno de 1 HP/seg." },
+        { name: "Corazón Magnético", desc: "Magnético. HP:90, Atrae balas, pero rozar balas cura 3 HP." },
+        { name: "Corazón Cristalino", desc: "Cristalino. HP:100, Refleja 30% del daño recibido al jefe." },
+        { name: "Corazón de Vampiro", desc: "Vampiro. HP:90, Lifesteal (cura 10% del daño infligido al jefe)." },
+        { name: "Corazón Caótico", desc: "Caótico. HP:100, Cada turno cambia de alma y stats. Arcoíris." }
     ];
 
     var bgImage = new Image();
@@ -38,13 +48,13 @@ var Overworld = (function() {
 
         // Create Catalog Interactable (floating star/heart area)
         npcList.push({
-            x: 80, y: 150, w: 40, h: 40, color: "rgba(255, 255, 0, 0.8)",
+            x: 370, y: 80, w: 40, h: 40, color: "rgba(255, 255, 0, 0.8)",
             isCatalog: true
         });
 
         // Singularity battle trigger (Anomalies Group)
         triggerList.push({
-            x: 100, y: 250, w: 40, h: 40,
+            x: 120, y: 150, w: 40, h: 40,
             triggered: false,
             bossId: "singularity",
             label: "Anti-gravity",
@@ -61,7 +71,7 @@ var Overworld = (function() {
 
         // Seraphina Vex battle trigger (Anomalies Group)
         triggerList.push({
-            x: 100, y: 400, w: 40, h: 40,
+            x: 120, y: 410, w: 40, h: 40,
             triggered: false,
             bossId: "seraphina",
             label: "Seraphina Vex",
@@ -78,7 +88,7 @@ var Overworld = (function() {
 
         // Ramiel battle trigger (Guest Group)
         triggerList.push({
-            x: 500, y: 150, w: 40, h: 40,
+            x: 620, y: 150, w: 40, h: 40,
             triggered: false,
             bossId: "ramiel",
             label: "RAMIEL",
@@ -95,7 +105,7 @@ var Overworld = (function() {
         
         // Paradox battle trigger (Anomalies Group)
         triggerList.push({
-            x: 250, y: 250, w: 40, h: 40,
+            x: 230, y: 290, w: 40, h: 40,
             triggered: false,
             bossId: "paradox",
             label: "PARADOJA",
@@ -112,7 +122,7 @@ var Overworld = (function() {
         
         // Sachiel battle trigger (Guest Group)
         triggerList.push({
-            x: 500, y: 350, w: 40, h: 40,
+            x: 620, y: 410, w: 40, h: 40,
             triggered: false,
             bossId: "sachiel",
             label: "SACHIEL",
@@ -129,11 +139,28 @@ var Overworld = (function() {
 
         // Godzilla battle trigger (Guest Group)
         triggerList.push({
-            x: 620, y: 250, w: 40, h: 40,
+            x: 370, y: 470, w: 40, h: 40,
             triggered: false,
             bossId: "godzilla",
             label: "GODZILLA",
             color: "rgba(0, 150, 255, 0.5)",
+            action: function() {
+                var self = this;
+                Transition.start(function() {
+                    main.gameState = main.GAME_STATE.COMBAT;
+                    Combat.init(self.bossId);
+                    Combat.setup(main.ctx);
+                });
+            }
+        });
+
+        // Darth Vader battle trigger (Guest Group)
+        triggerList.push({
+            x: 510, y: 290, w: 40, h: 40,
+            triggered: false,
+            bossId: "vader",
+            label: "DARTH VADER",
+            color: "rgba(220, 0, 0, 0.6)",
             action: function() {
                 var self = this;
                 Transition.start(function() {
@@ -164,6 +191,9 @@ var Overworld = (function() {
         Sound.pauseSoundHard("bgm");
         Sound.pauseSoundHard("bgm_seraphina");
         Sound.pauseSoundHard("bgm_singularity");
+        Sound.pauseSoundHard("bgm_evangelion");
+        Sound.pauseSoundHard("bgm_paradox");
+        Sound.pauseSoundHard("bgm_godzilla");
         Sound.playSound("bgm_overworld", true);
     }
 
@@ -259,6 +289,14 @@ var Overworld = (function() {
         if (!active) return;
 
         ctx.save();
+        
+        // Scale and center the overworld map visually to prevent boss clustering
+        var scaleActive = !catalogActive;
+        if (scaleActive) {
+            ctx.translate((main.WIDTH - main.WIDTH * 0.85) / 2, (main.HEIGHT - main.HEIGHT * 0.85) / 2);
+            ctx.scale(0.85, 0.85);
+        }
+
         // Draw background
         if (bgImage.complete) {
             ctx.drawImage(bgImage, 0, 0, main.WIDTH, main.HEIGHT);
@@ -282,7 +320,7 @@ var Overworld = (function() {
                 if (t.bossId === "seraphina") {
                     var frameIdx = Math.floor(animTimer * 4) % seraFrames.length;
                     img = seraFrames[frameIdx];
-                } else if (t.bossId === "ramiel" || t.bossId === "paradox" || t.bossId === "sachiel") {
+                } else if (t.bossId === "ramiel" || t.bossId === "paradox" || t.bossId === "sachiel" || t.bossId === "vader" || t.bossId === "godzilla") {
                     // Procedural mini crystal or colored box for new bosses
                     img = null; 
                 } else {
@@ -570,6 +608,93 @@ var Overworld = (function() {
                     
                     ctx.restore();
                     ctx.shadowBlur = 0;
+                } else if (t.bossId === "vader") {
+                    // Epic Mini Darth Vader representation
+                    var vTime = animTimer;
+                    var vSize = 25;
+                    ctx.save();
+                    ctx.translate(gcx, gcy - 5 + Math.sin(vTime * 3) * 2); // Floating/breathing
+                    
+                    // Draw cape (flowing behind)
+                    ctx.fillStyle = "#0A0A0A";
+                    ctx.beginPath();
+                    ctx.moveTo(-vSize * 0.6, vSize * 0.8);
+                    ctx.lineTo(-vSize * 0.8, vSize * 0.2);
+                    ctx.quadraticCurveTo(-vSize * 0.4, -vSize * 0.2, 0, -vSize * 0.3);
+                    ctx.quadraticCurveTo(vSize * 0.4, -vSize * 0.2, vSize * 0.8, vSize * 0.2);
+                    ctx.lineTo(vSize * 0.6, vSize * 0.8);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Helmet Dome (Top curved part)
+                    ctx.fillStyle = "#151515";
+                    ctx.beginPath();
+                    ctx.arc(0, -vSize * 0.1, vSize * 0.45, Math.PI, 0, false);
+                    ctx.fill();
+                    
+                    // Helmet Flare (sides of mask)
+                    ctx.beginPath();
+                    ctx.moveTo(-vSize * 0.45, -vSize * 0.1);
+                    ctx.lineTo(-vSize * 0.6, vSize * 0.3);
+                    ctx.lineTo(-vSize * 0.2, vSize * 0.25);
+                    ctx.lineTo(0, vSize * 0.1);
+                    ctx.lineTo(vSize * 0.2, vSize * 0.25);
+                    ctx.lineTo(vSize * 0.6, vSize * 0.3);
+                    ctx.lineTo(vSize * 0.45, -vSize * 0.1);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Mask Face (eyes and grille)
+                    ctx.fillStyle = "#090909";
+                    ctx.beginPath();
+                    ctx.moveTo(-vSize * 0.25, vSize * 0.05);
+                    ctx.lineTo(vSize * 0.25, vSize * 0.05);
+                    ctx.lineTo(vSize * 0.15, vSize * 0.35);
+                    ctx.lineTo(-vSize * 0.15, vSize * 0.35);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Eyes (red glowing dots)
+                    ctx.fillStyle = "rgba(255, 0, 0, 0.85)";
+                    ctx.shadowBlur = 6;
+                    ctx.shadowColor = "#FF0000";
+                    ctx.beginPath();
+                    ctx.arc(-vSize * 0.12, vTime * 0 + vSize * 0.1, 2, 0, Math.PI * 2);
+                    ctx.arc(vSize * 0.12, vTime * 0 + vSize * 0.1, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Grille detail
+                    ctx.strokeStyle = "#555";
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(0, vSize * 0.2);
+                    ctx.lineTo(0, vSize * 0.35);
+                    ctx.moveTo(-3, vSize * 0.25);
+                    ctx.lineTo(3, vSize * 0.25);
+                    ctx.stroke();
+                    
+                    // Chest control plate
+                    ctx.fillStyle = "#222";
+                    ctx.fillRect(-vSize * 0.25, vSize * 0.45, vSize * 0.5, vSize * 0.35);
+                    
+                    ctx.shadowBlur = 4;
+                    ctx.fillStyle = "#FF0000"; ctx.shadowColor = "#FF0000";
+                    ctx.fillRect(-vSize * 0.15, vSize * 0.52, 3, 3);
+                    ctx.fillStyle = "#0000FF"; ctx.shadowColor = "#0000FF";
+                    ctx.fillRect(vSize * 0.05, vSize * 0.52, 3, 3);
+                    
+                    // Glowing Red Lightsaber
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = "#FF0000";
+                    ctx.strokeStyle = "#FFFFFF"; // White core
+                    ctx.lineWidth = 2.5;
+                    ctx.beginPath();
+                    ctx.moveTo(-vSize * 0.4, vSize * 0.5);
+                    ctx.lineTo(-vSize * 0.8, -vSize * 0.1);
+                    ctx.stroke();
+                    
+                    ctx.restore();
+                    ctx.shadowBlur = 0;
                 } else if (img && img.complete) {
                     ctx.drawImage(img, t.x, t.y, t.w, t.h);
                 } else {
@@ -774,7 +899,8 @@ var Overworld = (function() {
             // Bottom Pane (Description)
             ctx.strokeRect(20, 300, 600, 160);
             
-            var colors = ["#F00", "#0F0", "#FF0", "#A0A", "#00F", "#F80", "#0FF", "#F0F", "#408", "#FFF"];
+            var colors = ["#F00", "#0F0", "#FF0", "#A0A", "#00F", "#F80", "#0FF", "#F0F", "#408", "#FFF",
+                          "#FFA500", "#006400", "#ADFF2F", "#B22222", "#708090", "#8B4513", "#C0C0C0", "#87CEEB", "#DC143C", "hsl(" + (Date.now() / 5 % 360) + ", 100%, 50%)"];
             
             if (catalogTab === 0) {
                 // =====================

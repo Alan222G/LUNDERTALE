@@ -86,6 +86,10 @@ var BossController = (function() {
             "godzillaAtomicSpit": function(cfg) { return new GodzillaAtomicSpitPattern(cfg || { damVal: 8, duration: 7.5 }); },
             "godzillaBurningRain": function(cfg) { return new GodzillaBurningRainPattern(cfg || { damVal: 8, duration: 7.5 }); },
             "godzillaMeltdownSpikes": function(cfg) { return new GodzillaMeltdownSpikesPattern(cfg || { damVal: 9, duration: 8 }); },
+            // --- Custom Darth Vader Attacks ---
+            "vaderSaberThrow": function(cfg) { return new VaderSaberThrowPattern(cfg || { damVal: 9, duration: 8 }); },
+            "vaderForceChoke": function(cfg) { return new VaderForceChokePattern(cfg || { damVal: 8, duration: 8 }); },
+            "vaderImperialBarrage": function(cfg) { return new VaderImperialBarragePattern(cfg || { damVal: 9, duration: 8 }); },
         };
     }
 
