@@ -123,7 +123,9 @@ VaderImperialBarragePattern.prototype.draw = function(ctx) {
         ctx.globalCompositeOperation = "screen";
 
         // Red Force energy fill
-        var domeGrad = ctx.createRadialGradient(centerX, centerY, 5, centerX, centerY, this.domeRadius);
+        var rStart = Math.min(2, this.domeRadius * 0.4);
+        var rEnd = Math.max(rStart + 1, this.domeRadius);
+        var domeGrad = ctx.createRadialGradient(centerX, centerY, rStart, centerX, centerY, rEnd);
         domeGrad.addColorStop(0, "rgba(255, 0, 0, 0.05)");
         domeGrad.addColorStop(0.8, "rgba(139, 0, 0, 0.18)");
         domeGrad.addColorStop(0.96, "rgba(255, 30, 30, 0.45)");
