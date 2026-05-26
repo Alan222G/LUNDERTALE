@@ -120,7 +120,22 @@ var Inventory = (function() {
                     if (em) { em.mercyHP = Math.min(10, em.mercyHP); } 
                     Player.setHP(10); 
                     Player.setNoSmallHeals(true); 
-                })
+                }),
+            new Item("Pie Cósmico", "Un pastel celestial que huele a polvo de estrellas.", 999,
+                "* Te comes el Pie Cósmico.\n* Su calidez te llena de DETERMINACIÓN.\n* ¡HP recuperado al máximo!",
+                function() { Player.heal(999); }),
+            new Item("Materia Oscura", "Materia extraña del espacio. ¿Se supone que se come?", 100,
+                "* Consumes la Materia Oscura.\n* ¡Es sorprendentemente deliciosa!\n* Recuperas 100 HP.",
+                function() { Player.heal(100); }),
+            new Item("Fideos del Vacío", "Fideos instantáneos hechos de energía oscura.", 80,
+                "* Te comes los Fideos del Vacío.\n* Sienten frío pero te llenan.\n* Recuperas 80 HP.",
+                function() { Player.heal(80); }),
+            new Item("Fruta de Nebulosa", "Una baya brillante que flota en el espacio.", 20,
+                "* Muerdes la Fruta de Nebulosa.\n* Una explosión galáctica de sabor.\n* Recuperas 20 HP.",
+                function() { Player.heal(20); }),
+            new Item("Poción Estelar", "Líquido brillante que sabe a uvas espaciales.", 50,
+                "* Bebes la Poción Estelar.\n* Brillas brevemente.\n* Recuperas 50 HP.",
+                function() { Player.heal(50); })
         ];
         
         equippedItems = [];

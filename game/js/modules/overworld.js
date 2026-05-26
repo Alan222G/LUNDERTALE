@@ -892,29 +892,631 @@ var Overworld = (function() {
                     ctx.save();
                     ctx.translate(160, 140);
                     
-                    if (pName.indexOf("Pie") !== -1) {
-                        ctx.shadowBlur = 12; ctx.shadowColor = "#FF8";
+                    if (pName === "Pie Cósmico") {
+                        // Cosmic Pie - Glowing gold-crust pie slice
+                        ctx.shadowBlur = 15; ctx.shadowColor = "#FFD700";
                         ctx.fillStyle = "#D2691E"; // Crust
-                        ctx.beginPath(); ctx.arc(0, 0, 25, Math.PI, 0); ctx.fill();
-                        ctx.fillStyle = "#F4A460"; ctx.fillRect(-27, -2, 54, 8);
-                        ctx.fillStyle = "#8B0000"; ctx.beginPath(); ctx.arc(0, -5, 18, Math.PI, 0); ctx.fill();
-                    } else if (pName.indexOf("Noodles") !== -1) {
-                        ctx.shadowBlur = 12; ctx.shadowColor = "#800080";
-                        ctx.fillStyle = "#FFF"; ctx.beginPath(); ctx.arc(0, 5, 20, 0, Math.PI); ctx.fill();
-                        ctx.strokeStyle = "#800080"; ctx.lineWidth = 3;
-                        ctx.beginPath(); ctx.moveTo(-10, 5); ctx.lineTo(-15, -15); ctx.stroke();
-                        ctx.beginPath(); ctx.moveTo(0, 5); ctx.lineTo(-5, -20); ctx.stroke();
-                        ctx.beginPath(); ctx.moveTo(10, 5); ctx.lineTo(15, -10); ctx.stroke();
-                    } else if (pName.indexOf("Fruit") !== -1) {
-                        ctx.shadowBlur = 12; ctx.shadowColor = "#FF00FF";
-                        ctx.fillStyle = "#FF1493"; ctx.beginPath(); ctx.arc(0, 0, 18, 0, Math.PI*2); ctx.fill();
-                        ctx.fillStyle = "#32CD32"; ctx.fillRect(-2, -24, 4, 10);
-                    } else if (pName.indexOf("Matter") !== -1) {
-                        ctx.shadowBlur = 15; ctx.shadowColor = "#800080";
-                        ctx.fillStyle = "#111"; ctx.beginPath(); ctx.arc(0, 0, 20, 0, Math.PI*2); ctx.fill();
-                        ctx.strokeStyle = "#800080"; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(0, 0, 25, 0, Math.PI*2); ctx.stroke();
+                        ctx.beginPath(); ctx.moveTo(0, 20); ctx.lineTo(-25, -15); ctx.lineTo(25, -15); ctx.closePath(); ctx.fill();
+                        ctx.fillStyle = "#FFA500"; // Inside filling
+                        ctx.beginPath(); ctx.moveTo(0, 15); ctx.lineTo(-20, -10); ctx.lineTo(20, -10); ctx.closePath(); ctx.fill();
+                        ctx.fillStyle = "#FFF"; // Floating sparkles/stars
+                        for (var s = 0; s < 3; s++) {
+                            var sx = Math.sin(animTimer * 5 + s) * 15;
+                            var sy = -25 - s * 8;
+                            ctx.fillRect(sx, sy, 3, 3);
+                        }
+                    } else if (pName === "Fideos del Vacío") {
+                        // Void Noodles - A nice dark bowl with glowing noodles and chopsticks
+                        ctx.shadowBlur = 15; ctx.shadowColor = "#8A2BE2";
+                        // Bowl
+                        ctx.fillStyle = "#4B0082";
+                        ctx.beginPath(); ctx.arc(0, 5, 22, 0, Math.PI); ctx.fill();
+                        ctx.fillStyle = "#000";
+                        ctx.fillRect(-22, 3, 44, 4);
+                        // Noodles sticking out
+                        ctx.strokeStyle = "#DA70D6"; ctx.lineWidth = 3;
+                        ctx.beginPath();
+                        ctx.moveTo(-12, 5); ctx.bezierCurveTo(-15, -10, -5, -20, -15, -22);
+                        ctx.moveTo(0, 5); ctx.bezierCurveTo(5, -12, -5, -18, 5, -25);
+                        ctx.moveTo(12, 5); ctx.bezierCurveTo(10, -8, 15, -15, 10, -20);
+                        ctx.stroke();
+                        // Chopsticks
+                        ctx.strokeStyle = "#D2691E"; ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.moveTo(15, -5); ctx.lineTo(-25, -25);
+                        ctx.moveTo(20, 0); ctx.lineTo(-20, -30);
+                        ctx.stroke();
+                    } else if (pName === "Fruta de Nebulosa") {
+                        // Nebula Fruit - Shifting pink/purple berry
+                        ctx.shadowBlur = 15; ctx.shadowColor = "#FF00FF";
+                        var rGrad = ctx.createRadialGradient(-5, -5, 2, 0, 0, 20);
+                        rGrad.addColorStop(0, "#FF69B4");
+                        rGrad.addColorStop(1, "#8A008A");
+                        ctx.fillStyle = rGrad;
+                        ctx.beginPath(); ctx.arc(0, 5, 20, 0, Math.PI*2); ctx.fill();
+                        // Shading ring
+                        ctx.strokeStyle = "rgba(255, 255, 255, 0.4)"; ctx.lineWidth = 1.5;
+                        ctx.beginPath(); ctx.arc(-6, -2, 10, 0, Math.PI*2); ctx.stroke();
+                        // Leaf
+                        ctx.fillStyle = "#32CD32";
+                        ctx.beginPath(); ctx.ellipse(5, -18, 6, 12, Math.PI / 4, 0, Math.PI * 2); ctx.fill();
+                    } else if (pName === "Materia Oscura") {
+                        // Dark Matter - Pitch black sphere with outer nebula halo and cosmic rings
+                        ctx.shadowBlur = 20; ctx.shadowColor = "#800080";
+                        // Orbiting ring back
+                        ctx.strokeStyle = "#DA70D6"; ctx.lineWidth = 3;
+                        ctx.save();
+                        ctx.scale(1, 0.35);
+                        ctx.beginPath(); ctx.arc(0, 0, 28, Math.PI, 0); ctx.stroke();
+                        ctx.restore();
+                        // Sphere
+                        var sGrad = ctx.createRadialGradient(-4, -4, 2, 0, 0, 20);
+                        sGrad.addColorStop(0, "#222");
+                        sGrad.addColorStop(0.7, "#050505");
+                        sGrad.addColorStop(1, "#000");
+                        ctx.fillStyle = sGrad;
+                        ctx.beginPath(); ctx.arc(0, 0, 20, 0, Math.PI*2); ctx.fill();
+                        // Orbiting ring front
+                        ctx.save();
+                        ctx.scale(1, 0.35);
+                        ctx.beginPath(); ctx.arc(0, 0, 28, 0, Math.PI); ctx.stroke();
+                        ctx.restore();
+                    } else if (pName === "Huevo de Fénix") {
+                        // Phoenix Egg - An oval glowing egg with fire accents
+                        ctx.shadowBlur = 18; ctx.shadowColor = "#FF4500";
+                        // Draw Egg
+                        var eggGrad = ctx.createRadialGradient(-6, -10, 3, 0, 0, 22);
+                        eggGrad.addColorStop(0, "#FFFFE0");
+                        eggGrad.addColorStop(0.4, "#FFA500");
+                        eggGrad.addColorStop(1, "#FF0000");
+                        ctx.fillStyle = eggGrad;
+                        ctx.save();
+                        ctx.scale(1, 1.35);
+                        ctx.beginPath(); ctx.arc(0, -2, 16, 0, Math.PI * 2); ctx.fill();
+                        ctx.restore();
+                        // Flame ripples around
+                        ctx.strokeStyle = "#FF8C00"; ctx.lineWidth = 2.5;
+                        ctx.beginPath();
+                        ctx.moveTo(-12, 10); ctx.quadraticCurveTo(-18, -10, -5, -25);
+                        ctx.moveTo(12, 10); ctx.quadraticCurveTo(18, -10, 5, -25);
+                        ctx.stroke();
+                    } else if (pName === "Reloj Detenido") {
+                        // Stopped Clock - Pocket watch with cracked glass and cyan hands
+                        ctx.shadowBlur = 15; ctx.shadowColor = "#00FFFF";
+                        // Outer rim
+                        ctx.fillStyle = "#C0C0C0";
+                        ctx.beginPath(); ctx.arc(0, 4, 22, 0, Math.PI * 2); ctx.fill();
+                        ctx.fillStyle = "#FFD700"; // Inner gold ring
+                        ctx.beginPath(); ctx.arc(0, 4, 19, 0, Math.PI * 2); ctx.fill();
+                        ctx.fillStyle = "#FFF"; // Face
+                        ctx.beginPath(); ctx.arc(0, 4, 16, 0, Math.PI * 2); ctx.fill();
+                        // Clock loop on top
+                        ctx.strokeStyle = "#C0C0C0"; ctx.lineWidth = 3;
+                        ctx.beginPath(); ctx.arc(0, -20, 5, 0, Math.PI * 2); ctx.stroke();
+                        // Hands
+                        ctx.strokeStyle = "#000"; ctx.lineWidth = 1.5;
+                        ctx.beginPath(); ctx.moveTo(0, 4); ctx.lineTo(0, -6); // Hour hand
+                        ctx.moveTo(0, 4); ctx.lineTo(8, 4); // Minute hand
+                        ctx.stroke();
+                        // Crack lines
+                        ctx.strokeStyle = "rgba(0, 180, 255, 0.7)"; ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(-8, -4); ctx.lineTo(-2, 0); ctx.lineTo(6, -8);
+                        ctx.stroke();
+                    } else if (pName === "Agujero Negro") {
+                        // Black Hole - Deep swirling vortex
+                        ctx.shadowBlur = 22; ctx.shadowColor = "#BA55D3";
+                        var bhTime = animTimer * 4;
+                        // Swirling energy lines
+                        ctx.strokeStyle = "rgba(186, 85, 211, 0.6)"; ctx.lineWidth = 1.5;
+                        for (var angle = 0; angle < Math.PI * 2; angle += Math.PI / 4) {
+                            ctx.beginPath();
+                            for (var r = 8; r < 28; r++) {
+                                var a = angle + r * 0.15 - bhTime;
+                                var px = Math.cos(a) * r;
+                                var py = Math.sin(a) * r;
+                                if (r === 8) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                            }
+                            ctx.stroke();
+                        }
+                        // Core singularity
+                        ctx.fillStyle = "#000";
+                        ctx.beginPath(); ctx.arc(0, 0, 8, 0, Math.PI * 2); ctx.fill();
+                    } else if (pName === "Ancla Gravitatoria") {
+                        // Gravity Anchor - Dark blue metallic anchor
+                        ctx.shadowBlur = 12; ctx.shadowColor = "#4682B4";
+                        ctx.strokeStyle = "#708090"; ctx.lineWidth = 4;
+                        // Vertical shaft
+                        ctx.beginPath(); ctx.moveTo(0, -20); ctx.lineTo(0, 12); ctx.stroke();
+                        // Crossbar
+                        ctx.beginPath(); ctx.moveTo(-12, -10); ctx.lineTo(12, -10); ctx.stroke();
+                        // Top ring
+                        ctx.beginPath(); ctx.arc(0, -20, 5, 0, Math.PI * 2); ctx.stroke();
+                        // Curved bottom
+                        ctx.beginPath(); ctx.arc(0, 2, 16, 0, Math.PI); ctx.stroke();
+                        // Left/Right hooks
+                        ctx.fillStyle = "#708090";
+                        ctx.beginPath(); ctx.moveTo(-16, 2); ctx.lineTo(-20, -4); ctx.lineTo(-12, 2); ctx.closePath(); ctx.fill();
+                        ctx.beginPath(); ctx.moveTo(16, 2); ctx.lineTo(20, -4); ctx.lineTo(12, 2); ctx.closePath(); ctx.fill();
+                    } else if (pName === "Estrella Fugaz" || pName === "Poción Estelar") {
+                        // Star shape
+                        ctx.shadowBlur = 18; ctx.shadowColor = "#FFFF00";
+                        ctx.fillStyle = "#FFD700";
+                        ctx.beginPath();
+                        for (var starIdx = 0; starIdx < 5; starIdx++) {
+                            var angle = (starIdx * 2 * Math.PI) / 5 - Math.PI / 2;
+                            ctx.lineTo(Math.cos(angle) * 22, Math.sin(angle) * 22);
+                            angle += Math.PI / 5;
+                            ctx.lineTo(Math.cos(angle) * 8, Math.sin(angle) * 8);
+                        }
+                        ctx.closePath();
+                        ctx.fill();
+                        // Trail for Shooting Star
+                        if (pName === "Estrella Fugaz") {
+                            ctx.strokeStyle = "rgba(255, 215, 0, 0.4)"; ctx.lineWidth = 3;
+                            ctx.beginPath();
+                            ctx.moveTo(-15, 15); ctx.lineTo(-35, 35);
+                            ctx.moveTo(-5, 20); ctx.lineTo(-20, 35);
+                            ctx.stroke();
+                        }
+                    } else if (pName === "Espejo del Vacío") {
+                        // Void Mirror - Oval frame with swirling reflections
+                        ctx.shadowBlur = 15; ctx.shadowColor = "#9370DB";
+                        // Frame
+                        ctx.fillStyle = "#DAA520"; // Golden bronze frame
+                        ctx.save();
+                        ctx.scale(1, 1.4);
+                        ctx.beginPath(); ctx.arc(0, 0, 18, 0, Math.PI * 2); ctx.fill();
+                        // Reflective glass
+                        var mirrorGrad = ctx.createRadialGradient(-3, -3, 2, 0, 0, 14);
+                        mirrorGrad.addColorStop(0, "#EE82EE");
+                        mirrorGrad.addColorStop(1, "#4B0082");
+                        ctx.fillStyle = mirrorGrad;
+                        ctx.beginPath(); ctx.arc(0, 0, 14, 0, Math.PI * 2); ctx.fill();
+                        ctx.restore();
+                        // Handle
+                        ctx.fillStyle = "#DAA520";
+                        ctx.fillRect(-3, 22, 6, 12);
+                    } else if (pName === "Daga de Sacrificio") {
+                        // Sacrifice Dagger - Crimson dagger with black obsidian handle
+                        ctx.shadowBlur = 15; ctx.shadowColor = "#FF0000";
+                        ctx.save();
+                        ctx.rotate(-Math.PI / 4);
+                        // Blade
+                        ctx.fillStyle = "#DC143C"; // Crimson
+                        ctx.beginPath();
+                        ctx.moveTo(-5, -25);
+                        ctx.lineTo(0, -38);
+                        ctx.lineTo(5, -25);
+                        ctx.lineTo(3, 5);
+                        ctx.lineTo(-3, 5);
+                        ctx.closePath(); ctx.fill();
+                        // Blood groove
+                        ctx.fillStyle = "#8B0000";
+                        ctx.fillRect(-1, -25, 2, 22);
+                        // Guard
+                        ctx.fillStyle = "#222";
+                        ctx.fillRect(-10, 5, 20, 4);
+                        // Hilt/Grip
+                        ctx.fillStyle = "#111";
+                        ctx.fillRect(-3, 9, 6, 15);
+                        // Pommel
+                        ctx.fillStyle = "#DC143C";
+                        ctx.beginPath(); ctx.arc(0, 24, 3, 0, Math.PI*2); ctx.fill();
+                        ctx.restore();
+                    } else if (pName === "Capa del Espectro") {
+                        // Ghost Cloak - Translucent purple cowl
+                        ctx.shadowBlur = 15; ctx.shadowColor = "#DA70D6";
+                        ctx.fillStyle = "rgba(147, 112, 219, 0.75)";
+                        ctx.beginPath();
+                        // Hood outline
+                        ctx.moveTo(-18, 15);
+                        ctx.quadraticCurveTo(-18, -15, 0, -22);
+                        ctx.quadraticCurveTo(18, -15, 18, 15);
+                        ctx.lineTo(10, 12);
+                        ctx.lineTo(0, 22);
+                        ctx.lineTo(-10, 12);
+                        ctx.closePath(); ctx.fill();
+                        // Dark void inside hood
+                        ctx.fillStyle = "#111";
+                        ctx.beginPath(); ctx.ellipse(0, -2, 7, 10, 0, 0, Math.PI * 2); ctx.fill();
+                    } else if (pName === "Imán Radiactivo") {
+                        // Radioactive Magnet - Red/grey horseshoe magnet with green sparks
+                        ctx.shadowBlur = 16; ctx.shadowColor = "#32CD32";
+                        ctx.save();
+                        ctx.rotate(Math.PI); // facing up
+                        // Horseshoe body
+                        ctx.strokeStyle = "#FF0000"; ctx.lineWidth = 8;
+                        ctx.beginPath(); ctx.arc(0, 0, 16, 0, Math.PI, true); ctx.stroke();
+                        // Prongs extension
+                        ctx.strokeStyle = "#FF0000";
+                        ctx.beginPath();
+                        ctx.moveTo(-16, 0); ctx.lineTo(-16, -10);
+                        ctx.moveTo(16, 0); ctx.lineTo(16, -10);
+                        ctx.stroke();
+                        // Metal tips
+                        ctx.strokeStyle = "#C0C0C0";
+                        ctx.beginPath();
+                        ctx.moveTo(-16, -10); ctx.lineTo(-16, -15);
+                        ctx.moveTo(16, -10); ctx.lineTo(16, -15);
+                        ctx.stroke();
+                        ctx.restore();
+                        // Green magnetic waves/sparks
+                        ctx.strokeStyle = "#32CD32"; ctx.lineWidth = 1.5;
+                        var sparkY = -18 + Math.sin(animTimer * 10) * 3;
+                        ctx.beginPath();
+                        ctx.moveTo(-22, sparkY); ctx.quadraticCurveTo(0, sparkY - 10, 22, sparkY);
+                        ctx.moveTo(-22, sparkY + 6); ctx.quadraticCurveTo(0, sparkY - 4, 22, sparkY + 6);
+                        ctx.stroke();
+                    } else if (pName === "Té de Resonancia") {
+                        // Resonance Tea - Cute steaming cup of tea
+                        ctx.shadowBlur = 12; ctx.shadowColor = "#FFF8DC";
+                        // Plate
+                        ctx.fillStyle = "#C0C0C0";
+                        ctx.fillRect(-22, 18, 44, 4);
+                        // Cup
+                        ctx.fillStyle = "#F5F5F5";
+                        ctx.beginPath();
+                        ctx.moveTo(-16, -5);
+                        ctx.lineTo(-12, 16);
+                        ctx.quadraticCurveTo(0, 19, 12, 16);
+                        ctx.lineTo(16, -5);
+                        ctx.closePath(); ctx.fill();
+                        // Handle
+                        ctx.strokeStyle = "#F5F5F5"; ctx.lineWidth = 3.5;
+                        ctx.beginPath(); ctx.arc(14, 5, 6, -Math.PI/2, Math.PI/2); ctx.stroke();
+                        // Steam waves
+                        ctx.strokeStyle = "rgba(255, 255, 255, 0.4)"; ctx.lineWidth = 2;
+                        for (var st = -6; st <= 6; st += 6) {
+                            var steamOffset = Math.sin(animTimer * 4 + st) * 3;
+                            ctx.beginPath();
+                            ctx.moveTo(st, -10);
+                            ctx.quadraticCurveTo(st + steamOffset, -18, st, -25);
+                            ctx.stroke();
+                        }
+                    } else if (pName === "Ojo del Ángel") {
+                        // Angel Eye - Mystic winged eye
+                        ctx.shadowBlur = 18; ctx.shadowColor = "#FFD700";
+                        // Wings
+                        ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+                        ctx.beginPath();
+                        ctx.moveTo(-15, 0); ctx.quadraticCurveTo(-32, -18, -12, -22); ctx.quadraticCurveTo(-18, -10, -5, 0); ctx.fill();
+                        ctx.beginPath();
+                        ctx.moveTo(15, 0); ctx.quadraticCurveTo(32, -18, 12, -22); ctx.quadraticCurveTo(18, -10, 5, 0); ctx.fill();
+                        // Eye Sclera (White shape)
+                        ctx.fillStyle = "#FFF";
+                        ctx.beginPath();
+                        ctx.moveTo(-18, 0);
+                        ctx.quadraticCurveTo(0, -12, 18, 0);
+                        ctx.quadraticCurveTo(0, 12, -18, 0);
+                        ctx.closePath(); ctx.fill();
+                        // Iris (Gold)
+                        ctx.fillStyle = "#FF8C00";
+                        ctx.beginPath(); ctx.arc(0, 0, 7, 0, Math.PI*2); ctx.fill();
+                        // Pupil (Cyan glowing)
+                        ctx.fillStyle = "#00FFFF";
+                        ctx.beginPath(); ctx.arc(0, 0, 3.5, 0, Math.PI*2); ctx.fill();
+                    } else if (pName === "Fruto de Cristal") {
+                        // Crystal Fruit - glowing light blue crystal shard
+                        ctx.shadowBlur = 20; ctx.shadowColor = "#00BFFF";
+                        // Draw multi-faceted crystal
+                        ctx.fillStyle = "#E0FFFF";
+                        ctx.beginPath(); ctx.moveTo(0, -25); ctx.lineTo(12, 0); ctx.lineTo(0, 25); ctx.lineTo(-12, 0); ctx.closePath(); ctx.fill();
+                        // Shading lines for facet edges
+                        ctx.fillStyle = "#87CEFA";
+                        ctx.beginPath(); ctx.moveTo(0, -25); ctx.lineTo(0, 25); ctx.lineTo(12, 0); ctx.closePath(); ctx.fill();
+                        ctx.strokeStyle = "#FFFFFF"; ctx.lineWidth = 1;
+                        ctx.beginPath(); ctx.moveTo(0, -25); ctx.lineTo(0, 25); ctx.stroke();
+                    } else if (pName === "Amuleto Caótico") {
+                        // Chaos Amulet - Golden rune frame with color changing gem
+                        ctx.shadowBlur = 16;
+                        var amuletoHue = (animTimer * 120) % 360;
+                        ctx.shadowColor = "hsl(" + amuletoHue + ", 100%, 60%)";
+                        // Gold frame
+                        ctx.fillStyle = "#D4AF37";
+                        ctx.beginPath();
+                        ctx.moveTo(0, -22); ctx.lineTo(18, 8); ctx.lineTo(-18, 8); ctx.closePath(); ctx.fill();
+                        ctx.fillStyle = "#000";
+                        ctx.beginPath();
+                        ctx.moveTo(0, -16); ctx.lineTo(13, 5); ctx.lineTo(-13, 5); ctx.closePath(); ctx.fill();
+                        // Changing center gem
+                        ctx.fillStyle = "hsl(" + amuletoHue + ", 100%, 50%)";
+                        ctx.beginPath(); ctx.arc(0, 0, 7, 0, Math.PI * 2); ctx.fill();
+                    } else if (pName === "Píldora Veloz") {
+                        // Speed Pill - Red & white medicine capsule rotated
+                        ctx.shadowBlur = 12; ctx.shadowColor = "#FF6347";
+                        ctx.save();
+                        ctx.rotate(Math.PI / 4);
+                        // Capsule bottom (white)
+                        ctx.fillStyle = "#FFF";
+                        ctx.beginPath(); ctx.arc(0, 6, 8, 0, Math.PI); ctx.fill();
+                        ctx.fillRect(-8, -4, 16, 10);
+                        // Capsule top (red)
+                        ctx.fillStyle = "#FF0000";
+                        ctx.beginPath(); ctx.arc(0, -6, 8, Math.PI, 0); ctx.fill();
+                        ctx.fillRect(-8, -6, 16, 10);
+                        // Highlight shine
+                        ctx.fillStyle = "rgba(255,255,255,0.4)";
+                        ctx.fillRect(-4, -10, 2, 16);
+                        ctx.restore();
+                    } else if (pName === "Corazón Sangrante") {
+                        // Bleeding Heart - Red heart with pulsing animation and bleed drops
+                        var pulseScale = 1.0 + Math.sin(animTimer * 6) * 0.12;
+                        ctx.shadowBlur = 18; ctx.shadowColor = "#FF0000";
+                        ctx.save();
+                        ctx.scale(pulseScale, pulseScale);
+                        ctx.fillStyle = "#8B0000";
+                        ctx.beginPath();
+                        ctx.moveTo(0, -10);
+                        ctx.bezierCurveTo(-15, -25, -28, -5, 0, 20);
+                        ctx.bezierCurveTo(28, -5, 15, -25, 0, -10);
+                        ctx.fill();
+                        ctx.restore();
+                        // Falling blood droplets
+                        ctx.fillStyle = "#DC143C";
+                        for (var dropIdx = 0; dropIdx < 2; dropIdx++) {
+                            var dropY = 16 + ((animTimer * 30 + dropIdx * 15) % 25);
+                            var dropSize = Math.max(1, 4 - (dropY - 16) * 0.15);
+                            ctx.beginPath(); ctx.arc(0, dropY, dropSize, 0, Math.PI * 2); ctx.fill();
+                        }
+                    } else if (pName === "Polvo Gravitatorio") {
+                        // Gravity Dust - A glowing mound of dark purple star dust
+                        ctx.shadowBlur = 15; ctx.shadowColor = "#9400D3";
+                        // Pile
+                        var dustGrad = ctx.createLinearGradient(-20, 20, 20, 20);
+                        dustGrad.addColorStop(0, "#4B0082");
+                        dustGrad.addColorStop(0.5, "#BA55D3");
+                        dustGrad.addColorStop(1, "#4B0082");
+                        ctx.fillStyle = dustGrad;
+                        ctx.beginPath();
+                        ctx.moveTo(-25, 20);
+                        ctx.quadraticCurveTo(-18, -4, 0, -4);
+                        ctx.quadraticCurveTo(18, -4, 25, 20);
+                        ctx.closePath(); ctx.fill();
+                        // Sparkles
+                        ctx.fillStyle = "#FFF";
+                        for (var sp = 0; sp < 4; sp++) {
+                            var sx = Math.sin(animTimer * 7 + sp * 2) * 18;
+                            var sy = 10 - sp * 6;
+                            ctx.fillRect(sx, sy, 2, 2);
+                        }
+                    } else if (pName === "Alma Sintética") {
+                        // Synthetic Soul - Robotic metal heart with circuit trace lines
+                        ctx.shadowBlur = 14; ctx.shadowColor = "#00FFFF";
+                        ctx.fillStyle = "#333";
+                        ctx.strokeStyle = "#00FFFF"; ctx.lineWidth = 1.5;
+                        // Heart outline
+                        ctx.beginPath();
+                        ctx.moveTo(0, -12);
+                        ctx.bezierCurveTo(-16, -24, -26, -5, 0, 18);
+                        ctx.bezierCurveTo(26, -5, 16, -24, 0, -12);
+                        ctx.fill(); ctx.stroke();
+                        // Electronic trace lines
+                        ctx.beginPath();
+                        ctx.moveTo(-10, -5); ctx.lineTo(-4, 0); ctx.lineTo(4, 0); ctx.lineTo(10, -5);
+                        ctx.moveTo(0, -12); ctx.lineTo(0, 10);
+                        ctx.stroke();
+                        // Central light
+                        ctx.fillStyle = (animTimer * 5 % 2 > 1) ? "#0FF" : "#008B8B";
+                        ctx.beginPath(); ctx.arc(0, 0, 4, 0, Math.PI * 2); ctx.fill();
+                    } else if (pName === "Pacto del Titán") {
+                        // Titan Pact - heavy runic stone slab
+                        ctx.shadowBlur = 15; ctx.shadowColor = "#D2691E";
+                        ctx.fillStyle = "#2F4F4F"; // Dark slate grey stone
+                        ctx.fillRect(-16, -24, 32, 44);
+                        // Cracked edges
+                        ctx.strokeStyle = "#1A3038"; ctx.lineWidth = 1.5;
+                        ctx.beginPath();
+                        ctx.moveTo(-16, -10); ctx.lineTo(-10, -6);
+                        ctx.moveTo(16, 8); ctx.lineTo(8, 4);
+                        ctx.moveTo(0, -24); ctx.lineTo(-4, -16);
+                        ctx.stroke();
+                        // Glowing red runes
+                        ctx.strokeStyle = "#FF3300"; ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.moveTo(-6, -12); ctx.lineTo(6, -12);
+                        ctx.moveTo(-8, -2); ctx.lineTo(0, 4); ctx.lineTo(8, -2);
+                        ctx.moveTo(-4, 12); ctx.lineTo(4, 12);
+                        ctx.stroke();
+                    } else if (pName === "Néctar del Olimpo") {
+                        // Olympus Nectar - golden greek amphora vase overflowing with golden syrup
+                        ctx.shadowBlur = 18; ctx.shadowColor = "#FFD700";
+                        // Golden amphora
+                        ctx.fillStyle = "#FF8C00";
+                        ctx.beginPath();
+                        ctx.moveTo(-6, -18);
+                        ctx.lineTo(6, -18);
+                        ctx.lineTo(12, -8);
+                        ctx.quadraticCurveTo(18, 6, 10, 18);
+                        ctx.lineTo(-10, 18);
+                        ctx.quadraticCurveTo(-18, 6, -12, -8);
+                        ctx.closePath(); ctx.fill();
+                        // Base & Rim decoration
+                        ctx.fillStyle = "#D4AF37";
+                        ctx.fillRect(-8, 18, 16, 4);
+                        ctx.fillRect(-8, -21, 16, 3);
+                        // Handles
+                        ctx.strokeStyle = "#D4AF37"; ctx.lineWidth = 2.5;
+                        ctx.beginPath(); ctx.arc(-10, -3, 8, -Math.PI/2, Math.PI/2, true); ctx.stroke();
+                        ctx.beginPath(); ctx.arc(10, -3, 8, -Math.PI/2, Math.PI/2, false); ctx.stroke();
+                        // Golden overflowing syrup
+                        ctx.fillStyle = "#FFFF00";
+                        ctx.beginPath(); ctx.ellipse(0, -18, 6, 3, 0, 0, Math.PI*2); ctx.fill();
+                        ctx.fillRect(-2, -18, 4, 15);
+                        ctx.beginPath(); ctx.arc(0, -3, 2, 0, Math.PI*2); ctx.fill();
+                    } else if (pName === "Materia Inestable") {
+                        // Shifting energetic orb
+                        ctx.shadowBlur = 18 + Math.sin(animTimer * 15) * 6;
+                        ctx.shadowColor = "#FF4500";
+                        var unstableGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, 16 + Math.sin(animTimer * 10) * 4);
+                        unstableGrad.addColorStop(0, "#FFFF00");
+                        unstableGrad.addColorStop(0.5, "#FF4500");
+                        unstableGrad.addColorStop(1, "rgba(255,0,0,0)");
+                        ctx.fillStyle = unstableGrad;
+                        ctx.beginPath(); ctx.arc(0, 0, 22, 0, Math.PI * 2); ctx.fill();
+                    } else if (pName === "Escudo Espinoso") {
+                        // Shield with thorns
+                        ctx.shadowBlur = 12; ctx.shadowColor = "#87CEEB";
+                        ctx.fillStyle = "#4682B4";
+                        ctx.beginPath();
+                        ctx.moveTo(-16, -16);
+                        ctx.lineTo(16, -16);
+                        ctx.lineTo(12, 4);
+                        ctx.quadraticCurveTo(0, 18, 0, 22);
+                        ctx.quadraticCurveTo(0, 18, -12, 4);
+                        ctx.closePath(); ctx.fill();
+                        // Silver border
+                        ctx.strokeStyle = "#FFF"; ctx.lineWidth = 2;
+                        ctx.stroke();
+                        // Spikes
+                        ctx.fillStyle = "#FFF";
+                        ctx.beginPath();
+                        ctx.moveTo(-18, -8); ctx.lineTo(-24, -8); ctx.lineTo(-15, -4); ctx.fill();
+                        ctx.beginPath();
+                        ctx.moveTo(18, -8); ctx.lineTo(24, -8); ctx.lineTo(15, -4); ctx.fill();
+                    } else if (pName === "Café Hiperactivo") {
+                        // Hyper Coffee - hot coffee mug
+                        ctx.shadowBlur = 15; ctx.shadowColor = "#D2691E";
+                        // Cup
+                        ctx.fillStyle = "#8B4513";
+                        ctx.fillRect(-15, -5, 30, 22);
+                        // Handle
+                        ctx.strokeStyle = "#8B4513"; ctx.lineWidth = 3.5;
+                        ctx.beginPath(); ctx.arc(14, 5, 5, -Math.PI/2, Math.PI/2); ctx.stroke();
+                        // Coffee surface
+                        ctx.fillStyle = "#F5DEB3";
+                        ctx.beginPath(); ctx.ellipse(0, -5, 15, 4, 0, 0, Math.PI*2); ctx.fill();
+                        // Steam
+                        ctx.strokeStyle = "rgba(255, 255, 255, 0.3)"; ctx.lineWidth = 1.5;
+                        for (var steamIdx = -8; steamIdx <= 8; steamIdx += 8) {
+                            var offset = Math.sin(animTimer * 5 + steamIdx) * 2;
+                            ctx.beginPath(); ctx.moveTo(steamIdx, -10); ctx.quadraticCurveTo(steamIdx + offset, -16, steamIdx, -22); ctx.stroke();
+                        }
+                    } else if (pName === "Inversor Fatal") {
+                        // Inverted black/white flask
+                        ctx.shadowBlur = 18; ctx.shadowColor = "#FFF";
+                        var invTime = (animTimer * 2) % 2;
+                        ctx.fillStyle = (invTime > 1) ? "#000" : "#FFF";
+                        ctx.strokeStyle = (invTime > 1) ? "#FFF" : "#000";
+                        ctx.lineWidth = 2.5;
+                        ctx.beginPath();
+                        ctx.moveTo(-18, 18); ctx.lineTo(18, 18); ctx.lineTo(4, -14); ctx.lineTo(-4, -14);
+                        ctx.closePath();
+                        ctx.fill(); ctx.stroke();
+                    } else if (pName.indexOf("Potion") !== -1 || pName.indexOf("Poción") !== -1 || pName.indexOf("Tónico") !== -1 || pName.indexOf("Brebaje") !== -1 || pName.indexOf("Elixir") !== -1) {
+                        // VOLUMETRIC FLASK (Balón Aforado) / Custom potions
+                        var fillCol = "#0FF";
+                        var auraCol = "#0FF";
+                        var sizeScale = 1.0;
+                        var bubbleEffect = false;
+                        var sparkEffect = false;
+                        var toxicEffect = false;
+                        
+                        if (pName === "Poción de Gigante") {
+                            fillCol = "#228B22"; // Dark Forest Green
+                            auraCol = "#32CD32"; // Lime
+                            sizeScale = 1.5;
+                            bubbleEffect = true;
+                        } else if (pName === "Brebaje Encojedor") {
+                            fillCol = "#BA55D3"; // Orchid Violet
+                            auraCol = "#EE82EE"; // Fuchsia
+                            sizeScale = 0.55;
+                            bubbleEffect = true;
+                        } else if (pName === "Tónico Berserker") {
+                            fillCol = "#FF0000"; // Pure Red
+                            auraCol = "#FF8C00"; // Orange
+                            sizeScale = 1.1;
+                            sparkEffect = true;
+                        } else if (pName === "Elixir Caducado") {
+                            fillCol = "#BDB76B"; // Muddy Olive/Khaki
+                            auraCol = "#808000"; // Olive
+                            bubbleEffect = true;
+                        } else if (pName === "Poción de Canje") {
+                            var canjeGrad = ctx.createLinearGradient(-10, 0, 10, 0);
+                            canjeGrad.addColorStop(0, "#FFD700");
+                            canjeGrad.addColorStop(1, "#00FFFF");
+                            fillCol = canjeGrad;
+                            auraCol = "#E0FFFF";
+                        } else if (pName === "Brebaje Tóxico") {
+                            fillCol = "#7FFF00"; // Lime green
+                            auraCol = "#32CD32";
+                            toxicEffect = true;
+                            bubbleEffect = true;
+                        } else if (pName === "Tónico Necrótico") {
+                            fillCol = "#4B0082"; // Indigo
+                            auraCol = "#9400D3"; // Purple
+                            bubbleEffect = true;
+                        }
+                        
+                        ctx.shadowBlur = 15;
+                        ctx.shadowColor = auraCol;
+                        ctx.save();
+                        ctx.scale(sizeScale, sizeScale);
+                        
+                        // Flask base (flat bottom spherical flask)
+                        ctx.fillStyle = fillCol;
+                        ctx.beginPath();
+                        ctx.arc(0, 10, 16, -Math.PI / 4, Math.PI + Math.PI / 4);
+                        ctx.lineTo(-4, -14);
+                        ctx.lineTo(4, -14);
+                        ctx.closePath();
+                        ctx.fill();
+                        
+                        // Flask glass body outline
+                        ctx.strokeStyle = "rgba(255, 255, 255, 0.75)";
+                        ctx.lineWidth = 2.0;
+                        ctx.beginPath();
+                        ctx.arc(0, 10, 18, -Math.PI / 4, Math.PI + Math.PI / 4);
+                        ctx.lineTo(-5, -16);
+                        ctx.lineTo(5, -16);
+                        ctx.closePath();
+                        ctx.stroke();
+                        
+                        // Liquid top curve (showing meniscus)
+                        ctx.fillStyle = "rgba(255, 255, 255, 0.35)";
+                        ctx.beginPath();
+                        ctx.ellipse(0, -2, 11, 3, 0, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        // Graduation line (Aforado mark)
+                        ctx.strokeStyle = "#FFFFFF"; ctx.lineWidth = 1;
+                        ctx.beginPath(); ctx.moveTo(-5, -8); ctx.lineTo(5, -8); ctx.stroke();
+                        
+                        // Cork stopper
+                        ctx.fillStyle = "#8B4513";
+                        ctx.fillRect(-4.5, -22, 9, 7);
+                        
+                        // Bubble bubbles
+                        if (bubbleEffect) {
+                            ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
+                            for (var bubbleIdx = 0; bubbleIdx < 3; bubbleIdx++) {
+                                var bx = Math.sin(animTimer * 6 + bubbleIdx * 2) * 8;
+                                var by = 15 - ((animTimer * 15 + bubbleIdx * 10) % 18);
+                                if (by > -3) {
+                                    ctx.beginPath(); ctx.arc(bx, by, 1.5, 0, Math.PI * 2); ctx.fill();
+                                }
+                            }
+                        }
+                        // Electric sparks
+                        if (sparkEffect) {
+                            ctx.strokeStyle = "#FFFF00"; ctx.lineWidth = 1.5;
+                            ctx.beginPath();
+                            var sparkX = Math.sin(animTimer * 12) * 12;
+                            var sparkY = Math.cos(animTimer * 12) * 12 + 10;
+                            ctx.moveTo(sparkX - 3, sparkY - 3); ctx.lineTo(sparkX + 3, sparkY + 3);
+                            ctx.stroke();
+                        }
+                        // Toxic skull inside flask
+                        if (toxicEffect) {
+                            ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+                            ctx.beginPath(); ctx.arc(0, 10, 5, 0, Math.PI * 2); ctx.fill();
+                            ctx.fillRect(-2, 13, 4, 3);
+                        }
+                        
+                        ctx.restore();
                     } else {
-                        // Bottle
+                        // Fallback generic items (like custom items with no match)
+                        // Volumetric Flask / Cylinder shape
                         ctx.shadowBlur = 12;
                         ctx.shadowColor = "#0FF";
                         ctx.fillStyle = "rgba(0, 200, 255, 0.6)";
