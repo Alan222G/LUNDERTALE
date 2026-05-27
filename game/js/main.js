@@ -57,8 +57,12 @@ var main = {
         this.ctx.restore();
 
         // Update & Draw
-        this.update(dt);
-        this.draw(this.ctx);
+        try {
+            this.update(dt);
+            this.draw(this.ctx);
+        } catch (e) {
+            console.error("[Game Loop Error]:", e);
+        }
 
         // Debug info
         if (this.debug) {

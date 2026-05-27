@@ -302,7 +302,15 @@ var BossController = (function() {
         if (!currentPattern || !isAttacking) return true; // Done
 
         attackTimer += dt;
-        currentPattern.update(dt);
+        try {
+            currentPattern.update(dt);
+        } catch (e) {
+            console.error("[BossController] Pattern update error:", e);
+            // Gracefully end the attack instead of freezing
+            isAttacking = false;
+            currentPattern = null;
+            return true;
+        }
 
         // Karma update
         if (enemy && enemy.karmaEnabled) {
@@ -312,8 +320,14 @@ var BossController = (function() {
         // Check collision with soul
         if (Soul.isOkay()) {
             var soulPos = Soul.getPos();
-            var dmg = currentPattern.checkCollision(
-                soulPos.x, soulPos.y, Soul.getWidth(), Soul.getHeight());
+            var dmg = 0;
+            try {
+                dmg = currentPattern.checkCollision(
+                    soulPos.x, soulPos.y, Soul.getWidth(), Soul.getHeight());
+            } catch (e) {
+                console.error("[BossController] Pattern collision error:", e);
+                dmg = 0;
+            }
             if (dmg > 0) {
                 if (Soul.takeDamage()) {
                     var dmgMult = (enemy && enemy.currentPhase === 1) ? 1.2 : 1.1; // +20% Phase 2, +10% Phase 1
@@ -342,7 +356,14 @@ var BossController = (function() {
         }
 
         // Check if pattern is done
-        if (currentPattern.isOver()) {
+        var patternOver = false;
+        try {
+            patternOver = currentPattern.isOver();
+        } catch (e) {
+            console.error("[BossController] Pattern isOver error:", e);
+            patternOver = true;
+        }
+        if (patternOver) {
             isAttacking = false;
             Soul.setSoulMode(Soul.SOUL_MODE.RED); // Reset to red
             return true;
@@ -359,7 +380,14 @@ var BossController = (function() {
             ctx.beginPath();
             ctx.rect(bb[0], bb[1], bb[2] - bb[0], bb[3] - bb[1]);
             ctx.clip();
-            currentPattern.draw(ctx);
+            try {
+                currentPattern.draw(ctx);
+            } catch (e) {
+                console.error("[BossController] Pattern draw error:", e);
+                // Gracefully end the attack instead of freezing
+                isAttacking = false;
+                currentPattern = null;
+            }
             ctx.restore();
         }
     }
