@@ -22,8 +22,8 @@ var Cgroup = (function() {
             setupGodzilla();
         } else if (currentBossId === "vader") {
             setupVader();
-        } else if (currentBossId === "thanos") {
-            setupThanos();
+        } else if (currentBossId === "alien") {
+            setupAlien();
         } else {
             setupSingularity();
         }
@@ -543,88 +543,89 @@ var Cgroup = (function() {
         defends = [];
     }
 
-    function setupThanos() {
+    function setupAlien() {
         enemies = [
             new Enemy({
-                name: "Thanos",
-                checkText: "El Titán Loco. El Guantelete del Infinito brilla con un poder cósmico absoluto.",
+                name: "Xenomorfo",
+                checkText: "El organismo perfecto. Su sangre es ácido concentrado y su agresividad es absoluta.",
                 maxHP: 3500,
                 curHP: 3500,
-                renderType: "thanos_normal",
-                atk: 25,
-                def: 22,
-                defense: 1.6,
-                acts: ["Check", "Reason", "Challenge", "Flee"],
+                renderType: "alien_stalker",
+                atk: 28,
+                def: 24,
+                defense: 1.5,
+                acts: ["Check", "Resin/Clean", "Distract", "Flee"],
                 actResponses: [
-                    "* THANOS - ATK 25 DEF 22\n* El Titán Loco. Su voluntad es inquebrantable.",
-                    "* Intentas razonar sobre el equilibrio del universo.\n* Thanos sonríe con condescendencia. 'Soy inevitable'.",
-                    "* Desafías su poder cósmico.\n* El Guantelete brilla intensamente. Su ira aumenta.",
-                    "* ¡No hay escape del chasquido del Titán!"
+                    "* XENOMORFO - ATK 28 DEF 24\n* El organismo perfecto. Su estructura biológica no tiene debilidades.",
+                    "* Intentas limpiar la resina ácida pegajosa a tu alrededor.\n* Te mueves con mayor soltura y agilidad.",
+                    "* Haces ruidos metálicos fuertes para distraer sus sensores.\n* El Alien se desorienta momentáneamente. Su defensa disminuye.",
+                    "* ¡No hay escape del depredador perfecto!"
                 ],
                 actFunctions: [
-                    function() { console.log("Checked Thanos"); },
+                    function() { console.log("Checked Alien"); },
                     function() {
-                        console.log("Reasoned with Thanos");
+                        console.log("Cleaned Resin");
                         enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 20);
+                        if (typeof Player !== "undefined" && Player.addSpeedBuff) {
+                            Player.addSpeedBuff(1.3, 2.0); // Boost speed by 30% for 2s
+                        }
                     },
                     function() {
-                        console.log("Challenged Thanos");
-                        enemies[0].defense = Math.max(0.9, enemies[0].defense - 0.15);
+                        console.log("Distracted Alien");
+                        enemies[0].defense = Math.max(0.85, enemies[0].defense - 0.12);
                         enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 25);
                     },
                     function() {
-                        console.log("Flee Thanos failed");
+                        console.log("Flee Alien failed");
                     }
                 ],
                 texts: [
-                    "* Las Gemas del Infinito parpadean con luz amenazante.",
-                    "* El tejido del espacio-tiempo cruje a tu alrededor.",
-                    "* Thanos te observa, calculando el costo de tu existencia.",
-                    "* Sientes un escalofrío cósmico al ver el Guantelete."
+                    "* Un siseo metálico resuena desde las tuberías del techo.",
+                    "* Hueles ácido corrosivo y vapores químicos letales.",
+                    "* El Xenomorfo acecha desde las sombras, con su cola segmentada siseando.",
+                    "* La saliva ácida gotea lentamente al suelo, corroyendo el metal."
                 ],
                 speech: [
-                    "UN EQUILIBRIO\nPERFECTO.",
-                    "SOY\nINEVITABLE.",
-                    "TUS ACCIONES\nSOLO LLEVAN\nAL DESTINO.",
-                    "EL UNIVERSO\nDEBE SER\nDEPURADO."
+                    "HISSSSS...",
+                    "SCREEECH!",
+                    "*siseo metálico*",
+                    "*goteo de ácido*"
                 ],
-                spriteId: "asriel",
+                spriteId: "napstablook",
                 attacks: [
-                    "thanosRealityAlter", "thanosSpaceWarp", "thanosPowerFist", 
-                    "thanosTimeDagger", "thanosMindControl", "thanosSoulTrap", "thanosTitanBlade",
-                    "thanosRealitySlash", "thanosSpaceCompress", "thanosPowerBlast", 
-                    "thanosTimeParadox", "thanosMindMaze", "thanosInfinitySnap", 
-                    "thanosMeteorRain", "thanosSoulDevour"
+                    "alienAcidSpit", "alienTailWhip", "alienInnerJaw", "alienClawSlash", "alienWallCrawl", 
+                    "alienFacehugger", "alienTailSpear", "alienAcidPuddle", "alienCeilingDrop", "alienTailSweep", 
+                    "alienHiveSpike", "alienChestburster", "alienQueenCall", "alienHiveWebbing", "alienSpitfire"
                 ],
                 phases: [
                     { 
-                        patterns: ["thanosRealityAlter", "thanosSpaceWarp", "thanosPowerFist", "thanosTimeDagger", "thanosMindControl", "thanosSoulTrap", "thanosTitanBlade"], 
+                        patterns: ["alienAcidSpit", "alienTailWhip", "alienInnerJaw", "alienClawSlash", "alienWallCrawl", "alienFacehugger", "alienTailSpear"], 
                         soulMode: "red", 
-                        renderType: "thanos_normal",
-                        speech: ["EL FIN ESTA\nCERCA.", "SOY LA\nREALIDAD.", "EL EQUILIBRIO\nSE ACERCA."] 
+                        renderType: "alien_stalker",
+                        speech: ["HISSSSS...", "SCREEECH!", "*siseo*"] 
                     },
                     { 
-                        patterns: ["thanosRealitySlash", "thanosSpaceCompress", "thanosPowerBlast", "thanosTimeParadox", "thanosMindMaze", "thanosRealityAlter", "thanosPowerFist"], 
+                        patterns: ["alienAcidSpit", "alienTailWhip", "alienAcidPuddle", "alienCeilingDrop", "alienTailSweep", "alienHiveSpike", "alienChestburster"], 
                         soulMode: "red", 
-                        renderType: "thanos_charged",
-                        speech: ["¿SIENTES EL\nPODER DEL\nGUANTELETE?", "EL TIEMPO Y\nEL ESPACIO\nME PERTENECEN.", "TE DESINTEGRAS\nLENTAMENTE."] 
+                        renderType: "alien_warrior",
+                        speech: ["*goteo de ácido*", "SCREEECH!", "¡HISSSSS!"] 
                     },
                     { 
-                        patterns: ["thanosInfinitySnap", "thanosMeteorRain", "thanosSoulDevour", "thanosSpaceCompress", "thanosTimeParadox", "thanosTimeDagger", "thanosTitanBlade"], 
+                        patterns: ["alienInnerJaw", "alienTailSpear", "alienQueenCall", "alienHiveWebbing", "alienSpitfire", "alienAcidPuddle", "alienHiveSpike"], 
                         soulMode: "red", 
-                        renderType: "thanos_omnipotent",
-                        speech: ["¡TODO ES\nPOLVO!", "¡EL PODER\nABSOLUTO ES\nMIO!", "¡NO ERES\nNADA ANTE\nMI VOLUNTAD!"] 
+                        renderType: "alien_queen",
+                        speech: ["¡SCREEEEEECH!", "¡CRACK!", "¡SANGRE ÁCIDA!"] 
                     }
                 ],
-                phaseHP: [3500, 4500, 6000],
+                phaseHP: [3500, 4800, 6500],
                 karmaEnabled: false,
                 jitterEnabled: false,
                 damagePos: new Vect(370, 290, 0),
                 damageVel: 120,
                 bubbleOff: 30,
                 mercyHP: 100,
-                xpReward: 2000,
-                goldReward: 1000,
+                xpReward: 2500,
+                goldReward: 1200,
             })
         ];
         enemies[0].bubblePos = enemies[0].damagePos.getAdd(new Vect(60, -160, 0));

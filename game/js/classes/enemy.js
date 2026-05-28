@@ -6,9 +6,33 @@ var Enemy = function(config) {
     this.name = config.name || "Unknown";
     this.checkText = config.checkText || "* Just a regular enemy.";
 
-    // Stats
-    this.maxHP = config.maxHP || 100;
-    this.curHP = config.curHP || this.maxHP;
+    // Stats and Dynamic HP Scaling according to guidelines:
+    // - Reduce HP by 500 for characters with > 5000 HP.
+    // - Reduce HP by 1000 for characters with >= 7000 HP.
+    // - For Godzilla, increase the reduction by 200 for each 1000 HP above 7000.
+    var isGodzilla = (config.name && config.name.toLowerCase() === "godzilla");
+    function adjustHP(hp) {
+        if (hp > 5000 && hp < 7000) {
+            return hp - 500;
+        } else if (hp >= 7000) {
+            var reduction = 1000;
+            if (isGodzilla) {
+                var extraThousands = Math.floor((hp - 7000) / 1000);
+                reduction += 200 * extraThousands;
+            }
+            return hp - reduction;
+        }
+        return hp;
+    }
+
+    var baseMaxHP = config.maxHP || 100;
+    this.maxHP = adjustHP(baseMaxHP);
+    if (config.curHP) {
+        this.curHP = adjustHP(config.curHP);
+    } else {
+        this.curHP = this.maxHP;
+    }
+
     this.atk = config.atk || 5;
     this.def = config.def || 5;
     this.defense = config.defense || 1; // Damage divisor
@@ -22,7 +46,13 @@ var Enemy = function(config) {
 
     // Boss phases (optional)
     this.phases = config.phases || null;
-    this.phaseHP = config.phaseHP || null; // Array of HP per phase, e.g. [3600, 4200]
+    if (config.phaseHP) {
+        this.phaseHP = config.phaseHP.map(function(hp) {
+            return adjustHP(hp);
+        });
+    } else {
+        this.phaseHP = null;
+    }
     this.currentPhase = 0;
 
     // Attack patterns (array of pattern names)
@@ -145,9 +175,9 @@ Enemy.prototype.draw = function(ctx) {
         ctx.save(); ctx.translate(370, 160); ctx.scale(1.4, 1.4); ctx.translate(-370, -160);
         this.drawVader(ctx);
         ctx.restore();
-    } else if (this.renderType === "thanos_normal" || this.renderType === "thanos_charged" || this.renderType === "thanos_omnipotent") {
-        ctx.save(); ctx.translate(370, 160); ctx.scale(1.4, 1.4); ctx.translate(-370, -160);
-        this.drawThanos(ctx);
+    } else if (this.renderType === "alien_stalker" || this.renderType === "alien_warrior" || this.renderType === "alien_queen") {
+        ctx.save(); ctx.translate(370, 160); ctx.scale(1.3, 1.3); ctx.translate(-370, -160);
+        this.drawAlien(ctx);
         ctx.restore();
     } else if (this.renderType === "sachiel") {
         ctx.save(); ctx.translate(370, 160); ctx.scale(1.4, 1.4); ctx.translate(-370, -160);
@@ -3845,502 +3875,749 @@ Enemy.prototype.drawVader = function(ctx) {
     ctx.restore();
 };
 
-Enemy.prototype.drawThanos = function(ctx) {
+Enemy.prototype.drawAlien = function(ctx) {
     var time = Date.now() / 1000;
-    var isCharged = this.renderType === "thanos_charged";
-    var isOmni = this.renderType === "thanos_omnipotent";
+    var type = this.renderType; // "alien_stalker", "alien_warrior", "alien_queen"
     
-    // Smooth sinusoidal breathing and floating
-    var breathe = 1.0 + Math.sin(time * 2.5) * 0.012;
-    var floatY = isOmni ? Math.sin(time * 3.2) * 6.5 : 0.0; // Phase 3 floats imposingly
+    // Smooth sinusoidal breathing and floating based on phase
+    var breatheSpeed = type === "alien_queen" ? 1.8 : (type === "alien_warrior" ? 3.0 : 2.2);
+    var breathe = 1.0 + Math.sin(time * breatheSpeed) * 0.015;
+    var floatAmp = type === "alien_queen" ? 8.0 : (type === "alien_stalker" ? 2.0 : 4.0);
+    var floatY = Math.sin(time * 2.0) * floatAmp;
 
     ctx.save();
     ctx.translate(370, 145 + floatY); // Centered and adjusted height
     ctx.scale(breathe, breathe);
 
-    // ----------------------------------------------------
-    // 0. COSMIC ENERGY STORM AURA (Phase 2 & 3 only)
-    // ----------------------------------------------------
-    if (isOmni) {
-        ctx.save();
-        ctx.globalCompositeOperation = "screen";
-        var pulse = 1.0 + Math.sin(time * 8) * 0.15;
-        
-        // Multi-colored cosmic radial storm
-        var stormGrad = ctx.createRadialGradient(0, 0, 15, 0, 0, 150 * pulse);
-        stormGrad.addColorStop(0, "rgba(213, 0, 249, 0.35)");    // Purple Power
-        stormGrad.addColorStop(0.25, "rgba(0, 191, 255, 0.28)"); // Space Blue
-        stormGrad.addColorStop(0.5, "rgba(0, 230, 118, 0.22)");  // Time Green
-        stormGrad.addColorStop(0.75, "rgba(255, 215, 0, 0.15)"); // Mind Gold
-        stormGrad.addColorStop(0.9, "rgba(255, 61, 0, 0.08)");   // Reality Crimson
-        stormGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
-        ctx.fillStyle = stormGrad;
-        ctx.beginPath();
-        ctx.arc(0, 0, 160 * pulse, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Draw orbital storm trails
-        ctx.strokeStyle = "rgba(213, 0, 249, 0.25)";
-        ctx.lineWidth = 1.5;
-        for (var st = 0; st < 3; st++) {
-            ctx.save();
-            ctx.rotate(time * 1.5 + st * Math.PI / 3);
-            ctx.beginPath();
-            ctx.ellipse(0, 0, 120 + st * 15, 45, 0.2, 0, Math.PI * 2);
-            ctx.stroke();
-            ctx.restore();
-        }
-        ctx.restore();
-    } else if (isCharged) {
-        // Charging cosmic aura
-        ctx.save();
-        ctx.globalCompositeOperation = "screen";
-        var pulse = 1.0 + Math.sin(time * 5) * 0.1;
-        var auraGrad = ctx.createRadialGradient(0, 0, 20, 0, 0, 110 * pulse);
-        auraGrad.addColorStop(0, "rgba(138, 43, 226, 0.25)");
-        auraGrad.addColorStop(0.6, "rgba(75, 0, 130, 0.15)");
-        auraGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
-        ctx.fillStyle = auraGrad;
-        ctx.beginPath();
-        ctx.arc(0, 0, 115 * pulse, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-    }
-
-    // ----------------------------------------------------
-    // 1. THANOS HYPER-MUSCULAR TORSO & ARMOR
-    // ----------------------------------------------------
-    // Massive trapezius backing
-    ctx.fillStyle = "#1e1236"; // Deep indigo backing shadow
-    ctx.beginPath();
-    ctx.moveTo(-90, 85);
-    ctx.quadraticCurveTo(-65, 15, -30, 5); // Trapezius slope left
-    ctx.lineTo(30, 5); // Trapezius slope right
-    ctx.quadraticCurveTo(65, 15, 90, 85);
-    ctx.closePath();
-    ctx.fill();
-
-    // Muscle-defined purplish-indigo vest armor
-    ctx.fillStyle = "#2D1B54"; // Indigo base
-    ctx.beginPath();
-    ctx.moveTo(-65, 85);
-    ctx.bezierCurveTo(-75, 35, -55, 0, -40, -5);
-    ctx.lineTo(40, -5);
-    ctx.bezierCurveTo(55, 0, 75, 35, 65, 85);
-    ctx.closePath();
-    ctx.fill();
-
-    // Defined Pectoral Chest Plates
-    ctx.fillStyle = "#1D0E3D"; // Shading under pectorals
-    ctx.beginPath();
-    ctx.moveTo(-38, 25);
-    ctx.lineTo(38, 25);
-    ctx.lineTo(0, 45);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.fillStyle = "#3B266C"; // Highlight chest muscle bulk
-    ctx.beginPath();
-    ctx.ellipse(-20, 12, 18, 12, 0.1, 0, Math.PI * 2);
-    ctx.ellipse(20, 12, 18, 12, -0.1, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Metallic Gold Chest Trim / Collars (Detailed plate armor)
-    var goldGrad = ctx.createLinearGradient(-60, -15, 60, -15);
-    goldGrad.addColorStop(0, "#8B6508");  // Dark Gold
-    goldGrad.addColorStop(0.3, "#DAA520"); // Gold
-    goldGrad.addColorStop(0.5, "#FFD700"); // Shiny Gold
-    goldGrad.addColorStop(0.7, "#DAA520");
-    goldGrad.addColorStop(1, "#8B6508");
-
-    ctx.strokeStyle = goldGrad;
-    ctx.lineWidth = 3.5;
-    ctx.beginPath();
-    ctx.moveTo(-22, -4);
-    ctx.quadraticCurveTo(0, 5, 22, -4);
-    ctx.stroke();
-
-    // Gold Armor Plate Stripes down center
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    ctx.moveTo(-16, 25);
-    ctx.lineTo(0, 45);
-    ctx.lineTo(16, 25);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(-10, 50);
-    ctx.lineTo(0, 68);
-    ctx.lineTo(10, 50);
-    ctx.stroke();
-
-    // ----------------------------------------------------
-    // 2. DETAILED GOLD PAULDRONS (Overlapping Shoulder Plates)
-    // ----------------------------------------------------
-    ctx.fillStyle = goldGrad;
-    ctx.strokeStyle = "#5A4200";
-    ctx.lineWidth = 1.5;
-
-    // Left Pauldron (Segmented layered shoulder plates)
-    ctx.beginPath();
-    ctx.moveTo(-70, 20);
-    ctx.bezierCurveTo(-66, -18, -36, -24, -18, -14); // Plate 1
-    ctx.lineTo(-26, 32);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.fillStyle = "rgba(0, 0, 0, 0.18)"; // Inner shading on shoulder segments
-    ctx.beginPath();
-    ctx.moveTo(-54, -2);
-    ctx.lineTo(-30, 24);
-    ctx.lineTo(-44, 30);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = goldGrad;
-
-    // Right Pauldron
-    ctx.beginPath();
-    ctx.moveTo(70, 20);
-    ctx.bezierCurveTo(66, -18, 36, -24, 18, -14); // Plate 1
-    ctx.lineTo(26, 32);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.fillStyle = "rgba(0, 0, 0, 0.18)";
-    ctx.beginPath();
-    ctx.moveTo(54, -2);
-    ctx.lineTo(30, 24);
-    ctx.lineTo(44, 30);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = goldGrad;
-
-    // ----------------------------------------------------
-    // 3. STRONG NECK & ANATOMICAL FACE (Bald Imposing Skull)
-    // ----------------------------------------------------
-    // Muscular neck
-    ctx.fillStyle = "#6F49A2"; // Purple skin
-    ctx.fillRect(-15, -24, 30, 22);
-    
-    // Neck muscle shading (sternocleidomastoid lines)
-    ctx.strokeStyle = "#4D3075";
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    ctx.moveTo(-11, -20);
-    ctx.lineTo(-5, 0);
-    ctx.moveTo(11, -20);
-    ctx.lineTo(5, 0);
-    ctx.stroke();
-
-    // Imposing Head logic (Helmet in Phase 1, Impressive Bald Head in Phase 2/3)
-    if (!isCharged && !isOmni) {
-        // --- PHASE 1: SLEEK METALLIC WARLORD HELMET ---
-        // Purple face base
-        ctx.fillStyle = "#6F49A2";
-        ctx.beginPath();
-        ctx.moveTo(-19, -42);
-        ctx.bezierCurveTo(-19, -56, -10, -58, 0, -58);
-        ctx.bezierCurveTo(10, -58, 19, -56, 19, -42);
-        ctx.lineTo(16, -22);
-        ctx.bezierCurveTo(12, -18, -12, -18, -16, -22);
-        ctx.closePath();
-        ctx.fill();
-
-        // Sleek helmet with cheek guards and crest
-        ctx.fillStyle = goldGrad;
-        ctx.strokeStyle = "#5A4200";
-        ctx.lineWidth = 1.2;
-        ctx.beginPath();
-        ctx.arc(0, -42, 20.5, Math.PI, 0, false); // Skullcap
-        ctx.lineTo(19.5, -34);
-        ctx.lineTo(15, -20); // Cheek guard right
-        ctx.lineTo(7, -36);
-        ctx.lineTo(-7, -36);
-        ctx.lineTo(-15, -20); // Cheek guard left
-        ctx.lineTo(-19.5, -34);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-
-        // Helmet crest
-        ctx.beginPath();
-        ctx.moveTo(-4, -58);
-        ctx.lineTo(0, -75);
-        ctx.lineTo(4, -58);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-
-        // Imposing brow shadow
-        ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
-        ctx.fillRect(-12, -40, 24, 3);
-    } else {
-        // --- PHASE 2 & 3: MASSIVE BALD REALISTIC HEAD ---
-        ctx.fillStyle = "#6F49A2"; // Purple base skin
-        ctx.beginPath();
-        ctx.arc(0, -44, 20, Math.PI, 0, false); // Broad skull top
-        ctx.lineTo(19, -26);
-        // Broad square jaw
-        ctx.bezierCurveTo(19, -15, 10, -14, 0, -14);
-        ctx.bezierCurveTo(-10, -14, -19, -15, -19, -26);
-        ctx.closePath();
-        ctx.fill();
-
-        // Imposing facial musculature (shading and highlights)
-        ctx.fillStyle = "rgba(0, 0, 0, 0.35)"; // Brow ridge shadow
-        ctx.fillRect(-14, -38, 28, 4.5);
-        
-        ctx.fillStyle = "rgba(0, 0, 0, 0.22)"; // Cheek/nose shadows
-        ctx.beginPath();
-        ctx.moveTo(-3, -36);
-        ctx.lineTo(3, -36);
-        ctx.lineTo(2, -24);
-        ctx.lineTo(-2, -24);
-        ctx.closePath();
-        ctx.fill();
-        
-        ctx.beginPath();
-        ctx.ellipse(-12, -26, 4, 6, 0.2, 0, Math.PI*2); // Cheek hollow left
-        ctx.ellipse(12, -26, 4, 6, -0.2, 0, Math.PI*2); // Cheek hollow right
-        ctx.fill();
-
-        ctx.fillStyle = "#7E56B8"; // Cheekbone highlights
-        ctx.fillRect(-14, -31, 5, 2);
-        ctx.fillRect(9, -31, 5, 2);
-
-        // Intimidating chin ridges (5 deep vertical lines representing realistic alien physiology)
-        ctx.strokeStyle = "rgba(0, 0, 0, 0.6)";
-        ctx.lineWidth = 1.8;
-        for (var r = -4; r <= 4; r += 2) {
-            ctx.beginPath();
-            ctx.moveTo(r * 3.4, -20);
-            ctx.lineTo(r * 3.4, -14);
-            ctx.stroke();
-        }
-    }
-
-    // Fierce glowing eyes (white slits in Phase 1, golden glowing in Phase 2/3)
-    ctx.fillStyle = (isOmni || isCharged) ? "#FFD700" : "#FFFFFF";
-    if (isOmni || isCharged) {
-        ctx.save();
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = "#FFD700";
-    }
-    // Angry angled eye paths
-    ctx.beginPath();
-    ctx.moveTo(-11, -37);
-    ctx.lineTo(-4.5, -35.5);
-    ctx.lineTo(-9.5, -34);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.beginPath();
-    ctx.moveTo(11, -37);
-    ctx.lineTo(4.5, -35.5);
-    ctx.lineTo(9.5, -34);
-    ctx.closePath();
-    ctx.fill();
-    if (isOmni || isCharged) ctx.restore();
-
-    // ----------------------------------------------------
-    // 4. HYPER-MUSCULAR DELTOIDS AND BICEPS
-    // ----------------------------------------------------
-    // deltoid and bicep definitions
-    ctx.fillStyle = "#6F49A2";
-    
-    // Left Deltoid (Shoulder muscle)
-    ctx.beginPath();
-    ctx.ellipse(-78, 38, 20, 24, 0.25, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Right Deltoid
-    ctx.beginPath();
-    ctx.ellipse(78, 38, 20, 24, -0.25, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Right muscular arm holding weapon (Phase 3 only)
-    if (isOmni) {
-        ctx.fillStyle = "#5E3D8A"; // Shadowed bicep
-        ctx.beginPath();
-        ctx.ellipse(82, 68, 14, 20, -0.1, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = "#6F49A2"; // Bicep highlight
-        ctx.beginPath();
-        ctx.ellipse(78, 68, 12, 18, -0.1, 0, Math.PI * 2);
-        ctx.fill();
-        
-        ctx.strokeStyle = "#7E56B8";
-        ctx.lineWidth = 1.8;
-        ctx.beginPath();
-        ctx.arc(74, 58, 10, -Math.PI / 2, Math.PI / 4);
-        ctx.stroke();
-    }
-
-    // ----------------------------------------------------
-    // 5. THE INFINITY GAUNTLET (Segmented Plated Glove)
-    // ----------------------------------------------------
+    // 0. TOXIC ACID AURA & DISTORTION
     ctx.save();
-    // Position glove to the left of his head
-    ctx.translate(-76, -8);
-    ctx.rotate(-0.12 + Math.sin(time * 3) * 0.04);
-
-    // Segmented golden plate cuffs
-    var gloveGrad = ctx.createLinearGradient(-20, -20, 20, 20);
-    gloveGrad.addColorStop(0, "#B8860B");
-    gloveGrad.addColorStop(0.3, "#FF8C00");
-    gloveGrad.addColorStop(0.6, "#FFD700");
-    gloveGrad.addColorStop(1, "#FF8C00");
-
-    ctx.fillStyle = gloveGrad;
-    ctx.strokeStyle = "#6E4E00";
-    ctx.lineWidth = 1.8;
-
-    // Cuff segment
-    ctx.beginPath();
-    ctx.moveTo(-16, 20);
-    ctx.lineTo(16, 20);
-    ctx.lineTo(22, -6);
-    ctx.lineTo(-22, -6);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // Gold hand backplate
-    ctx.beginPath();
-    ctx.ellipse(0, -18, 17, 13, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-
-    // Segmented fist fingers
-    ctx.fillStyle = "#FFB300";
-    for (var f = 0; f < 4; f++) {
-        var fx = -12 + f * 7.5;
-        var fy = -30 + Math.abs(f - 1.5) * 1.5;
-        ctx.beginPath();
-        ctx.arc(fx, fy, 4, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-        
-        ctx.beginPath();
-        ctx.arc(fx, fy + 4, 4.5, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
+    ctx.globalCompositeOperation = "screen";
+    var pulse = 1.0 + Math.sin(time * 6) * 0.12;
+    var auraGrad = ctx.createRadialGradient(0, 0, 10, 0, 0, 140 * pulse);
+    if (type === "alien_stalker") {
+        auraGrad.addColorStop(0, "rgba(0, 230, 118, 0.18)"); // Neon Acid Green
+        auraGrad.addColorStop(0.5, "rgba(0, 77, 64, 0.08)");
+        auraGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+    } else if (type === "alien_warrior") {
+        auraGrad.addColorStop(0, "rgba(118, 255, 3, 0.25)");  // Electric Lime Green
+        auraGrad.addColorStop(0.4, "rgba(0, 200, 83, 0.12)"); // Toxic Green
+        auraGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+    } else { // alien_queen
+        auraGrad.addColorStop(0, "rgba(0, 229, 255, 0.28)");  // Cyan Core
+        auraGrad.addColorStop(0.3, "rgba(118, 255, 3, 0.18)"); // Acid green mid
+        auraGrad.addColorStop(0.7, "rgba(213, 0, 249, 0.10)"); // Purple cosmic border
+        auraGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
     }
-
-    // Segmented thumb plate
+    ctx.fillStyle = auraGrad;
     ctx.beginPath();
-    ctx.arc(14, -22, 4.5, 0, Math.PI * 2);
+    ctx.arc(0, 0, 160 * pulse, 0, Math.PI * 2);
     ctx.fill();
-    ctx.stroke();
+    ctx.restore();
 
-    // Large center Mind Stone plate
-    ctx.fillStyle = "#FFA000";
-    ctx.beginPath();
-    ctx.ellipse(0, -18, 4.5, 6, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // --- PLATED GEMS WITH HIGH-END PULSING RADIAL GLOWS ---
-    var gemList = [
-        { color: "#00BFFF", x: -12, y: -30, size: 2.2, label: "Space" },
-        { color: "#FF1E27", x: -4.5, y: -31.5, size: 2.4, label: "Reality" },
-        { color: "#D500F9", x: 3, y: -30, size: 2.3, label: "Power" },
-        { color: "#00E676", x: 10.5, y: -26.5, size: 2.1, label: "Time" },
-        { color: "#FFD600", x: 0, y: -18, size: 3.2, label: "Mind" },
-        { color: "#FF6D00", x: 14, y: -22, size: 2.3, label: "Soul" }
-    ];
-
-    for (var g = 0; g < gemList.length; g++) {
-        var gem = gemList[g];
-        ctx.save();
+    // 1. DYNAMIC PREHENSILE WHIP-TAIL
+    ctx.save();
+    var tailSegments = type === "alien_queen" ? 18 : 12;
+    var tailFreq = type === "alien_stalker" ? 4.5 : 3.0;
+    var tailAmp = type === "alien_queen" ? 22 : 14;
+    var segmentPoints = [];
+    
+    // Calculate tail coordinates
+    for (var s = 0; s <= tailSegments; s++) {
+        var tRatio = s / tailSegments;
+        var tx = -30 - Math.sin(time * tailFreq + s * 0.4) * tailAmp * tRatio - (s * 6 * (type === "alien_queen" ? 1.4 : 1.0));
+        var ty = 70 - s * 8 + Math.cos(time * 2.0 + s * 0.2) * 5 * tRatio;
+        segmentPoints.push({ x: tx, y: ty });
+    }
+    
+    // Draw tail connecting line / segments
+    for (var s = 0; s < segmentPoints.length; s++) {
+        var pt = segmentPoints[s];
+        var rSize = (type === "alien_queen" ? 16 : 10) * (1.0 - (s / tailSegments) * 0.65);
         
-        var pulseGlow = isCharged || isOmni;
-        if (pulseGlow) {
-            ctx.shadowBlur = 12 + Math.sin(time * 12 + g * 2) * 5;
-            ctx.shadowColor = gem.color;
-            ctx.fillStyle = gem.color;
-        } else {
-            ctx.fillStyle = "rgba(110, 110, 110, 0.95)"; // Unactivated stones
+        ctx.save();
+        ctx.translate(pt.x, pt.y);
+        
+        // Gradient for biomechanical tail segment
+        var segGrad = ctx.createRadialGradient(-rSize*0.3, -rSize*0.3, 1, 0, 0, rSize);
+        segGrad.addColorStop(0, "#424242"); // shiny highlit rib
+        segGrad.addColorStop(0.5, "#212121"); // charcoal
+        segGrad.addColorStop(1, "#0d0d0d");   // black shadow
+        ctx.fillStyle = segGrad;
+        
+        // Queen tail might have outer spikes
+        if (type === "alien_queen" && s % 2 === 0) {
+            ctx.strokeStyle = "rgba(0, 230, 118, 0.6)";
+            ctx.lineWidth = 2.0;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(-rSize * 1.5, -rSize * 0.5);
+            ctx.stroke();
         }
         
         ctx.beginPath();
-        ctx.arc(gem.x, gem.y, gem.size, 0, Math.PI * 2);
+        ctx.arc(0, 0, rSize, 0, Math.PI * 2);
         ctx.fill();
         
-        // Inner white spark
-        if (pulseGlow && Math.random() < 0.85) {
-            ctx.fillStyle = "#FFFFFF";
+        // Highlight rib
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+        ctx.lineWidth = 1.0;
+        ctx.beginPath();
+        ctx.arc(0, 0, rSize * 0.8, -Math.PI/2, Math.PI/4);
+        ctx.stroke();
+        
+        ctx.restore();
+    }
+    
+    // Draw tail spade / blade at the tip
+    var tip = segmentPoints[segmentPoints.length - 1];
+    ctx.save();
+    ctx.translate(tip.x, tip.y);
+    ctx.rotate(time * 3.5 + Math.PI/4);
+    
+    var bladeGrad = ctx.createLinearGradient(-15, -15, 15, 15);
+    bladeGrad.addColorStop(0, "#e0e0e0"); // silver steel
+    bladeGrad.addColorStop(0.5, "#757575");
+    bladeGrad.addColorStop(1, "#212121");
+    ctx.fillStyle = bladeGrad;
+    
+    // Drawing a menacing spade blade
+    ctx.beginPath();
+    ctx.moveTo(0, -18);
+    ctx.lineTo(12, 0);
+    ctx.lineTo(4, 4);
+    ctx.lineTo(0, 15); // tip shaft
+    ctx.lineTo(-4, 4);
+    ctx.lineTo(-12, 0);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Glow tip for Stalker/Warrior/Queen
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = type === "alien_queen" ? "#00e5ff" : "#76ff03";
+    ctx.fillStyle = type === "alien_queen" ? "#00e5ff" : "#76ff03";
+    ctx.beginPath();
+    ctx.arc(0, -14, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    ctx.restore();
+
+    // 2. DYNAMIC BIOMECHANICAL DORSAL TUBES (Exhaust pipes)
+    ctx.save();
+    var numTubes = type === "alien_queen" ? 4 : 3;
+    ctx.fillStyle = "#161616";
+    ctx.strokeStyle = "#333333";
+    ctx.lineWidth = 1.5;
+    for (var tb = 0; tb < numTubes; tb++) {
+        var dir = (tb % 2 === 0) ? -1 : 1;
+        var height = 28 + (tb * 12);
+        var tAngle = dir * (0.2 + tb * 0.15) + Math.sin(time * 2.0 + tb) * 0.05;
+        
+        ctx.save();
+        ctx.translate(dir * (25 + tb * 10), 10);
+        ctx.rotate(tAngle);
+        
+        // Draw the tube segment
+        var tubeGrad = ctx.createLinearGradient(-8, -height, 8, 0);
+        tubeGrad.addColorStop(0, "#333333");
+        tubeGrad.addColorStop(0.4, "#1a1a1a");
+        tubeGrad.addColorStop(1, "#0a0a0a");
+        ctx.fillStyle = tubeGrad;
+        
+        ctx.beginPath();
+        ctx.moveTo(-6, 0);
+        ctx.lineTo(-9, -height);
+        ctx.quadraticCurveTo(-9, -height - 8, -5, -height - 8);
+        ctx.lineTo(5, -height - 8);
+        ctx.quadraticCurveTo(9, -height - 8, 9, -height);
+        ctx.lineTo(6, 0);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        
+        // Vent smoke/gas glow effect!
+        if (type !== "alien_stalker" || Math.sin(time * 3 + tb) > 0) {
+            ctx.save();
+            ctx.globalCompositeOperation = "screen";
+            var smokePulse = 1.0 + Math.sin(time * 8 + tb) * 0.25;
+            var ventGrad = ctx.createRadialGradient(0, -height - 8, 1, 0, -height - 8, 15 * smokePulse);
+            var smokeColor = type === "alien_queen" ? "rgba(0, 229, 255, 0.45)" : "rgba(118, 255, 3, 0.4)";
+            ventGrad.addColorStop(0, smokeColor);
+            ventGrad.addColorStop(1, "rgba(0,0,0,0)");
+            ctx.fillStyle = ventGrad;
             ctx.beginPath();
-            ctx.arc(gem.x, gem.y, gem.size * 0.45, 0, Math.PI * 2);
+            ctx.arc(0, -height - 8, 15 * smokePulse, 0, Math.PI * 2);
             ctx.fill();
+            ctx.restore();
         }
         ctx.restore();
     }
     ctx.restore();
 
-    // ----------------------------------------------------
-    // 6. THANOS DOUBLE-BLADED METALLIC SWORD (Phase 3 only)
-    // ----------------------------------------------------
-    if (isOmni) {
+    // 3. HYPER-MUSCULAR BIOMECHANICAL HUMAN-LIKE TORSO
+    ctx.save();
+    
+    // Broad, imposing traps and shoulder backing shadow
+    ctx.fillStyle = "#0c0c0c";
+    ctx.beginPath();
+    ctx.moveTo(-90, 85);
+    ctx.quadraticCurveTo(-65, 10, -35, 5); // left trapezius
+    ctx.lineTo(35, 5); // right trapezius
+    ctx.quadraticCurveTo(65, 10, 90, 85);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Deep black-charcoal biomechanical muscle vest (Main torso)
+    var muscularTorsoGrad = ctx.createLinearGradient(-60, 0, 60, 0);
+    muscularTorsoGrad.addColorStop(0, "#080808");
+    muscularTorsoGrad.addColorStop(0.3, "#212121");
+    muscularTorsoGrad.addColorStop(0.5, "#303030"); // highlights
+    muscularTorsoGrad.addColorStop(0.7, "#212121");
+    muscularTorsoGrad.addColorStop(1, "#080808");
+    ctx.fillStyle = muscularTorsoGrad;
+    
+    ctx.beginPath();
+    ctx.moveTo(-65, 85);
+    ctx.bezierCurveTo(-75, 30, -55, 0, -40, -5);
+    ctx.lineTo(40, -5);
+    ctx.bezierCurveTo(55, 0, 75, 30, 65, 85);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Pectoral Muscle Plates (defined bone plates with deep cuts)
+    ctx.fillStyle = "#121212"; // Deep shadowing under muscles
+    ctx.beginPath();
+    ctx.moveTo(-45, 25);
+    ctx.lineTo(45, 25);
+    ctx.lineTo(0, 48);
+    ctx.closePath();
+    ctx.fill();
+    
+    var chestColor = type === "alien_queen" ? "#1a2a2f" : "#242424"; // Queen has slight teal tint
+    ctx.fillStyle = chestColor;
+    
+    // Draw Left Pectoral
+    ctx.beginPath();
+    ctx.ellipse(-22, 14, 20, 13, 0.08, 0, Math.PI * 2);
+    ctx.fill();
+    // Draw Right Pectoral
+    ctx.beginPath();
+    ctx.ellipse(22, 14, 20, 13, -0.08, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Highlight lines on pectorals
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.ellipse(-22, 14, 18, 11, 0.08, -Math.PI, 0);
+    ctx.ellipse(22, 14, 18, 11, -0.08, -Math.PI, 0);
+    ctx.stroke();
+    
+    // Glowing Sternum Reactor / Acid Core (Especially Warrior and Queen)
+    if (type !== "alien_stalker") {
         ctx.save();
-        ctx.translate(76, 52); // Held in muscular right hand
-        ctx.rotate(-0.45 + Math.sin(time * 3.5) * 0.04);
-
-        // Muscular purple hand gripping hilt
-        ctx.fillStyle = "#6F49A2";
+        ctx.globalCompositeOperation = "screen";
+        var coreGlow = 1.0 + Math.sin(time * 5) * 0.2;
+        var coreColor = type === "alien_queen" ? "#00e5ff" : "#76ff03";
+        ctx.shadowBlur = 15 * coreGlow;
+        ctx.shadowColor = coreColor;
+        ctx.fillStyle = coreColor;
         ctx.beginPath();
-        ctx.arc(0, 0, 7.5, 0, Math.PI * 2);
+        ctx.moveTo(0, 4);
+        ctx.lineTo(8, 15);
+        ctx.lineTo(0, 26);
+        ctx.lineTo(-8, 15);
+        ctx.closePath();
         ctx.fill();
-
-        ctx.save();
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = "rgba(255, 255, 255, 0.45)";
-
-        // Gold Hilt / Guard
-        ctx.fillStyle = "#FFD700";
-        ctx.fillRect(-8, -6, 16, 12);
+        ctx.restore();
+    }
+    
+    // Muscular Six-Pack Abs (Hyper-defined, Giger-esque biomechanical ridges)
+    var abGlow = type === "alien_stalker" ? "rgba(0, 230, 118, 0.2)" : (type === "alien_warrior" ? "rgba(118, 255, 3, 0.35)" : "rgba(0, 229, 255, 0.35)");
+    ctx.strokeStyle = abGlow;
+    ctx.lineWidth = 2.0;
+    
+    // Draw the muscular valleys of the six-pack
+    for (var row = 0; row < 3; row++) {
+        var abY = 32 + row * 15;
+        var abW = 18 - row * 1.5;
+        var abH = 6;
         
-        // Dark handle wrap
-        ctx.fillStyle = "#1e1e1e";
-        ctx.fillRect(-3, -25, 6, 50);
-
-        // Top Blade (Gleaming metallic segmented gradients)
-        var bladeGrad = ctx.createLinearGradient(-10, -110, 10, -25);
-        bladeGrad.addColorStop(0, "#E6E6E6");
-        bladeGrad.addColorStop(0.3, "#FFFFFF");
-        bladeGrad.addColorStop(0.6, "#A9A9A9");
-        bladeGrad.addColorStop(1, "#595959");
-
-        ctx.fillStyle = bladeGrad;
+        ctx.fillStyle = "#1a1a1a";
+        // Left ab block
         ctx.beginPath();
-        ctx.moveTo(-7.5, -25);
-        ctx.lineTo(-5.5, -110);
-        ctx.lineTo(0, -135); // Sharp point
-        ctx.lineTo(5.5, -110);
-        ctx.lineTo(7.5, -25);
-        ctx.closePath();
+        ctx.ellipse(-12, abY, abW, abH, 0.05, 0, Math.PI * 2);
         ctx.fill();
-        ctx.strokeStyle = "#808080";
-        ctx.lineWidth = 1;
-        ctx.stroke();
-
-        // Bottom Blade
+        // Right ab block
         ctx.beginPath();
-        ctx.moveTo(-7.5, 25);
-        ctx.lineTo(-5.5, 110);
-        ctx.lineTo(0, 135); // Sharp point
-        ctx.lineTo(5.5, 110);
-        ctx.lineTo(7.5, 25);
-        ctx.closePath();
+        ctx.ellipse(12, abY, abW, abH, -0.05, 0, Math.PI * 2);
         ctx.fill();
+        
+        // Draw the glowing acid lines separating the muscles!
+        if (type !== "alien_stalker" || row === 1) {
+            ctx.beginPath();
+            ctx.moveTo(-abW - 8, abY + abH);
+            ctx.lineTo(abW + 8, abY + abH);
+            ctx.stroke();
+        }
+    }
+    
+    // Biomechanical ribcage wraps on the sides (adds anatomical realism and horror)
+    ctx.strokeStyle = "#424242";
+    ctx.lineWidth = 2.5;
+    for (var r = 0; r < 4; r++) {
+        var ribY = 18 + r * 14;
+        var ribXSpan = 40 + r * 6;
+        // Left ribs
+        ctx.beginPath();
+        ctx.moveTo(-ribXSpan, ribY);
+        ctx.quadraticCurveTo(-ribXSpan + 14, ribY - 3, -25, ribY + 4);
         ctx.stroke();
+        // Right ribs
+        ctx.beginPath();
+        ctx.moveTo(ribXSpan, ribY);
+        ctx.quadraticCurveTo(ribXSpan - 14, ribY - 3, 25, ribY + 4);
+        ctx.stroke();
+    }
+    ctx.restore();
 
+    // 4. POWERFUL MUSCULAR ARMS & SILVER-TIPPED CLAWS
+    ctx.save();
+    
+    // Draw Left and Right Primary Deltoids (Shoulders)
+    var deltoidGradLeft = ctx.createRadialGradient(-78, 38, 5, -78, 38, 25);
+    deltoidGradLeft.addColorStop(0, "#333333");
+    deltoidGradLeft.addColorStop(0.6, "#1f1f1f");
+    deltoidGradLeft.addColorStop(1, "#0a0a0a");
+    ctx.fillStyle = deltoidGradLeft;
+    
+    // Left Deltoid
+    ctx.beginPath();
+    ctx.ellipse(-78, 38, 22, 26, 0.25, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#444";
+    ctx.stroke();
+    
+    var deltoidGradRight = ctx.createRadialGradient(78, 38, 5, 78, 38, 25);
+    deltoidGradRight.addColorStop(0, "#333333");
+    deltoidGradRight.addColorStop(0.6, "#1f1f1f");
+    deltoidGradRight.addColorStop(1, "#0a0a0a");
+    ctx.fillStyle = deltoidGradRight;
+    
+    // Right Deltoid
+    ctx.beginPath();
+    ctx.ellipse(78, 38, 22, 26, -0.25, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    
+    // Muscular arms holding striking claws
+    ctx.fillStyle = "#1e1e1e";
+    
+    // Calculate primary arms coordinates
+    var armAngleLeft = -0.15 + Math.sin(time * 3.5) * 0.05;
+    var armAngleRight = 0.15 - Math.sin(time * 3.5) * 0.05;
+    
+    if (type === "alien_warrior") {
+        armAngleLeft = -0.45 + Math.sin(time * 4) * 0.08;
+        armAngleRight = 0.45 - Math.sin(time * 4) * 0.08;
+    } else if (type === "alien_queen") {
+        armAngleLeft = -0.3 + Math.sin(time * 2.5) * 0.04;
+        armAngleRight = 0.3 - Math.sin(time * 2.5) * 0.04;
+    }
+    
+    // Left Arm & Claw
+    ctx.save();
+    ctx.translate(-76, 45);
+    ctx.rotate(armAngleLeft);
+    ctx.fillStyle = "#1a1a1a";
+    ctx.beginPath();
+    ctx.ellipse(-14, 18, 12, 24, 0.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#262626";
+    ctx.beginPath();
+    ctx.ellipse(-26, 42, 10, 20, 0.15, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Silver Claws
+    ctx.strokeStyle = "#e0e0e0";
+    ctx.lineWidth = 2.0;
+    for (var f = 0; f < 3; f++) {
+        ctx.save();
+        ctx.translate(-30 - f * 4, 58 + f * 2);
+        ctx.rotate(-0.2 - f * 0.1);
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.quadraticCurveTo(-10, 10, -18, 22);
+        ctx.stroke();
+        ctx.restore();
+    }
+    ctx.restore();
+    
+    // Right Arm & Claw
+    ctx.save();
+    ctx.translate(76, 45);
+    ctx.rotate(armAngleRight);
+    ctx.fillStyle = "#1a1a1a";
+    ctx.beginPath();
+    ctx.ellipse(14, 18, 12, 24, -0.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#262626";
+    ctx.beginPath();
+    ctx.ellipse(26, 42, 10, 20, -0.15, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Silver Claws
+    ctx.strokeStyle = "#e0e0e0";
+    ctx.lineWidth = 2.0;
+    for (var f = 0; f < 3; f++) {
+        ctx.save();
+        ctx.translate(30 + f * 4, 58 + f * 2);
+        ctx.rotate(0.2 + f * 0.1);
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.quadraticCurveTo(10, 10, 18, 22);
+        ctx.stroke();
+        ctx.restore();
+    }
+    ctx.restore();
+
+    // Queen Secondary Arms (Towering Multi-Armed)
+    if (type === "alien_queen") {
+        ctx.save();
+        var secArmAngleLeft = 0.2 + Math.sin(time * 5.0) * 0.08;
+        var secArmAngleRight = -0.2 - Math.sin(time * 5.0) * 0.08;
+        
+        // Left Secondary Arm
+        ctx.save();
+        ctx.translate(-40, 55);
+        ctx.rotate(secArmAngleLeft);
+        ctx.fillStyle = "#121212";
+        ctx.beginPath();
+        ctx.ellipse(-8, 10, 6, 12, 0.4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(-14, 22, 5, 10, 0.2, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.strokeStyle = "#b0bec5";
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(-16, 28);
+        ctx.quadraticCurveTo(-18, 34, -22, 42);
+        ctx.stroke();
+        ctx.restore();
+        
+        // Right Secondary Arm
+        ctx.save();
+        ctx.translate(40, 55);
+        ctx.rotate(secArmAngleRight);
+        ctx.fillStyle = "#121212";
+        ctx.beginPath();
+        ctx.ellipse(8, 10, 6, 12, -0.4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(14, 22, 5, 10, -0.2, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.strokeStyle = "#b0bec5";
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(16, 28);
+        ctx.quadraticCurveTo(18, 34, 22, 42);
+        ctx.stroke();
         ctx.restore();
         ctx.restore();
     }
+    ctx.restore();
 
+    // 5. STRONG NECK & ANATOMICAL FRAME
+    ctx.save();
+    ctx.fillStyle = "#121212";
+    ctx.fillRect(-18, -26, 36, 24);
+    
+    ctx.strokeStyle = type === "alien_queen" ? "#0097a7" : "#388e3c";
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.moveTo(-13, -22); ctx.lineTo(-7, 0);
+    ctx.moveTo(13, -22); ctx.lineTo(7, 0);
+    ctx.moveTo(-5, -20); ctx.lineTo(-2, 0);
+    ctx.moveTo(5, -20); ctx.lineTo(2, 0);
+    ctx.stroke();
+    ctx.restore();
+
+    // 6. ELONGATED DOME HEAD / CROWN
+    ctx.save();
+    
+    if (type === "alien_queen") {
+        // TOWERING QUEEN CREST (CROWN)
+        ctx.save();
+        var crownGrad = ctx.createLinearGradient(-80, -95, 80, -50);
+        crownGrad.addColorStop(0, "#080d12");
+        crownGrad.addColorStop(0.4, "#1c2e3d");
+        crownGrad.addColorStop(0.5, "#374f63");
+        crownGrad.addColorStop(0.7, "#1c2e3d");
+        crownGrad.addColorStop(1, "#080d12");
+        ctx.fillStyle = crownGrad;
+        ctx.strokeStyle = "#00e5ff";
+        ctx.lineWidth = 1.5;
+        
+        ctx.beginPath();
+        ctx.moveTo(0, -42);
+        ctx.quadraticCurveTo(-35, -55, -60, -50);
+        ctx.lineTo(-95, -95);
+        ctx.quadraticCurveTo(-30, -115, 0, -120);
+        ctx.quadraticCurveTo(30, -115, 95, -95);
+        ctx.lineTo(60, -50);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        
+        ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
+        ctx.lineWidth = 2.0;
+        for (var cr = -4; cr <= 4; cr++) {
+            if (cr === 0) continue;
+            ctx.beginPath();
+            ctx.moveTo(0, -42);
+            ctx.lineTo(cr * 20, -100);
+            ctx.stroke();
+        }
+        
+        ctx.fillStyle = "#00e5ff";
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = "#00e5ff";
+        for (var cr = -3; cr <= 3; cr++) {
+            var nodeX = cr * 28;
+            var nodeY = -110 + Math.abs(cr) * 3.5;
+            ctx.beginPath();
+            ctx.arc(nodeX, nodeY, 3.5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.restore();
+        
+        var queenHeadGrad = ctx.createLinearGradient(-15, -45, 15, -45);
+        queenHeadGrad.addColorStop(0, "#101b24");
+        queenHeadGrad.addColorStop(0.5, "#2a3d4d");
+        queenHeadGrad.addColorStop(1, "#101b24");
+        ctx.fillStyle = queenHeadGrad;
+        
+        ctx.beginPath();
+        ctx.arc(0, -46, 22, Math.PI, 0, false);
+        ctx.lineTo(19, -24);
+        ctx.bezierCurveTo(18, -12, 10, -10, 0, -10);
+        ctx.bezierCurveTo(-10, -10, -18, -12, -19, -24);
+        ctx.closePath();
+        ctx.fill();
+        
+    } else if (type === "alien_warrior") {
+        // ELONGATED RIDGED WARRIOR HEAD
+        ctx.save();
+        var headGrad = ctx.createLinearGradient(-40, -55, 45, -30);
+        headGrad.addColorStop(0, "#080808");
+        headGrad.addColorStop(0.5, "#262626");
+        headGrad.addColorStop(1, "#121212");
+        ctx.fillStyle = headGrad;
+        
+        ctx.beginPath();
+        ctx.moveTo(18, -26);
+        ctx.bezierCurveTo(22, -45, 5, -62, -22, -62);
+        ctx.bezierCurveTo(-55, -62, -65, -45, -70, -32);
+        ctx.quadraticCurveTo(-45, -28, -18, -26);
+        ctx.closePath();
+        ctx.fill();
+        
+        ctx.strokeStyle = "#424242";
+        ctx.lineWidth = 3.0;
+        ctx.shadowBlur = 4;
+        ctx.shadowColor = "#76ff03";
+        for (var ri = 0; ri < 6; ri++) {
+            var rx = -15 - ri * 8;
+            var ry = -58 + ri * 3;
+            ctx.beginPath();
+            ctx.moveTo(rx, ry);
+            ctx.lineTo(rx - 4, ry + 12);
+            ctx.stroke();
+        }
+        ctx.restore();
+        
+        ctx.fillStyle = "#1a1a1a";
+        ctx.beginPath();
+        ctx.moveTo(-18, -26);
+        ctx.lineTo(16, -26);
+        ctx.quadraticCurveTo(20, -14, 0, -12);
+        ctx.quadraticCurveTo(-16, -14, -18, -26);
+        ctx.closePath();
+        ctx.fill();
+        
+    } else {
+        // ELONGATED GLOSSY STALKER DOME HEAD
+        ctx.save();
+        var domeGrad = ctx.createLinearGradient(-75, -55, 20, -30);
+        domeGrad.addColorStop(0, "#0a0a0a");
+        domeGrad.addColorStop(0.3, "#212121");
+        domeGrad.addColorStop(0.6, "#424242");
+        domeGrad.addColorStop(0.8, "#1a1a1a");
+        domeGrad.addColorStop(1, "#0d0d0d");
+        
+        ctx.beginPath();
+        ctx.moveTo(18, -26);
+        ctx.bezierCurveTo(22, -45, 5, -60, -22, -60);
+        ctx.bezierCurveTo(-58, -60, -78, -46, -82, -32);
+        ctx.quadraticCurveTo(-50, -26, -18, -26);
+        ctx.closePath();
+        ctx.fill();
+        
+        ctx.save();
+        ctx.globalAlpha = 0.28;
+        var glossGrad = ctx.createLinearGradient(-75, -55, 20, -50);
+        glossGrad.addColorStop(0, "rgba(0, 0, 0, 0.9)");
+        glossGrad.addColorStop(0.5, "rgba(255, 255, 255, 0.95)");
+        glossGrad.addColorStop(0.6, "rgba(0, 230, 118, 0.4)");
+        glossGrad.addColorStop(1, "rgba(0, 0, 0, 0.95)");
+        ctx.fillStyle = glossGrad;
+        ctx.beginPath();
+        ctx.moveTo(16, -28);
+        ctx.bezierCurveTo(20, -43, 4, -58, -22, -58);
+        ctx.bezierCurveTo(-56, -58, -76, -44, -80, -31);
+        ctx.quadraticCurveTo(-48, -25, -16, -28);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+        
+        ctx.save();
+        ctx.globalAlpha = 0.22 + Math.sin(time * 3.5) * 0.05;
+        ctx.fillStyle = "#eceff1";
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = "#00e676";
+        ctx.beginPath();
+        ctx.arc(-10, -44, 10, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillRect(-15, -39, 9, 8);
+        ctx.fillStyle = "#000000";
+        ctx.beginPath();
+        ctx.arc(-13, -44, 2.5, 0, Math.PI * 2);
+        ctx.arc(-7, -44, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+        
+        ctx.fillStyle = "#141414";
+        ctx.beginPath();
+        ctx.moveTo(-18, -26);
+        ctx.lineTo(16, -26);
+        ctx.quadraticCurveTo(18, -16, 0, -14);
+        ctx.quadraticCurveTo(-16, -16, -18, -26);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    }
+    ctx.restore();
+
+    // 7. HORRIFYING BIOMECHANICAL EYE-SOCKET GLOWS
+    ctx.save();
+    if (type === "alien_stalker") {
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = "#00e676";
+        ctx.fillStyle = "#00e676";
+        ctx.beginPath();
+        ctx.moveTo(-14, -36); ctx.lineTo(-5, -34); ctx.lineTo(-12, -33); ctx.closePath();
+        ctx.moveTo(14, -36); ctx.lineTo(5, -34); ctx.lineTo(12, -33); ctx.closePath();
+        ctx.fill();
+    } else if (type === "alien_warrior") {
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = "#76ff03";
+        ctx.fillStyle = "#76ff03";
+        ctx.beginPath();
+        ctx.moveTo(-16, -37); ctx.lineTo(-4, -34); ctx.lineTo(-13, -33); ctx.closePath();
+        ctx.moveTo(16, -37); ctx.lineTo(4, -34); ctx.lineTo(13, -33); ctx.closePath();
+        ctx.fill();
+    } else {
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = "#00e5ff";
+        ctx.fillStyle = "#00e5ff";
+        ctx.beginPath();
+        ctx.moveTo(-18, -38); ctx.lineTo(-3, -35); ctx.lineTo(-15, -34); ctx.closePath();
+        ctx.moveTo(18, -38); ctx.lineTo(3, -35); ctx.lineTo(15, -34); ctx.closePath();
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(-14, -31); ctx.lineTo(-5, -29); ctx.lineTo(-11, -29); ctx.closePath();
+        ctx.moveTo(14, -31); ctx.lineTo(5, -29); ctx.lineTo(11, -29); ctx.closePath();
+        ctx.fill();
+    }
+    ctx.restore();
+
+    // 8. MENACING FANGLIKE TEETH & DYNAMIC SNAPPING INNER JAW!
+    ctx.save();
+    ctx.fillStyle = "#e0e0e0";
+    ctx.strokeStyle = "#555";
+    ctx.lineWidth = 0.8;
+    
+    var numTeeth = type === "alien_queen" ? 6 : 4;
+    for (var t = 0; t < numTeeth; t++) {
+        var txL = -14 + t * (28 / (numTeeth - 1));
+        ctx.beginPath();
+        ctx.moveTo(txL - 1.5, -22);
+        ctx.lineTo(txL, -17);
+        ctx.lineTo(txL + 1.5, -22);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.moveTo(txL - 1.5, -15);
+        ctx.lineTo(txL, -20);
+        ctx.lineTo(txL + 1.5, -15);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+    }
+    
+    var innerJawExtendSpeed = type === "alien_queen" ? 6.0 : 4.0;
+    var innerJawAmt = Math.sin(time * innerJawExtendSpeed);
+    var jawExtension = innerJawAmt > 0.4 ? (innerJawAmt - 0.4) * 35.0 : 0.0;
+    
+    if (jawExtension > 2) {
+        ctx.save();
+        ctx.translate(0, -18);
+        var shaftGrad = ctx.createLinearGradient(-4, 0, 4, jawExtension);
+        shaftGrad.addColorStop(0, "#263238");
+        shaftGrad.addColorStop(1, "#37474f");
+        ctx.fillStyle = shaftGrad;
+        ctx.fillRect(-3.5, 0, 7, jawExtension);
+        
+        var innerColor = type === "alien_queen" ? "#00e5ff" : "#76ff03";
+        ctx.fillStyle = "#eceff1";
+        ctx.strokeStyle = innerColor;
+        ctx.lineWidth = 1.0;
+        ctx.save();
+        ctx.translate(0, jawExtension);
+        ctx.beginPath();
+        ctx.moveTo(-5, 0); ctx.lineTo(-3, 4); ctx.lineTo(-1, 0);
+        ctx.moveTo(5, 0); ctx.lineTo(3, 4); ctx.lineTo(1, 0);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+        ctx.restore();
+    }
+    
+    ctx.save();
+    ctx.globalCompositeOperation = "screen";
+    var dripFreq = type === "alien_stalker" ? 1.5 : 2.5;
+    var dripProgress = (time * dripFreq) % 1.0;
+    var dripY = -18 + dripProgress * 45;
+    var dripAlpha = dripProgress > 0.85 ? (1.0 - dripProgress) / 0.15 : 1.0;
+    
+    ctx.fillStyle = type === "alien_queen" ? "rgba(0, 229, 255, " + dripAlpha.toFixed(2) + ")" : "rgba(118, 255, 3, " + dripAlpha.toFixed(2) + ")";
+    ctx.shadowBlur = 6;
+    ctx.shadowColor = type === "alien_queen" ? "#00e5ff" : "#76ff03";
+    
+    if (dripProgress < 0.95) {
+        ctx.beginPath();
+        ctx.arc(4 + Math.sin(time) * 6, dripY, 2.5 * (1.0 - dripProgress * 0.4), 0, Math.PI * 2);
+        ctx.fill();
+    }
+    ctx.restore();
+    
+    ctx.restore();
+    ctx.restore();
     ctx.restore();
 };
 

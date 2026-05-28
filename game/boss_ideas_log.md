@@ -37,17 +37,20 @@ Este archivo contiene la información detallada de los primeros 3 jefes de **Cul
 
 ---
 
-### 3. THANOS (El Titán Loco)
+### 3. ALIEN (El Xenomorfo)
 * **Concepto Visual**:
-  * Thanos se alza con su armadura dorada y el Guantelete del Infinito en su mano izquierda.
-  * Cada ataque activa una de las gemas en el guantelete con un brillo y sonido específicos.
+  * Una terrorífica criatura biomecánica negra y brillante con una anatomía humanoide hiper-musculosa extremadamente definida (pectorales esculpidos, abdominales marcados con venas de ácido, ribcage y deltoides biomecánicos).
+  * Cambia a través de 3 fases dinámicas con su propia forma física majestuosa:
+    * **Fase 1: Stalker**: Silueta sigilosa en baja tensión con una cabeza de domo largo y brillante (chitin translúcido que permite ver un cráneo plateado y brillante debajo).
+    * **Fase 2: Warrior**: Una imponente mole guerrera con crestas óseas acanaladas en el cráneo y tubos dorsales que exhalan gases verdes y vapores ácidos.
+    * **Fase 3: Queen**: Una soberana colosal con una corona crestada gigante con adornos bioluminiscentes cian, doble juego de brazos (primarios macizos y secundarios cruzados) y una mandíbula interior retráctil de pistón animada que se proyecta hacia adelante.
+  * Una cola prensil segmentada y flexible azota y se balancea dinámicamente detrás del jefe con un aguijón plateado, y saliva ácida brilla y cae de sus mandíbulas.
 * **Mecánicas y Ataques**:
-  * **Gema de la Realidad (Reality Alteration)**:
-    * Al brillar la gema roja, la física del alma cambia aleatoriamente cada 3 segundos.
-    * Pasa caóticamente de Alma Roja (movimiento libre), a Alma Azul (gravedad y saltos), a Alma Verde (bloqueo con escudo), exigiendo adaptabilidad instantánea en medio del ataque.
-  * **El Chasquido (The Snap)**:
-    * Thanos chasquea los dedos. La mitad de la caja de combate simplemente se desintegra en polvo brillante.
-    * Esto reduce drásticamente el espacio disponible para esquivar durante el resto del turno, haciendo que los patrones normales se vuelvan extremadamente densos y peligrosos.
+  * **Sangre Ácida (Acid Corrosion)**:
+    * Los ataques del Xenomorfo dejan charcos de ácido y resina pegajosa en el suelo de la caja de combate.
+    * El jugador debe moverse esquivando estos puntos que ralentizan el alma y drenan vida si se tocan de manera continua.
+  * **Ataque de Mandíbula Interior (Inner Jaw Snap)**:
+    * El Xenomorfo lanza su mandíbula interior retráctil en una ráfaga rectilínea veloz y destructiva directa al alma, simulando el mortal ataque a corta distancia del organismo perfecto.
 
 ---
 

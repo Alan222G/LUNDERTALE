@@ -171,13 +171,13 @@ var Overworld = (function() {
             }
         });
 
-        // Thanos battle trigger (Guest/Special Group)
+        // Alien battle trigger (Guest/Special Group)
         triggerList.push({
             x: 377, y: 207, w: 26, h: 26,
             triggered: false,
-            bossId: "thanos",
-            label: "THANOS",
-            color: "rgba(213, 0, 249, 0.6)",
+            bossId: "alien",
+            label: "ALIEN",
+            color: "rgba(0, 230, 118, 0.6)",
             action: function() {
                 var self = this;
                 Transition.start(function() {
@@ -346,7 +346,7 @@ var Overworld = (function() {
                 if (t.bossId === "seraphina") {
                     var frameIdx = Math.floor(animTimer * 4) % seraFrames.length;
                     img = seraFrames[frameIdx];
-                } else if (t.bossId === "ramiel" || t.bossId === "paradox" || t.bossId === "sachiel" || t.bossId === "vader" || t.bossId === "godzilla" || t.bossId === "thanos") {
+                } else if (t.bossId === "ramiel" || t.bossId === "paradox" || t.bossId === "sachiel" || t.bossId === "vader" || t.bossId === "godzilla" || t.bossId === "alien") {
                     // Procedural mini crystal or colored box for new bosses
                     img = null; 
                 } else {
@@ -720,93 +720,56 @@ var Overworld = (function() {
                     ctx.stroke();
                     
                     ctx.restore();
-                    ctx.shadowBlur = 0;
-                } else if (t.bossId === "thanos") {
-                    // Epic mini Thanos representation
+                   } else if (t.bossId === "alien") {
+                    // Epic mini Alien (Xenomorph) representation
                     var tTime = animTimer;
-                    var tSize = 16;
+                    var tSize = 14;
                     ctx.save();
-                    ctx.translate(gcx, gcy - 2 + Math.sin(tTime * 3.2) * 2); // Floating/breathing
+                    ctx.translate(gcx, gcy - 2 + Math.sin(tTime * 3.5) * 1.5); // Floating/breathing
                     
-                    // Draw massive purple/gold shoulders
-                    ctx.fillStyle = "#4B0082"; // Purple body/armor base
+                    // 1. Biomechanical Ribbed Spine/Torso
+                    ctx.fillStyle = "#161616"; // Glossy black body
+                    ctx.fillRect(-3, -2, 6, 8);
+                    
+                    ctx.strokeStyle = "#2c2c2c";
+                    ctx.lineWidth = 2.5;
                     ctx.beginPath();
-                    ctx.moveTo(-tSize * 0.9, tSize * 0.4);
-                    ctx.quadraticCurveTo(0, -tSize * 0.2, tSize * 0.9, tSize * 0.4);
-                    ctx.lineTo(tSize * 0.7, tSize * 0.9);
-                    ctx.lineTo(-tSize * 0.7, tSize * 0.9);
-                    ctx.closePath();
+                    ctx.moveTo(-6, 0); ctx.lineTo(6, 0); // Shoulders
+                    ctx.moveTo(-5, 3); ctx.lineTo(5, 3); // Ribs
+                    ctx.moveTo(-4, 6); ctx.lineTo(4, 6);
+                    ctx.stroke();
+                    
+                    // 2. Ribbed Prehensile Tail (Swaying behind)
+                    ctx.strokeStyle = "#39FF14"; // Glowing acid green tail line
+                    ctx.lineWidth = 1.8;
+                    ctx.beginPath();
+                    ctx.moveTo(-2, 5);
+                    ctx.quadraticCurveTo(-14 + Math.sin(tTime * 4.0) * 3, 3, -10, -10 + Math.sin(tTime * 3.2) * 2);
+                    ctx.stroke();
+                    
+                    // Tail silver spade-tip
+                    ctx.fillStyle = "#EAEAEA";
+                    ctx.beginPath();
+                    ctx.arc(-10, -10 + Math.sin(tTime * 3.2) * 2, 2.5, 0, Math.PI * 2);
                     ctx.fill();
                     
-                    // Gold chestplate/pauldrons
-                    ctx.fillStyle = "#FFD700"; // Shiny Gold
+                    // 3. Elongated Dome Head (Pointing back-left)
+                    ctx.fillStyle = "#0c0c0c"; // Blackest dome
                     ctx.beginPath();
-                    ctx.moveTo(-tSize * 0.9, tSize * 0.4);
-                    ctx.lineTo(-tSize * 0.5, tSize * 0.4);
-                    ctx.lineTo(-tSize * 0.4, tSize * 0.8);
-                    ctx.lineTo(-tSize * 0.8, tSize * 0.8);
-                    ctx.closePath();
+                    ctx.ellipse(1, -6, 9, 4, -0.28, 0, Math.PI * 2);
                     ctx.fill();
                     
+                    // Glossy neon green reflection on top of the dome (Image 2 profile glow style!)
+                    ctx.strokeStyle = "#39FF14";
+                    ctx.lineWidth = 1.2;
                     ctx.beginPath();
-                    ctx.moveTo(tSize * 0.9, tSize * 0.4);
-                    ctx.lineTo(tSize * 0.5, tSize * 0.4);
-                    ctx.lineTo(tSize * 0.4, tSize * 0.8);
-                    ctx.lineTo(tSize * 0.8, tSize * 0.8);
-                    ctx.closePath();
-                    ctx.fill();
+                    ctx.ellipse(1, -6, 8, 3, -0.28, Math.PI * 1.1, Math.PI * 1.8);
+                    ctx.stroke();
                     
-                    // Purple Head
-                    ctx.fillStyle = "#8A2BE2"; // Purple skin
-                    ctx.beginPath();
-                    ctx.arc(0, -tSize * 0.2, tSize * 0.35, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    // Gold Helmet
-                    ctx.fillStyle = "#DAA520";
-                    ctx.beginPath();
-                    ctx.arc(0, -tSize * 0.2, tSize * 0.38, Math.PI, 0, false);
-                    ctx.fill();
-                    // Helmet crest/crown
-                    ctx.beginPath();
-                    ctx.moveTo(-tSize * 0.2, -tSize * 0.5);
-                    ctx.lineTo(0, -tSize * 0.85);
-                    ctx.lineTo(tSize * 0.2, -tSize * 0.5);
-                    ctx.closePath();
-                    ctx.fill();
-                    
-                    // Creepy glowing eyes
-                    ctx.fillStyle = "#FFF";
-                    ctx.fillRect(-tSize * 0.15, -tSize * 0.25, 2, 1.5);
-                    ctx.fillRect(tSize * 0.05, -tSize * 0.25, 2, 1.5);
-                    
-                    // LEFT HAND: The Infinity Gauntlet (raised)
-                    var gauntletX = -tSize * 0.85;
-                    var gauntletY = tSize * 0.1;
-                    
-                    // Draw golden glove
-                    ctx.fillStyle = "#FFB300"; // Warm gold
-                    ctx.beginPath();
-                    ctx.arc(gauntletX, gauntletY, tSize * 0.22, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    // 6 glowing Infinity Gems on gauntlet!
-                    var gemColors = ["#00BFFF", "#FF3333", "#D500F9", "#FF6D00", "#00E676", "#FFD600"];
-                    for (var g = 0; g < 6; g++) {
-                        var gAngle = tTime * 2.5 + g * (Math.PI * 2 / 6);
-                        var gDist = tSize * 0.18 + Math.sin(tTime * 4 + g) * 1.5;
-                        var gx = gauntletX + Math.cos(gAngle) * gDist;
-                        var gy = gauntletY + Math.sin(gAngle) * gDist;
-                        
-                        ctx.save();
-                        ctx.shadowBlur = 8;
-                        ctx.shadowColor = gemColors[g];
-                        ctx.fillStyle = gemColors[g];
-                        ctx.beginPath();
-                        ctx.arc(gx, gy, 1.3, 0, Math.PI * 2);
-                        ctx.fill();
-                        ctx.restore();
-                    }
+                    // Metallic chrome teeth siseando
+                    ctx.fillStyle = "#FFFFFF";
+                    ctx.fillRect(4, -4, 1.5, 2);
+                    ctx.fillRect(5.5, -4, 1.5, 2);
                     
                     ctx.restore();
                     ctx.shadowBlur = 0;

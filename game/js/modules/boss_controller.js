@@ -102,22 +102,22 @@ var BossController = (function() {
             "vaderImperialMarch": function(cfg) { return new VaderImperialMarchPattern(cfg || { damVal: 8, duration: 8 }); },
             "vaderRedemptionShock": function(cfg) { return new VaderRedemptionShockPattern(cfg || { damVal: 9, duration: 8 }); },
             "vaderDarkPresence": function(cfg) { return new VaderDarkPresencePattern(cfg || { damVal: 9, duration: 8 }); },
-            // --- Custom Thanos Attacks ---
-            "thanosRealityAlter": function(cfg) { return new ThanosRealityAlterPattern(cfg || { damVal: 10, duration: 8 }); },
-            "thanosRealitySlash": function(cfg) { return new ThanosRealitySlashPattern(cfg || { damVal: 10, duration: 8 }); },
-            "thanosSpaceWarp": function(cfg) { return new ThanosSpaceWarpPattern(cfg || { damVal: 9, duration: 8 }); },
-            "thanosSpaceCompress": function(cfg) { return new ThanosSpaceCompressPattern(cfg || { damVal: 10, duration: 8 }); },
-            "thanosPowerBlast": function(cfg) { return new ThanosPowerBlastPattern(cfg || { damVal: 12, duration: 8 }); },
-            "thanosPowerFist": function(cfg) { return new ThanosPowerFistPattern(cfg || { damVal: 12, duration: 8 }); },
-            "thanosTimeDagger": function(cfg) { return new ThanosTimeDaggerPattern(cfg || { damVal: 10, duration: 8 }); },
-            "thanosTimeParadox": function(cfg) { return new ThanosTimeParadoxPattern(cfg || { damVal: 12, duration: 8 }); },
-            "thanosMindControl": function(cfg) { return new ThanosMindControlPattern(cfg || { damVal: 10, duration: 8 }); },
-            "thanosMindMaze": function(cfg) { return new ThanosMindMazePattern(cfg || { damVal: 10, duration: 8 }); },
-            "thanosSoulDevour": function(cfg) { return new ThanosSoulDevourPattern(cfg || { damVal: 10, duration: 8 }); },
-            "thanosSoulTrap": function(cfg) { return new ThanosSoulTrapPattern(cfg || { damVal: 10, duration: 8 }); },
-            "thanosInfinitySnap": function(cfg) { return new ThanosInfinitySnapPattern(cfg || { damVal: 12, duration: 8 }); },
-            "thanosMeteorRain": function(cfg) { return new ThanosMeteorRainPattern(cfg || { damVal: 12, duration: 8 }); },
-            "thanosTitanBlade": function(cfg) { return new ThanosTitanBladePattern(cfg || { damVal: 12, duration: 8 }); },
+            // --- Custom Alien (Xenomorph) Attacks ---
+            "alienAcidSpit": function(cfg) { return new AlienAcidSpitPattern(cfg || { damVal: 8, duration: 8 }); },
+            "alienTailWhip": function(cfg) { return new AlienTailWhipPattern(cfg || { damVal: 9, duration: 8 }); },
+            "alienInnerJaw": function(cfg) { return new AlienInnerJawPattern(cfg || { damVal: 12, duration: 8 }); },
+            "alienClawSlash": function(cfg) { return new AlienClawSlashPattern(cfg || { damVal: 9, duration: 8 }); },
+            "alienWallCrawl": function(cfg) { return new AlienWallCrawlPattern(cfg || { damVal: 8, duration: 8 }); },
+            "alienFacehugger": function(cfg) { return new AlienFacehuggerPattern(cfg || { damVal: 7, duration: 8 }); },
+            "alienTailSpear": function(cfg) { return new AlienTailSpearPattern(cfg || { damVal: 10, duration: 8 }); },
+            "alienAcidPuddle": function(cfg) { return new AlienAcidPuddlePattern(cfg || { damVal: 9, duration: 8 }); },
+            "alienCeilingDrop": function(cfg) { return new AlienCeilingDropPattern(cfg || { damVal: 8, duration: 8 }); },
+            "alienTailSweep": function(cfg) { return new AlienTailSweepPattern(cfg || { damVal: 9, duration: 8 }); },
+            "alienHiveSpike": function(cfg) { return new AlienHiveSpikePattern(cfg || { damVal: 10, duration: 8 }); },
+            "alienChestburster": function(cfg) { return new AlienChestbursterPattern(cfg || { damVal: 8, duration: 8 }); },
+            "alienQueenCall": function(cfg) { return new AlienQueenCallPattern(cfg || { damVal: 12, duration: 8 }); },
+            "alienHiveWebbing": function(cfg) { return new AlienHiveWebbingPattern(cfg || { damVal: 7, duration: 8 }); },
+            "alienSpitfire": function(cfg) { return new AlienSpitfirePattern(cfg || { damVal: 9, duration: 8 }); },
         };
     }
 
@@ -277,36 +277,36 @@ var BossController = (function() {
             w = 300; h = 300;
         } else if (patternName === "vaderDarkPresence") {
             w = 320; h = 320;
-        } else if (patternName === "thanosRealityAlter") {
+        } else if (patternName === "alienAcidSpit") {
             w = 300; h = 300;
-        } else if (patternName === "thanosRealitySlash") {
-            w = 320; h = 320;
-        } else if (patternName === "thanosSpaceWarp") {
-            w = 340; h = 300;
-        } else if (patternName === "thanosSpaceCompress") {
-            w = 340; h = 300;
-        } else if (patternName === "thanosPowerBlast") {
-            w = 400; h = 260;
-        } else if (patternName === "thanosPowerFist") {
-            w = 300; h = 300;
-        } else if (patternName === "thanosTimeDagger") {
-            w = 300; h = 300;
-        } else if (patternName === "thanosTimeParadox") {
-            w = 280; h = 300;
-        } else if (patternName === "thanosMindControl") {
-            w = 300; h = 300;
-        } else if (patternName === "thanosMindMaze") {
-            w = 300; h = 300;
-        } else if (patternName === "thanosSoulDevour") {
-            w = 320; h = 320;
-        } else if (patternName === "thanosSoulTrap") {
+        } else if (patternName === "alienTailWhip") {
             w = 320; h = 300;
-        } else if (patternName === "thanosInfinitySnap") {
-            w = 360; h = 300;
-        } else if (patternName === "thanosMeteorRain") {
+        } else if (patternName === "alienInnerJaw") {
+            w = 300; h = 320;
+        } else if (patternName === "alienClawSlash") {
             w = 320; h = 320;
-        } else if (patternName === "thanosTitanBlade") {
+        } else if (patternName === "alienWallCrawl") {
+            w = 340; h = 280;
+        } else if (patternName === "alienFacehugger") {
             w = 300; h = 300;
+        } else if (patternName === "alienTailSpear") {
+            w = 300; h = 320;
+        } else if (patternName === "alienAcidPuddle") {
+            w = 320; h = 280;
+        } else if (patternName === "alienCeilingDrop") {
+            w = 320; h = 320;
+        } else if (patternName === "alienTailSweep") {
+            w = 340; h = 260;
+        } else if (patternName === "alienHiveSpike") {
+            w = 300; h = 320;
+        } else if (patternName === "alienChestburster") {
+            w = 300; h = 300;
+        } else if (patternName === "alienQueenCall") {
+            w = 360; h = 300;
+        } else if (patternName === "alienHiveWebbing") {
+            w = 320; h = 300;
+        } else if (patternName === "alienSpitfire") {
+            w = 320; h = 320;
         }
 
         return { patternName: patternName, width: w, height: h };
