@@ -23,6 +23,7 @@ var main = {
         OVERWORLD: 1,
         FLASH: 2,
         COMBAT: 3,
+        SUPER_WIN: 4,
     }),
 
     titleTimer: 0,
@@ -114,6 +115,21 @@ var main = {
                     myKeys.keydown[myKeys.KEYBOARD.KEY_SPACE] = false;
                 }
                 break;
+            case this.GAME_STATE.SUPER_WIN:
+                this.titleTimer += dt;
+                if (myKeys.isConfirm()) {
+                    myKeys.keydown = [];
+                    // Reset game triggers
+                    if (typeof Overworld !== "undefined" && Overworld.init) {
+                        Overworld.init();
+                    }
+                    deaths = 0;
+                    this.gameState = this.GAME_STATE.TITLE;
+                    this.titleTimer = 0;
+                    this.titleReady = false;
+                    Sound.playSound("heal", true);
+                }
+                break;
         }
     },
 
@@ -131,6 +147,9 @@ var main = {
                 break;
             case this.GAME_STATE.COMBAT:
                 Combat.draw(ctx);
+                break;
+            case this.GAME_STATE.SUPER_WIN:
+                this.drawSuperWin(ctx);
                 break;
         }
     },
@@ -217,5 +236,81 @@ var main = {
         fps = clamp(fps, 12, 60);
         this.lastTime = now;
         return 1 / fps;
+    },
+
+    drawSuperWin: function(ctx) {
+        ctx.save();
+
+        // 1. Draw glowing, shifting cosmic background
+        var time = this.titleTimer;
+        for (var i = 0; i < 80; i++) {
+            var sx = ((i * 123 + time * (15 + i % 6)) % this.WIDTH);
+            var sy = ((i * 79 + time * (8 + i % 4)) % this.HEIGHT);
+            var hue = (i * 15 + time * 60) % 360;
+            ctx.fillStyle = "hsla(" + hue + ", 85%, 65%, 0.35)";
+            ctx.fillRect(sx, sy, 2.5, 2.5);
+        }
+
+        // 2. Large Retro Glowing Victory Title
+        ctx.font = "38pt Determination Mono";
+        ctx.textAlign = "center";
+        
+        var pulse = Math.sin(time * 3.5) * 0.15 + 0.85;
+        var rHue = (time * 80) % 360;
+        
+        ctx.shadowBlur = 25;
+        ctx.shadowColor = "hsla(" + rHue + ", 90%, 55%, 0.8)";
+        ctx.fillStyle = "hsla(" + rHue + ", 90%, 75%, " + pulse.toFixed(2) + ")";
+        ctx.fillText("★ SUPER VICTORIA ★", this.WIDTH / 2, 130);
+        ctx.shadowBlur = 0;
+        
+        ctx.fillStyle = "#FFF";
+        ctx.fillText("★ SUPER VICTORIA ★", this.WIDTH / 2 - 2, 128);
+
+        // Subtitle
+        ctx.font = "14pt Determination Mono";
+        ctx.fillStyle = "#FFD700";
+        ctx.fillText("HAS DERROTADO A TODOS LOS BOSSES DEL VACÍO", this.WIDTH / 2, 185);
+
+        // 3. Draw checklist of defeated Bosses
+        ctx.fillStyle = "rgba(20, 20, 20, 0.85)";
+        ctx.strokeStyle = "#FFD700";
+        ctx.lineWidth = 2.0;
+        ctx.fillRect(this.WIDTH / 2 - 210, 220, 420, 220);
+        ctx.strokeRect(this.WIDTH / 2 - 210, 220, 420, 220);
+
+        var bosses = [
+            "Anti-gravity (Singularity)", "Seraphina Vex", "RAMIEL", "PARADOJA",
+            "SACHIEL", "GODZILLA", "DARTH VADER", "THANOS"
+        ];
+
+        ctx.font = "12pt Determination Mono";
+        ctx.textAlign = "left";
+        for (var b = 0; b < bosses.length; b++) {
+            var bx = this.WIDTH / 2 - 190 + (b % 2) * 200;
+            var by = 255 + Math.floor(b / 2) * 45;
+            
+            // Defeated checkmark
+            ctx.fillStyle = "#00E676";
+            ctx.fillText("✔", bx, by);
+            
+            ctx.fillStyle = "#CCC";
+            ctx.fillText(bosses[b], bx + 22, by);
+        }
+
+        // 4. Statistics (Deaths)
+        ctx.font = "16pt Determination Mono";
+        ctx.textAlign = "center";
+        ctx.fillStyle = "#FF5555";
+        ctx.fillText("MUERTES TOTALES: " + deaths, this.WIDTH / 2, 475);
+
+        // 5. Prompt to return
+        var alpha = Math.sin(time * 4) * 0.45 + 0.55;
+        ctx.globalAlpha = alpha;
+        ctx.font = "15pt Determination Mono";
+        ctx.fillStyle = "#FFF";
+        ctx.fillText("Presiona Z o Enter para volver al Menú", this.WIDTH / 2, 520);
+
+        ctx.restore();
     },
 };

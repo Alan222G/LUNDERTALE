@@ -54,7 +54,7 @@ var Overworld = (function() {
 
         // Singularity battle trigger (Anomalies Group)
         triggerList.push({
-            x: 120, y: 150, w: 40, h: 40,
+            x: 127, y: 157, w: 26, h: 26,
             triggered: false,
             bossId: "singularity",
             label: "Anti-gravity",
@@ -71,7 +71,7 @@ var Overworld = (function() {
 
         // Seraphina Vex battle trigger (Anomalies Group)
         triggerList.push({
-            x: 120, y: 410, w: 40, h: 40,
+            x: 127, y: 417, w: 26, h: 26,
             triggered: false,
             bossId: "seraphina",
             label: "Seraphina Vex",
@@ -88,7 +88,7 @@ var Overworld = (function() {
 
         // Ramiel battle trigger (Guest Group)
         triggerList.push({
-            x: 620, y: 150, w: 40, h: 40,
+            x: 627, y: 157, w: 26, h: 26,
             triggered: false,
             bossId: "ramiel",
             label: "RAMIEL",
@@ -105,7 +105,7 @@ var Overworld = (function() {
         
         // Paradox battle trigger (Anomalies Group)
         triggerList.push({
-            x: 230, y: 290, w: 40, h: 40,
+            x: 237, y: 297, w: 26, h: 26,
             triggered: false,
             bossId: "paradox",
             label: "PARADOJA",
@@ -122,7 +122,7 @@ var Overworld = (function() {
         
         // Sachiel battle trigger (Guest Group)
         triggerList.push({
-            x: 620, y: 410, w: 40, h: 40,
+            x: 627, y: 417, w: 26, h: 26,
             triggered: false,
             bossId: "sachiel",
             label: "SACHIEL",
@@ -139,7 +139,7 @@ var Overworld = (function() {
 
         // Godzilla battle trigger (Guest Group)
         triggerList.push({
-            x: 370, y: 470, w: 40, h: 40,
+            x: 377, y: 477, w: 26, h: 26,
             triggered: false,
             bossId: "godzilla",
             label: "GODZILLA",
@@ -156,11 +156,28 @@ var Overworld = (function() {
 
         // Darth Vader battle trigger (Guest Group)
         triggerList.push({
-            x: 510, y: 290, w: 40, h: 40,
+            x: 517, y: 297, w: 26, h: 26,
             triggered: false,
             bossId: "vader",
             label: "DARTH VADER",
             color: "rgba(220, 0, 0, 0.6)",
+            action: function() {
+                var self = this;
+                Transition.start(function() {
+                    main.gameState = main.GAME_STATE.COMBAT;
+                    Combat.init(self.bossId);
+                    Combat.setup(main.ctx);
+                });
+            }
+        });
+
+        // Thanos battle trigger (Guest/Special Group)
+        triggerList.push({
+            x: 377, y: 207, w: 26, h: 26,
+            triggered: false,
+            bossId: "thanos",
+            label: "THANOS",
+            color: "rgba(213, 0, 249, 0.6)",
             action: function() {
                 var self = this;
                 Transition.start(function() {
@@ -187,6 +204,22 @@ var Overworld = (function() {
     }
 
     function setup(ctx) {
+        // Check if all bosses are defeated (Super Victory check)
+        var allDefeated = true;
+        for (var i = 0; i < triggerList.length; i++) {
+            if (!triggerList[i].triggered) {
+                allDefeated = false;
+                break;
+            }
+        }
+        if (allDefeated && triggerList.length > 0) {
+            main.gameState = main.GAME_STATE.SUPER_WIN;
+            Sound.pauseSoundHard("bgm_overworld");
+            Sound.playSound("heal", true);
+            active = false;
+            return;
+        }
+
         active = true;
         Sound.pauseSoundHard("bgm");
         Sound.pauseSoundHard("bgm_seraphina");
@@ -313,7 +346,7 @@ var Overworld = (function() {
                 if (t.bossId === "seraphina") {
                     var frameIdx = Math.floor(animTimer * 4) % seraFrames.length;
                     img = seraFrames[frameIdx];
-                } else if (t.bossId === "ramiel" || t.bossId === "paradox" || t.bossId === "sachiel" || t.bossId === "vader" || t.bossId === "godzilla") {
+                } else if (t.bossId === "ramiel" || t.bossId === "paradox" || t.bossId === "sachiel" || t.bossId === "vader" || t.bossId === "godzilla" || t.bossId === "thanos") {
                     // Procedural mini crystal or colored box for new bosses
                     img = null; 
                 } else {
@@ -325,7 +358,7 @@ var Overworld = (function() {
                     // Epic 3D Ramiel representation
                     var rTime = animTimer;
                     var rRot = Math.sin(rTime * 0.8) * 0.15;
-                    var rSize = 25; // Bigger
+                    var rSize = 16; // Scaled down
                     
                     ctx.save();
                     ctx.translate(gcx, gcy - 5 + Math.sin(rTime * 2) * 5); // Floating
@@ -389,7 +422,7 @@ var Overworld = (function() {
                 } else if (t.bossId === "paradox") {
                     // Epic Paradox Hourglass
                     var pTime = animTimer;
-                    var pSize = 25; // Bigger
+                    var pSize = 16; // Scaled down
                     
                     ctx.save();
                     ctx.translate(gcx, gcy + Math.sin(pTime * 3) * 5);
@@ -463,7 +496,7 @@ var Overworld = (function() {
                 } else if (t.bossId === "sachiel") {
                     // Epic Sachiel Representation
                     var sTime = animTimer;
-                    var sSize = 25; // Bigger
+                    var sSize = 16; // Scaled down
                     
                     ctx.save();
                     ctx.translate(gcx, gcy + Math.sin(sTime * 4) * 3);
@@ -541,7 +574,7 @@ var Overworld = (function() {
                 } else if (t.bossId === "godzilla") {
                     // Epic Godzilla representation in Overworld (Side-profile facing Left/Center)
                     var gTime = animTimer;
-                    var gSize = 25; // Scale size
+                    var gSize = 16; // Scaled down
                     
                     ctx.save();
                     // Shift center slightly to align with overworld grid
@@ -604,7 +637,7 @@ var Overworld = (function() {
                 } else if (t.bossId === "vader") {
                     // Epic Mini Darth Vader representation
                     var vTime = animTimer;
-                    var vSize = 25;
+                    var vSize = 16;
                     ctx.save();
                     ctx.translate(gcx, gcy - 5 + Math.sin(vTime * 3) * 2); // Floating/breathing
                     
@@ -685,6 +718,95 @@ var Overworld = (function() {
                     ctx.moveTo(-vSize * 0.4, vSize * 0.5);
                     ctx.lineTo(-vSize * 0.8, -vSize * 0.1);
                     ctx.stroke();
+                    
+                    ctx.restore();
+                    ctx.shadowBlur = 0;
+                } else if (t.bossId === "thanos") {
+                    // Epic mini Thanos representation
+                    var tTime = animTimer;
+                    var tSize = 16;
+                    ctx.save();
+                    ctx.translate(gcx, gcy - 2 + Math.sin(tTime * 3.2) * 2); // Floating/breathing
+                    
+                    // Draw massive purple/gold shoulders
+                    ctx.fillStyle = "#4B0082"; // Purple body/armor base
+                    ctx.beginPath();
+                    ctx.moveTo(-tSize * 0.9, tSize * 0.4);
+                    ctx.quadraticCurveTo(0, -tSize * 0.2, tSize * 0.9, tSize * 0.4);
+                    ctx.lineTo(tSize * 0.7, tSize * 0.9);
+                    ctx.lineTo(-tSize * 0.7, tSize * 0.9);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Gold chestplate/pauldrons
+                    ctx.fillStyle = "#FFD700"; // Shiny Gold
+                    ctx.beginPath();
+                    ctx.moveTo(-tSize * 0.9, tSize * 0.4);
+                    ctx.lineTo(-tSize * 0.5, tSize * 0.4);
+                    ctx.lineTo(-tSize * 0.4, tSize * 0.8);
+                    ctx.lineTo(-tSize * 0.8, tSize * 0.8);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(tSize * 0.9, tSize * 0.4);
+                    ctx.lineTo(tSize * 0.5, tSize * 0.4);
+                    ctx.lineTo(tSize * 0.4, tSize * 0.8);
+                    ctx.lineTo(tSize * 0.8, tSize * 0.8);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Purple Head
+                    ctx.fillStyle = "#8A2BE2"; // Purple skin
+                    ctx.beginPath();
+                    ctx.arc(0, -tSize * 0.2, tSize * 0.35, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Gold Helmet
+                    ctx.fillStyle = "#DAA520";
+                    ctx.beginPath();
+                    ctx.arc(0, -tSize * 0.2, tSize * 0.38, Math.PI, 0, false);
+                    ctx.fill();
+                    // Helmet crest/crown
+                    ctx.beginPath();
+                    ctx.moveTo(-tSize * 0.2, -tSize * 0.5);
+                    ctx.lineTo(0, -tSize * 0.85);
+                    ctx.lineTo(tSize * 0.2, -tSize * 0.5);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Creepy glowing eyes
+                    ctx.fillStyle = "#FFF";
+                    ctx.fillRect(-tSize * 0.15, -tSize * 0.25, 2, 1.5);
+                    ctx.fillRect(tSize * 0.05, -tSize * 0.25, 2, 1.5);
+                    
+                    // LEFT HAND: The Infinity Gauntlet (raised)
+                    var gauntletX = -tSize * 0.85;
+                    var gauntletY = tSize * 0.1;
+                    
+                    // Draw golden glove
+                    ctx.fillStyle = "#FFB300"; // Warm gold
+                    ctx.beginPath();
+                    ctx.arc(gauntletX, gauntletY, tSize * 0.22, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // 6 glowing Infinity Gems on gauntlet!
+                    var gemColors = ["#00BFFF", "#FF3333", "#D500F9", "#FF6D00", "#00E676", "#FFD600"];
+                    for (var g = 0; g < 6; g++) {
+                        var gAngle = tTime * 2.5 + g * (Math.PI * 2 / 6);
+                        var gDist = tSize * 0.18 + Math.sin(tTime * 4 + g) * 1.5;
+                        var gx = gauntletX + Math.cos(gAngle) * gDist;
+                        var gy = gauntletY + Math.sin(gAngle) * gDist;
+                        
+                        ctx.save();
+                        ctx.shadowBlur = 8;
+                        ctx.shadowColor = gemColors[g];
+                        ctx.fillStyle = gemColors[g];
+                        ctx.beginPath();
+                        ctx.arc(gx, gy, 1.3, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.restore();
+                    }
                     
                     ctx.restore();
                     ctx.shadowBlur = 0;

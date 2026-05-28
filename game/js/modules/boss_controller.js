@@ -102,6 +102,22 @@ var BossController = (function() {
             "vaderImperialMarch": function(cfg) { return new VaderImperialMarchPattern(cfg || { damVal: 8, duration: 8 }); },
             "vaderRedemptionShock": function(cfg) { return new VaderRedemptionShockPattern(cfg || { damVal: 9, duration: 8 }); },
             "vaderDarkPresence": function(cfg) { return new VaderDarkPresencePattern(cfg || { damVal: 9, duration: 8 }); },
+            // --- Custom Thanos Attacks ---
+            "thanosRealityAlter": function(cfg) { return new ThanosRealityAlterPattern(cfg || { damVal: 10, duration: 8 }); },
+            "thanosRealitySlash": function(cfg) { return new ThanosRealitySlashPattern(cfg || { damVal: 10, duration: 8 }); },
+            "thanosSpaceWarp": function(cfg) { return new ThanosSpaceWarpPattern(cfg || { damVal: 9, duration: 8 }); },
+            "thanosSpaceCompress": function(cfg) { return new ThanosSpaceCompressPattern(cfg || { damVal: 10, duration: 8 }); },
+            "thanosPowerBlast": function(cfg) { return new ThanosPowerBlastPattern(cfg || { damVal: 12, duration: 8 }); },
+            "thanosPowerFist": function(cfg) { return new ThanosPowerFistPattern(cfg || { damVal: 12, duration: 8 }); },
+            "thanosTimeDagger": function(cfg) { return new ThanosTimeDaggerPattern(cfg || { damVal: 10, duration: 8 }); },
+            "thanosTimeParadox": function(cfg) { return new ThanosTimeParadoxPattern(cfg || { damVal: 12, duration: 8 }); },
+            "thanosMindControl": function(cfg) { return new ThanosMindControlPattern(cfg || { damVal: 10, duration: 8 }); },
+            "thanosMindMaze": function(cfg) { return new ThanosMindMazePattern(cfg || { damVal: 10, duration: 8 }); },
+            "thanosSoulDevour": function(cfg) { return new ThanosSoulDevourPattern(cfg || { damVal: 10, duration: 8 }); },
+            "thanosSoulTrap": function(cfg) { return new ThanosSoulTrapPattern(cfg || { damVal: 10, duration: 8 }); },
+            "thanosInfinitySnap": function(cfg) { return new ThanosInfinitySnapPattern(cfg || { damVal: 12, duration: 8 }); },
+            "thanosMeteorRain": function(cfg) { return new ThanosMeteorRainPattern(cfg || { damVal: 12, duration: 8 }); },
+            "thanosTitanBlade": function(cfg) { return new ThanosTitanBladePattern(cfg || { damVal: 12, duration: 8 }); },
         };
     }
 
@@ -261,6 +277,36 @@ var BossController = (function() {
             w = 300; h = 300;
         } else if (patternName === "vaderDarkPresence") {
             w = 320; h = 320;
+        } else if (patternName === "thanosRealityAlter") {
+            w = 300; h = 300;
+        } else if (patternName === "thanosRealitySlash") {
+            w = 320; h = 320;
+        } else if (patternName === "thanosSpaceWarp") {
+            w = 340; h = 300;
+        } else if (patternName === "thanosSpaceCompress") {
+            w = 340; h = 300;
+        } else if (patternName === "thanosPowerBlast") {
+            w = 400; h = 260;
+        } else if (patternName === "thanosPowerFist") {
+            w = 300; h = 300;
+        } else if (patternName === "thanosTimeDagger") {
+            w = 300; h = 300;
+        } else if (patternName === "thanosTimeParadox") {
+            w = 280; h = 300;
+        } else if (patternName === "thanosMindControl") {
+            w = 300; h = 300;
+        } else if (patternName === "thanosMindMaze") {
+            w = 300; h = 300;
+        } else if (patternName === "thanosSoulDevour") {
+            w = 320; h = 320;
+        } else if (patternName === "thanosSoulTrap") {
+            w = 320; h = 300;
+        } else if (patternName === "thanosInfinitySnap") {
+            w = 360; h = 300;
+        } else if (patternName === "thanosMeteorRain") {
+            w = 320; h = 320;
+        } else if (patternName === "thanosTitanBlade") {
+            w = 300; h = 300;
         }
 
         return { patternName: patternName, width: w, height: h };

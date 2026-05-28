@@ -22,6 +22,8 @@ var Cgroup = (function() {
             setupGodzilla();
         } else if (currentBossId === "vader") {
             setupVader();
+        } else if (currentBossId === "thanos") {
+            setupThanos();
         } else {
             setupSingularity();
         }
@@ -534,6 +536,95 @@ var Cgroup = (function() {
                 mercyHP: 100,
                 xpReward: 1200,
                 goldReward: 600,
+            })
+        ];
+        enemies[0].bubblePos = enemies[0].damagePos.getAdd(new Vect(60, -160, 0));
+        mercies = ["Spare", "Flee"];
+        defends = [];
+    }
+
+    function setupThanos() {
+        enemies = [
+            new Enemy({
+                name: "Thanos",
+                checkText: "El Titán Loco. El Guantelete del Infinito brilla con un poder cósmico absoluto.",
+                maxHP: 3500,
+                curHP: 3500,
+                renderType: "thanos_normal",
+                atk: 25,
+                def: 22,
+                defense: 1.6,
+                acts: ["Check", "Reason", "Challenge", "Flee"],
+                actResponses: [
+                    "* THANOS - ATK 25 DEF 22\n* El Titán Loco. Su voluntad es inquebrantable.",
+                    "* Intentas razonar sobre el equilibrio del universo.\n* Thanos sonríe con condescendencia. 'Soy inevitable'.",
+                    "* Desafías su poder cósmico.\n* El Guantelete brilla intensamente. Su ira aumenta.",
+                    "* ¡No hay escape del chasquido del Titán!"
+                ],
+                actFunctions: [
+                    function() { console.log("Checked Thanos"); },
+                    function() {
+                        console.log("Reasoned with Thanos");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 20);
+                    },
+                    function() {
+                        console.log("Challenged Thanos");
+                        enemies[0].defense = Math.max(0.9, enemies[0].defense - 0.15);
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 25);
+                    },
+                    function() {
+                        console.log("Flee Thanos failed");
+                    }
+                ],
+                texts: [
+                    "* Las Gemas del Infinito parpadean con luz amenazante.",
+                    "* El tejido del espacio-tiempo cruje a tu alrededor.",
+                    "* Thanos te observa, calculando el costo de tu existencia.",
+                    "* Sientes un escalofrío cósmico al ver el Guantelete."
+                ],
+                speech: [
+                    "UN EQUILIBRIO\nPERFECTO.",
+                    "SOY\nINEVITABLE.",
+                    "TUS ACCIONES\nSOLO LLEVAN\nAL DESTINO.",
+                    "EL UNIVERSO\nDEBE SER\nDEPURADO."
+                ],
+                spriteId: "asriel",
+                attacks: [
+                    "thanosRealityAlter", "thanosInfinitySnap", "thanosPowerBlast", 
+                    "thanosTimeLoop", "thanosSpaceWarp", "thanosSoulDevour", 
+                    "vaderForcePush", "vaderForceLevitation", "godzillaSpineLasers", 
+                    "vaderSaberThrow", "godzillaTailWhip", "vaderDeathStarLaser", 
+                    "godzillaRadioactiveRain", "vaderSaberShield", "bulletRain"
+                ],
+                phases: [
+                    { 
+                        patterns: ["thanosRealityAlter", "vaderForcePush", "thanosInfinitySnap", "godzillaSpineLasers", "thanosPowerBlast", "vaderSaberThrow", "bulletRain"], 
+                        soulMode: "red", 
+                        renderType: "thanos_normal",
+                        speech: ["EL FIN ESTA\nCERCA.", "SOY LA\nREALIDAD.", "EL EQUILIBRIO\nSE ACERCA."] 
+                    },
+                    { 
+                        patterns: ["thanosSpaceWarp", "thanosTimeLoop", "godzillaTailWhip", "vaderDeathStarLaser", "thanosPowerBlast", "vaderSaberShield", "thanosSoulDevour"], 
+                        soulMode: "red", 
+                        renderType: "thanos_charged",
+                        speech: ["¿SIENTES EL\nPODER DEL\nGUANTELETE?", "EL TIEMPO Y\nEL ESPACIO\nME PERTENECEN.", "TE DESINTEGRAS\nLENTAMENTE."] 
+                    },
+                    { 
+                        patterns: ["thanosInfinitySnap", "thanosRealityAlter", "thanosTimeLoop", "thanosSpaceWarp", "thanosPowerBlast", "thanosSoulDevour", "godzillaSpineLasers"], 
+                        soulMode: "red", 
+                        renderType: "thanos_omnipotent",
+                        speech: ["¡TODO ES\nPOLVO!", "¡EL PODER\nABSOLUTO ES\nMIO!", "¡NO ERES\nNADA ANTE\nMI VOLUNTAD!"] 
+                    }
+                ],
+                phaseHP: [3500, 4500, 6000],
+                karmaEnabled: false,
+                jitterEnabled: false,
+                damagePos: new Vect(370, 290, 0),
+                damageVel: 120,
+                bubbleOff: 30,
+                mercyHP: 100,
+                xpReward: 2000,
+                goldReward: 1000,
             })
         ];
         enemies[0].bubblePos = enemies[0].damagePos.getAdd(new Vect(60, -160, 0));

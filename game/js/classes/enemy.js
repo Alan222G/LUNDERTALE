@@ -145,6 +145,10 @@ Enemy.prototype.draw = function(ctx) {
         ctx.save(); ctx.translate(370, 160); ctx.scale(1.4, 1.4); ctx.translate(-370, -160);
         this.drawVader(ctx);
         ctx.restore();
+    } else if (this.renderType === "thanos_normal" || this.renderType === "thanos_charged" || this.renderType === "thanos_omnipotent") {
+        ctx.save(); ctx.translate(370, 160); ctx.scale(1.4, 1.4); ctx.translate(-370, -160);
+        this.drawThanos(ctx);
+        ctx.restore();
     } else if (this.renderType === "sachiel") {
         ctx.save(); ctx.translate(370, 160); ctx.scale(1.4, 1.4); ctx.translate(-370, -160);
         this.drawSachiel(ctx);
@@ -3840,3 +3844,296 @@ Enemy.prototype.drawVader = function(ctx) {
 
     ctx.restore();
 };
+
+Enemy.prototype.drawThanos = function(ctx) {
+    var time = Date.now() / 1000;
+    var isCharged = this.renderType === "thanos_charged";
+    var isOmni = this.renderType === "thanos_omnipotent";
+    
+    // Slow breathing scale
+    var breathe = 1.0 + Math.sin(time * 2.2) * 0.015;
+    var floatY = isOmni ? Math.sin(time * 3.5) * 5.0 : 0.0; // Floats in phase 3
+
+    ctx.save();
+    ctx.translate(370, 155 + floatY);
+    ctx.scale(breathe, breathe);
+
+    // ----------------------------------------------------
+    // 0. COSMIC ENERGY STORM AURA (Phase 3 only)
+    // ----------------------------------------------------
+    if (isOmni) {
+        ctx.save();
+        ctx.globalCompositeOperation = "screen";
+        var pulse = 1.0 + Math.sin(time * 8) * 0.12;
+        var stormGrad = ctx.createRadialGradient(0, 0, 10, 0, 0, 130 * pulse);
+        stormGrad.addColorStop(0, "rgba(213, 0, 249, 0.25)"); // Purple
+        stormGrad.addColorStop(0.3, "rgba(0, 191, 255, 0.18)"); // Space Blue
+        stormGrad.addColorStop(0.6, "rgba(0, 230, 118, 0.12)"); // Time Green
+        stormGrad.addColorStop(0.85, "rgba(255, 215, 0, 0.08)"); // Mind Gold
+        stormGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+        ctx.fillStyle = stormGrad;
+        ctx.beginPath();
+        ctx.arc(0, 0, 140 * pulse, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    } else if (isCharged) {
+        // Charging cosmic aura
+        ctx.save();
+        ctx.globalCompositeOperation = "screen";
+        var pulse = 1.0 + Math.sin(time * 5) * 0.1;
+        var auraGrad = ctx.createRadialGradient(0, 0, 15, 0, 0, 95 * pulse);
+        auraGrad.addColorStop(0, "rgba(138, 43, 226, 0.2)");
+        auraGrad.addColorStop(0.6, "rgba(75, 0, 130, 0.1)");
+        auraGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+        ctx.fillStyle = auraGrad;
+        ctx.beginPath();
+        ctx.arc(0, 0, 100 * pulse, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    }
+
+    // ----------------------------------------------------
+    // 1. THANOS ARMOR BODY / SHOULDERS
+    // ----------------------------------------------------
+    // Draw massive gold pauldrons and indigo breastplate
+    ctx.fillStyle = "#3F266F"; // Dark indigo body
+    ctx.beginPath();
+    ctx.moveTo(-50, 75);
+    ctx.bezierCurveTo(-65, 30, -50, -10, -35, -15);
+    ctx.lineTo(35, -15);
+    ctx.bezierCurveTo(50, -10, 65, 30, 50, 75);
+    ctx.closePath();
+    ctx.fill();
+
+    // Pauldrons (Golden shoulder plates)
+    var goldGrad = ctx.createLinearGradient(-50, -15, 50, -15);
+    goldGrad.addColorStop(0, "#8B6508"); // Dark gold
+    goldGrad.addColorStop(0.3, "#DAA520"); // Goldenrod
+    goldGrad.addColorStop(0.5, "#FFD700"); // Shiny Gold
+    goldGrad.addColorStop(0.7, "#DAA520");
+    goldGrad.addColorStop(1, "#8B6508");
+
+    ctx.fillStyle = goldGrad;
+    // Left Pauldron
+    ctx.beginPath();
+    ctx.moveTo(-55, 10);
+    ctx.bezierCurveTo(-52, -18, -32, -22, -16, -14);
+    ctx.lineTo(-24, 25);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Right Pauldron
+    ctx.beginPath();
+    ctx.moveTo(55, 10);
+    ctx.bezierCurveTo(52, -18, 32, -22, 16, -14);
+    ctx.lineTo(24, 25);
+    ctx.closePath();
+    ctx.fill();
+
+    // Gold Collar and Chest Armor Stripes
+    ctx.strokeStyle = "#FFD700";
+    ctx.lineWidth = 3.2;
+    ctx.beginPath();
+    ctx.moveTo(-16, -14);
+    ctx.quadraticCurveTo(0, -6, 16, -14);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(-12, 15);
+    ctx.lineTo(0, 32);
+    ctx.lineTo(12, 15);
+    ctx.stroke();
+
+    // ----------------------------------------------------
+    // 2. PURPLE ALIEN HEAD / FACE
+    // ----------------------------------------------------
+    // Neck
+    ctx.fillStyle = "#6F49A2"; // Purple skin
+    ctx.fillRect(-11, -30, 22, 18);
+    
+    // Head shape (broad square jaw with chin ridges)
+    ctx.beginPath();
+    ctx.moveTo(-18, -48);
+    ctx.bezierCurveTo(-18, -62, -10, -64, 0, -64);
+    ctx.bezierCurveTo(10, -64, 18, -62, 18, -48);
+    ctx.lineTo(16, -30);
+    ctx.bezierCurveTo(12, -24, -12, -24, -16, -30);
+    ctx.closePath();
+    ctx.fill();
+
+    // Chin Ridges
+    ctx.strokeStyle = "rgba(0, 0, 0, 0.45)";
+    ctx.lineWidth = 1.6;
+    for (var cr = -3; cr <= 3; cr += 2) {
+        ctx.beginPath();
+        ctx.moveTo(cr * 3.2, -28);
+        ctx.lineTo(cr * 3.2, -34);
+        ctx.stroke();
+    }
+
+    // Gold Helmet (Covering sides and crest)
+    ctx.fillStyle = goldGrad;
+    ctx.beginPath();
+    ctx.arc(0, -48, 18.5, Math.PI, 0, false);
+    ctx.lineTo(17.5, -42);
+    ctx.lineTo(13.5, -44);
+    ctx.lineTo(11, -32); // cheek guard left/right
+    ctx.lineTo(5, -46);
+    ctx.lineTo(-5, -46);
+    ctx.lineTo(-11, -32);
+    ctx.lineTo(-13.5, -44);
+    ctx.lineTo(-17.5, -42);
+    ctx.closePath();
+    ctx.fill();
+
+    // Helmet Center Crest
+    ctx.beginPath();
+    ctx.moveTo(-3.5, -64);
+    ctx.lineTo(0, -78);
+    ctx.lineTo(3.5, -64);
+    ctx.closePath();
+    ctx.fill();
+
+    // Eyes (Fierce white slits, glows yellow when omnipotent)
+    ctx.fillStyle = isOmni ? "#FFD700" : "#FFFFFF";
+    if (isOmni) {
+        ctx.save();
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = "#FFD700";
+    }
+    ctx.beginPath();
+    ctx.moveTo(-9, -46); ctx.lineTo(-4, -46); ctx.lineTo(-5, -44); ctx.closePath(); ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(9, -46); ctx.lineTo(4, -46); ctx.lineTo(5, -44); ctx.closePath(); ctx.fill();
+    if (isOmni) ctx.restore();
+
+    // ----------------------------------------------------
+    // 3. THE INFINITY GAUNTLET (Raised Left Hand)
+    // ----------------------------------------------------
+    ctx.save();
+    // Position glove to the left of his head
+    ctx.translate(-42, -5);
+    ctx.rotate(-0.15 + Math.sin(time * 3) * 0.05);
+
+    // Golden Gauntlet Metal base
+    var gloveGrad = ctx.createLinearGradient(-15, -15, 15, 15);
+    gloveGrad.addColorStop(0, "#B8860B");
+    gloveGrad.addColorStop(0.4, "#FF8C00"); // Orange-gold
+    gloveGrad.addColorStop(0.7, "#FFD700");
+    gloveGrad.addColorStop(1, "#FF8C00");
+
+    ctx.fillStyle = gloveGrad;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 14, 18, 0.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Gauntlet ridges/knuckles
+    ctx.fillStyle = "#FFB300";
+    ctx.beginPath();
+    ctx.arc(-8, -12, 4.5, 0, Math.PI * 2); // Fist fingers
+    ctx.arc(-2, -14, 4.8, 0, Math.PI * 2);
+    ctx.arc(4, -13, 4.6, 0, Math.PI * 2);
+    ctx.arc(9, -10, 4.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Large center Mind Stone plate
+    ctx.fillStyle = "#FFA000";
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 4.5, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // --- INFINITY GEMS (6 colors cycling or glowing) ---
+    var gemList = [
+        { color: "#00BFFF", x: -8, y: -12, size: 2.2, label: "Space" },      // Blue (Space)
+        { color: "#FF1E27", x: -2, y: -14, size: 2.4, label: "Reality" },    // Red (Reality)
+        { color: "#D500F9", x: 4, y: -13, size: 2.3, label: "Power" },      // Purple (Power)
+        { color: "#FFD600", x: 0, y: 0, size: 3.2, label: "Mind" },         // Yellow (Mind)
+        { color: "#00E676", x: 9, y: -10, size: 2.1, label: "Time" },       // Green (Time)
+        { color: "#FF6D00", x: 8, y: 4, size: 2.3, label: "Soul" }          // Orange (Soul)
+    ];
+
+    for (var g = 0; g < gemList.length; g++) {
+        var gem = gemList[g];
+        ctx.save();
+        
+        var pulseGlow = isCharged || isOmni;
+        if (pulseGlow) {
+            ctx.shadowBlur = 10 + Math.sin(time * 12 + g * 2) * 5;
+            ctx.shadowColor = gem.color;
+            ctx.fillStyle = gem.color;
+        } else {
+            ctx.fillStyle = "rgba(100, 100, 100, 0.8)"; // Unactivated gray gems
+        }
+        
+        ctx.beginPath();
+        ctx.arc(gem.x, gem.y, gem.size, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Inner white sparkle if activated
+        if (pulseGlow && Math.random() < 0.85) {
+            ctx.fillStyle = "#FFFFFF";
+            ctx.beginPath();
+            ctx.arc(gem.x, gem.y, gem.size * 0.45, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.restore();
+    }
+    ctx.restore();
+
+    // ----------------------------------------------------
+    // 4. THANOS DOUBLE-BLADED METALLIC SWORD (Right Hand - Phase 3 only)
+    // ----------------------------------------------------
+    if (isOmni) {
+        ctx.save();
+        // Hand grasp position (Right side of Thanos)
+        ctx.translate(46, 35);
+        ctx.rotate(-0.45 + Math.sin(time * 3) * 0.03);
+
+        // Purple giant skin hand
+        ctx.fillStyle = "#6F49A2";
+        ctx.beginPath();
+        ctx.arc(0, 0, 7, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Metallic Double Blade
+        ctx.save();
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = "rgba(255, 255, 255, 0.4)";
+        
+        // Sword Handle
+        ctx.fillStyle = "#FFD700"; // Gold hilt
+        ctx.fillRect(-2.5, -16, 5, 32);
+
+        // Top Blade
+        var bladeGrad = ctx.createLinearGradient(-8, -80, 8, -16);
+        bladeGrad.addColorStop(0, "#C0C0C0");
+        bladeGrad.addColorStop(0.5, "#E0E0E0");
+        bladeGrad.addColorStop(1, "#808080");
+        ctx.fillStyle = bladeGrad;
+        
+        ctx.beginPath();
+        ctx.moveTo(-6, -16);
+        ctx.lineTo(-4, -75);
+        ctx.lineTo(0, -90); // Tip
+        ctx.lineTo(4, -75);
+        ctx.lineTo(6, -16);
+        ctx.closePath();
+        ctx.fill();
+
+        // Bottom Blade
+        ctx.beginPath();
+        ctx.moveTo(-6, 16);
+        ctx.lineTo(-4, 75);
+        ctx.lineTo(0, 90); // Tip
+        ctx.lineTo(4, 75);
+        ctx.lineTo(6, 16);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.restore();
+        ctx.restore();
+    }
+
+    ctx.restore();
+};
+

@@ -2,8 +2,8 @@
 var OverworldPlayer = function() {
     this.x = 320;
     this.y = 240;
-    this.width = 20;
-    this.height = 30;
+    this.width = 13;
+    this.height = 20;
     this.speed = 100;
     this.dir = 0; // 0=down, 1=up, 2=left, 3=right
     this.moving = false;
@@ -95,7 +95,7 @@ OverworldPlayer.prototype.draw = function(ctx) {
     if (img && img.complete) {
         // Draw the sprite, scaling it slightly to fit the 20x30 hitbox but keeping its aspect ratio or centering it
         // The original sprites might be larger, so let's draw them scaled
-        ctx.drawImage(img, this.x - 5, this.y - 5, 30, 40);
+        ctx.drawImage(img, this.x - 3, this.y - 3, 20, 26);
     } else {
         // Fallback
         ctx.fillStyle = "#FF0000";
