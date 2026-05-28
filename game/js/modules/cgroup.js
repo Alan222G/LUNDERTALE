@@ -590,27 +590,27 @@ var Cgroup = (function() {
                 ],
                 spriteId: "asriel",
                 attacks: [
-                    "thanosRealityAlter", "thanosInfinitySnap", "thanosPowerBlast", 
-                    "thanosTimeLoop", "thanosSpaceWarp", "thanosSoulDevour", 
-                    "vaderForcePush", "vaderForceLevitation", "godzillaSpineLasers", 
-                    "vaderSaberThrow", "godzillaTailWhip", "vaderDeathStarLaser", 
-                    "godzillaRadioactiveRain", "vaderSaberShield", "bulletRain"
+                    "thanosRealityAlter", "thanosSpaceWarp", "thanosPowerFist", 
+                    "thanosTimeDagger", "thanosMindControl", "thanosSoulTrap", "thanosTitanBlade",
+                    "thanosRealitySlash", "thanosSpaceCompress", "thanosPowerBlast", 
+                    "thanosTimeParadox", "thanosMindMaze", "thanosInfinitySnap", 
+                    "thanosMeteorRain", "thanosSoulDevour"
                 ],
                 phases: [
                     { 
-                        patterns: ["thanosRealityAlter", "vaderForcePush", "thanosInfinitySnap", "godzillaSpineLasers", "thanosPowerBlast", "vaderSaberThrow", "bulletRain"], 
+                        patterns: ["thanosRealityAlter", "thanosSpaceWarp", "thanosPowerFist", "thanosTimeDagger", "thanosMindControl", "thanosSoulTrap", "thanosTitanBlade"], 
                         soulMode: "red", 
                         renderType: "thanos_normal",
                         speech: ["EL FIN ESTA\nCERCA.", "SOY LA\nREALIDAD.", "EL EQUILIBRIO\nSE ACERCA."] 
                     },
                     { 
-                        patterns: ["thanosSpaceWarp", "thanosTimeLoop", "godzillaTailWhip", "vaderDeathStarLaser", "thanosPowerBlast", "vaderSaberShield", "thanosSoulDevour"], 
+                        patterns: ["thanosRealitySlash", "thanosSpaceCompress", "thanosPowerBlast", "thanosTimeParadox", "thanosMindMaze", "thanosRealityAlter", "thanosPowerFist"], 
                         soulMode: "red", 
                         renderType: "thanos_charged",
                         speech: ["¿SIENTES EL\nPODER DEL\nGUANTELETE?", "EL TIEMPO Y\nEL ESPACIO\nME PERTENECEN.", "TE DESINTEGRAS\nLENTAMENTE."] 
                     },
                     { 
-                        patterns: ["thanosInfinitySnap", "thanosRealityAlter", "thanosTimeLoop", "thanosSpaceWarp", "thanosPowerBlast", "thanosSoulDevour", "godzillaSpineLasers"], 
+                        patterns: ["thanosInfinitySnap", "thanosMeteorRain", "thanosSoulDevour", "thanosSpaceCompress", "thanosTimeParadox", "thanosTimeDagger", "thanosTitanBlade"], 
                         soulMode: "red", 
                         renderType: "thanos_omnipotent",
                         speech: ["¡TODO ES\nPOLVO!", "¡EL PODER\nABSOLUTO ES\nMIO!", "¡NO ERES\nNADA ANTE\nMI VOLUNTAD!"] 
