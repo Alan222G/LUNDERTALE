@@ -307,6 +307,17 @@ var Soul = (function() {
         }
         return soulHeight;
     }
+    function getMirrorPos() {
+        if (typeof Cbbox === "undefined" || !pos) return { x: 0, y: 0 };
+        var bb = Cbbox.getBound();
+        var sw = getWidth();
+        var sh = getHeight();
+        var mainCenterX = pos.x + sw / 2;
+        var mainCenterY = pos.y + sh / 2;
+        var boxCenterX = (bb[0] + bb[2]) / 2;
+        var mirrorCenterX = 2 * boxCenterX - mainCenterX;
+        return { x: mirrorCenterX, y: mainCenterY };
+    }
     function getState() { return state; }
     function isOkay() { return state === STATE.OKAY; }
 
@@ -320,5 +331,6 @@ var Soul = (function() {
         move: move, limit: limit,
         getPos: getPos, setPos: setPos, getWidth: getWidth, getHeight: getHeight,
         getState: getState, isOkay: isOkay, takeDamage: takeDamage,
+        dualActive: false, getMirrorPos: getMirrorPos,
     };
 }());
