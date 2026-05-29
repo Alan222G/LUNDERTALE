@@ -382,38 +382,82 @@ GlitchCodeRainPattern.prototype.isOver = function() {
     return this.elapsed >= this.duration && this.columns.length === 0;
 };
 
-// 4. glitchCoordinateWarp (Grid pull)
+// 4. glitchCoordinateWarp (Grid pull & coordinate tag sweeps)
 var GlitchCoordinateWarpPattern = function(config) {
     BulletPattern.call(this, config);
     this.duration = config.duration || 7.0;
     this.elapsed = 0;
+    this.spawnTimer = 0;
     this.damVal = config.damVal || 8;
 };
 GlitchCoordinateWarpPattern.prototype = Object.create(BulletPattern.prototype);
 GlitchCoordinateWarpPattern.prototype.generateBullets = function(battleBox) {
     BulletPattern.prototype.generateBullets.call(this, battleBox);
     this.elapsed = 0;
+    this.spawnTimer = 0.2;
+    this.bullets = [];
 };
 GlitchCoordinateWarpPattern.prototype.update = function(dt) {
     this.elapsed += dt;
+    this.spawnTimer += dt;
+    var bb = Cbbox.getBound();
+    
     // Push the player's soul horizontally in a sine wave force!
     if (typeof Soul !== "undefined" && Soul.getPos && Soul.x !== undefined) {
-        var waveForce = Math.sin(this.elapsed * 3.5) * 110 * dt;
+        var waveForce = Math.sin(this.elapsed * 4.0) * 130 * dt;
         Soul.x += waveForce;
     }
+    
+    // Spawn coordinate tag bullets from edges
+    if (this.spawnTimer >= 0.45 && this.elapsed < this.duration - 0.8) {
+        this.spawnTimer = 0;
+        Sound.playSound("hit_1", true);
+        var side = Math.random() < 0.5 ? 'L' : 'R';
+        var ry = bb[1] + 15 + Math.random() * (bb[3] - bb[1] - 30);
+        var b = new Bullet({
+            x: side === 'L' ? bb[0] - 15 : bb[2] + 15,
+            y: ry,
+            width: 16,
+            height: 16,
+            speed: 160,
+            damVal: this.damVal,
+            color: "#00FFFF",
+            vx: side === 'L' ? 160 : -160,
+            vy: 0,
+            useVelocity: true
+        });
+        b.text = Math.random() < 0.5 ? "X" : "Y";
+        this.bullets.push(b);
+    }
+    
+    for (var i = this.bullets.length - 1; i >= 0; i--) {
+        var b = this.bullets[i];
+        b.progressMovement(dt);
+        if (b.isOutOfBounds(bb)) {
+            b.active = false;
+            this.bullets.splice(i, 1);
+        }
+    }
+    
     BulletPattern.prototype.update.call(this, dt);
 };
 GlitchCoordinateWarpPattern.prototype.checkCollision = function(sx, sy, sw, sh) {
-    return 0; // The coordinate warp is a passive force pattern that moves you into obstacles!
+    for (var i = 0; i < this.bullets.length; i++) {
+        var b = this.bullets[i];
+        if (b.active && rectsOverlap(b.x, b.y, b.width, b.height, sx, sy, sw, sh)) {
+            return this.damVal;
+        }
+    }
+    return 0;
 };
 GlitchCoordinateWarpPattern.prototype.draw = function(ctx) {
     ctx.save();
     var bb = Cbbox.getBound();
-    ctx.strokeStyle = "rgba(0, 255, 255, 0.18)";
-    ctx.lineWidth = 1.0;
     
     // Draw shearing digital coordinates
-    var shear = Math.sin(this.elapsed * 3.5) * 22;
+    ctx.strokeStyle = "rgba(0, 255, 255, 0.18)";
+    ctx.lineWidth = 1.0;
+    var shear = Math.sin(this.elapsed * 4.0) * 22;
     for (var x = bb[0] + 15; x < bb[2]; x += 30) {
         ctx.beginPath();
         ctx.moveTo(x - shear, bb[1]);
@@ -426,10 +470,30 @@ GlitchCoordinateWarpPattern.prototype.draw = function(ctx) {
         ctx.lineTo(bb[2], y);
         ctx.stroke();
     }
+    
+    // Draw coordinate label tag bullets
+    ctx.font = "bold 9pt Courier";
+    ctx.textAlign = "center";
+    for (var i = 0; i < this.bullets.length; i++) {
+        var b = this.bullets[i];
+        ctx.fillStyle = "#FF00FF";
+        ctx.fillRect(b.x, b.y, b.width, b.height);
+        
+        ctx.strokeStyle = "#00FFFF";
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(b.x, b.y, b.width, b.height);
+        
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillText(b.text || "X", b.x + 8, b.y + 12);
+    }
     ctx.restore();
 };
 GlitchCoordinateWarpPattern.prototype.isOver = function() {
-    return this.elapsed >= this.duration;
+    var over = this.elapsed >= this.duration;
+    if (over) {
+        this.bullets = [];
+    }
+    return over;
 };
 
 // 5. glitchFlickerShards (Pixels zooming in)
@@ -781,10 +845,13 @@ GlitchBBoxMorphPattern.prototype.draw = function(ctx) {
     ctx.restore();
 };
 GlitchBBoxMorphPattern.prototype.isOver = function() {
-    var over = this.elapsed >= this.duration && this.bullets.length === 0;
-    if (over && typeof Cbbox !== "undefined" && Cbbox.setSize) {
-        // Restore normal bounds
-        Cbbox.setSize(574, 140, false);
+    var over = this.elapsed >= this.duration;
+    if (over) {
+        this.bullets = [];
+        if (typeof Cbbox !== "undefined" && Cbbox.setSize) {
+            // Restore normal bounds
+            Cbbox.setSize(574, 140, false);
+        }
     }
     return over;
 };
@@ -1578,5 +1645,9 @@ GlitchKernelPanicPattern.prototype.draw = function(ctx) {
     ctx.restore();
 };
 GlitchKernelPanicPattern.prototype.isOver = function() {
-    return this.elapsed >= this.duration && this.bullets.length === 0;
+    var over = this.elapsed >= this.duration;
+    if (over) {
+        this.bullets = [];
+    }
+    return over;
 };

@@ -3880,41 +3880,54 @@ Enemy.prototype.drawGlitch = function(ctx) {
     var type = this.renderType; // "glitch_minor", "glitch_core", "glitch_fatal"
     
     // Nervous glitchy breathing and float
-    var breatheSpeed = type === "glitch_fatal" ? 1.5 : (type === "glitch_core" ? 3.5 : 2.5);
-    var breathe = 1.0 + Math.sin(time * breatheSpeed) * 0.012;
-    var jitter = (Math.random() < 0.12 && type !== "glitch_minor") ? (Math.random() - 0.5) * 5.0 : 0.0;
-    var floatAmp = type === "glitch_fatal" ? 8.0 : (type === "glitch_minor" ? 3.0 : 5.0);
-    var floatY = Math.sin(time * 2.2) * floatAmp + jitter;
+    var breatheSpeed = type === "glitch_fatal" ? 4.5 : (type === "glitch_core" ? 3.5 : 2.5);
+    var breathe = 1.0 + Math.sin(time * breatheSpeed) * 0.018;
+    var jitterX = (Math.random() < 0.15 && type !== "glitch_minor") ? (Math.random() - 0.5) * 6 : 0;
+    var jitterY = (Math.random() < 0.15 && type !== "glitch_minor") ? (Math.random() - 0.5) * 6 : 0;
+    var floatAmp = type === "glitch_fatal" ? 10.0 : (type === "glitch_minor" ? 4.0 : 7.0);
+    var floatY = Math.sin(time * 2.5) * floatAmp + jitterY;
 
     ctx.save();
-    ctx.translate(370, 145 + floatY); // Centered and adjusted height
+    ctx.translate(370 + jitterX, 145 + floatY); // Centered and adjusted height
     ctx.scale(breathe, breathe);
 
-    // 0. CHROMATIC ABERRATION PRE-EFFECTS
+    // 0. CHROMATIC ABERRATION PRE-EFFECTS (RGB Split Shadow)
     if (type !== "glitch_minor") {
         ctx.save();
         ctx.globalCompositeOperation = "screen";
+        
         // Ghost red copy shifted left
         ctx.save();
-        ctx.translate(-4 + Math.sin(time * 15) * 2, 0);
-        ctx.fillStyle = "rgba(255, 0, 0, 0.22)";
-        ctx.fillRect(-65, -10, 130, 95);
+        ctx.translate(-5 + Math.sin(time * 16) * 3, Math.cos(time * 16) * 2);
+        ctx.fillStyle = "rgba(255, 0, 85, 0.28)";
+        ctx.fillRect(-70, -15, 140, 100);
         ctx.restore();
         
         // Ghost cyan copy shifted right
         ctx.save();
-        ctx.translate(4 - Math.sin(time * 15) * 2, 0);
-        ctx.fillStyle = "rgba(0, 255, 255, 0.22)";
-        ctx.fillRect(-65, -10, 130, 95);
+        ctx.translate(5 - Math.sin(time * 16) * 3, -Math.cos(time * 16) * 2);
+        ctx.fillStyle = "rgba(0, 240, 255, 0.28)";
+        ctx.fillRect(-70, -15, 140, 100);
         ctx.restore();
+        
         ctx.restore();
     }
 
     if (type === "glitch_minor") {
         // ====================================================================
-        // PHASE 1: MINOR CORRUPTION (Checkerboard Humanoid)
+        // PHASE 1: MINOR CORRUPTION (Checkerboard Humanoid & CPU Crown)
         // ====================================================================
         ctx.save();
+        
+        // Background spatial lines
+        ctx.strokeStyle = "rgba(255, 0, 255, 0.1)";
+        ctx.lineWidth = 1;
+        for (var l = -60; l <= 60; l += 20) {
+            ctx.beginPath(); 
+            ctx.moveTo(l, -80); 
+            ctx.lineTo(l + Math.sin(time * 5) * 10, 80); 
+            ctx.stroke();
+        }
         
         // Humanoid checkered body blocks
         var pxSize = 8;
@@ -3927,7 +3940,7 @@ Enemy.prototype.drawGlitch = function(ctx) {
             
             for (var x = -xSpan; x < xSpan; x += pxSize) {
                 // Flicker transparency
-                if (Math.random() < 0.15) continue;
+                if (Math.random() < 0.12) continue;
                 ctx.fillStyle = ((Math.floor(x/pxSize) + Math.floor(y/pxSize)) % 2 === 0) ? "#FF00FF" : "#000000";
                 ctx.fillRect(x, y, pxSize, pxSize);
             }
@@ -3936,23 +3949,63 @@ Enemy.prototype.drawGlitch = function(ctx) {
         // Green matrix code rain
         ctx.fillStyle = "#00FF66";
         ctx.font = "bold 8px Courier";
-        for (var c = 0; c < 5; c++) {
-            var cx = -35 + c * 18;
-            var cy = (time * 75 + c * 25) % 90 - 15;
+        for (var c = 0; c < 6; c++) {
+            var cx = -40 + c * 16;
+            var cy = (time * 80 + c * 20) % 95 - 20;
             ctx.fillText(Math.random() < 0.5 ? "0" : "1", cx, cy);
         }
         
-        // Flickering Hollow Square Head
-        ctx.strokeStyle = "#00FFFF";
-        ctx.lineWidth = 2.0;
-        ctx.strokeRect(-20, -52, 40, 26);
-        ctx.fillStyle = "#000000";
-        ctx.fillRect(-19, -51, 38, 24);
+        // REDESIGNED GLITCH FACE/HEAD (Pixel CPU/Skull)
+        ctx.save();
+        ctx.translate(0, -38);
         
-        // Glowing red slits (Eyes)
-        ctx.fillStyle = "#FF00FF";
-        ctx.fillRect(-12, -41, 6, 3);
-        ctx.fillRect(6, -41, 6, 3);
+        // Floating pixel cluster head
+        for (var hy = -15; hy <= 15; hy += 5) {
+            for (var hx = -15; hx <= 15; hx += 5) {
+                if (Math.abs(hx) + Math.abs(hy) > 22) continue; // Round corners
+                if (Math.random() < 0.1) continue; // Shimmer
+                ctx.fillStyle = ((Math.floor(hx/5) + Math.floor(hy/5) + Math.floor(time * 3)) % 2 === 0) ? "#FF00FF" : "#00FFFF";
+                ctx.fillRect(hx, hy, 5, 5);
+            }
+        }
+        
+        // Shimmering Eye sockets
+        ctx.fillStyle = "#000000";
+        ctx.fillRect(-10, -5, 6, 6);
+        ctx.fillRect(4, -5, 6, 6);
+        // Neon green/red flashing pupils
+        ctx.fillStyle = Math.random() < 0.2 ? "#FF0055" : "#00FF66";
+        ctx.fillRect(-8, -3, 3, 3);
+        ctx.fillRect(6, -3, 3, 3);
+        
+        // Rotating bracket framing vectors
+        ctx.strokeStyle = "#00FFFF";
+        ctx.lineWidth = 1.5;
+        var scaleBrac = 1.1 + Math.sin(time * 6) * 0.08;
+        ctx.scale(scaleBrac, scaleBrac);
+        // Left bracket
+        ctx.beginPath();
+        ctx.moveTo(-22, -18); ctx.lineTo(-26, -18); ctx.lineTo(-26, 18); ctx.lineTo(-22, 18);
+        ctx.stroke();
+        // Right bracket
+        ctx.beginPath();
+        ctx.moveTo(22, -18); ctx.lineTo(26, -18); ctx.lineTo(26, 18); ctx.lineTo(22, 18);
+        ctx.stroke();
+        
+        ctx.restore();
+        
+        // Glowing Binary CPU Crown
+        ctx.save();
+        ctx.translate(0, -62);
+        ctx.fillStyle = "#00FF66";
+        ctx.font = "bold 7px Courier";
+        for (var bi = 0; bi < 8; bi++) {
+            var bAngle = time * 2.0 + (bi * Math.PI / 4);
+            var bx = Math.cos(bAngle) * 24;
+            var by = Math.sin(bAngle) * 6;
+            ctx.fillText(bi % 2 === 0 ? "0" : "1", bx - 2, by + 2);
+        }
+        ctx.restore();
         
         ctx.restore();
         
@@ -3965,6 +4018,8 @@ Enemy.prototype.drawGlitch = function(ctx) {
         // Massive voxel shoulders backing shadow
         ctx.fillStyle = "#0c0c0c";
         ctx.fillRect(-85, 10, 170, 75);
+        ctx.strokeStyle = "rgba(255, 0, 255, 0.25)";
+        ctx.strokeRect(-85, 10, 170, 75);
         
         // Overlapping Pectoral Voxel Plates
         ctx.fillStyle = "#1e1e1e";
@@ -3977,18 +4032,40 @@ Enemy.prototype.drawGlitch = function(ctx) {
         ctx.strokeRect(-45, 15, 40, 24);
         ctx.strokeRect(5, 15, 40, 24);
         
+        // Pulsating Concentric Core Reactor Rings
+        ctx.strokeStyle = "rgba(255, 204, 0, 0.35)";
+        ctx.lineWidth = 1.0;
+        for (var r = 0; r < 3; r++) {
+            var radius = 12 + r * 10 + (time * 12) % 10;
+            ctx.beginPath();
+            ctx.ellipse(0, 20, radius, radius * 0.4, 0, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        
         // Glowing Core Reactor (System Warning Icon)
         ctx.save();
         ctx.fillStyle = "#FFCC00"; // Yellow Warning color
         ctx.shadowBlur = 12 + Math.sin(time * 8) * 4;
         ctx.shadowColor = "#FFCC00";
         ctx.beginPath();
-        ctx.moveTo(0, 12); ctx.lineTo(12, 28); ctx.lineTo(-12, 28); ctx.closePath();
+        ctx.moveTo(0, 10); ctx.lineTo(12, 28); ctx.lineTo(-12, 28); ctx.closePath();
         ctx.fill();
         ctx.fillStyle = "#000000";
-        ctx.fillRect(-1, 18, 2, 5);
-        ctx.fillRect(-1, 25, 2, 2);
+        ctx.fillRect(-1, 16, 2, 6);
+        ctx.fillRect(-1, 24, 2, 2);
         ctx.restore();
+        
+        // Orbiting Warning Nodes
+        for (var o = 0; o < 3; o++) {
+            var oAngle = time * 2.2 + (o * Math.PI * 2 / 3);
+            var ox = Math.cos(oAngle) * 55;
+            var oy = Math.sin(oAngle) * 12 + 20;
+            ctx.fillStyle = "#FFCC00";
+            ctx.shadowBlur = 6;
+            ctx.shadowColor = "#FFCC00";
+            ctx.fillRect(ox - 3, oy - 3, 6, 6);
+            ctx.shadowBlur = 0;
+        }
         
         // Ripped 8-Pack Abs drawn as Shaded Voxel blocks
         var abGlow = "rgba(0, 255, 102, " + (0.5 + Math.sin(time * 6) * 0.25).toFixed(2) + ")";
@@ -4035,8 +4112,18 @@ Enemy.prototype.drawGlitch = function(ctx) {
         ctx.strokeRect(-80, 20, 28, 30);
         ctx.strokeRect(52, 20, 28, 30);
         
-        // Glowing red orbital threat rings (Rotating)
-        ctx.strokeStyle = "rgba(255, 0, 85, 0.4)";
+        // Floating cybernetic weapon nodes at sides
+        ctx.save();
+        ctx.fillStyle = "#00FFFF";
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = "#00FFFF";
+        var wingOsc = Math.sin(time * 4) * 8;
+        ctx.fillRect(-98, 32 + wingOsc, 8, 16);
+        ctx.fillRect(90, 32 - wingOsc, 8, 16);
+        ctx.restore();
+        
+        // Glowing red orbital threat rings (Rotating in 3D perspective)
+        ctx.strokeStyle = "rgba(255, 0, 85, 0.5)";
         ctx.lineWidth = 1.8;
         ctx.save();
         ctx.rotate(time * 1.5);
@@ -4056,21 +4143,37 @@ Enemy.prototype.drawGlitch = function(ctx) {
         ctx.fillStyle = "#161616";
         ctx.fillRect(-15, -15, 30, 16);
         
-        // Floating Voxel Glitch Skull Head
+        // Floating Voxel Glitch Skull Head (Redesigned Phase 2 Head)
+        ctx.save();
+        ctx.translate(0, -38);
+        
+        // Voxel matrix grid face
         ctx.fillStyle = "#FF00FF";
         ctx.shadowBlur = 10;
         ctx.shadowColor = "#FF00FF";
-        ctx.fillRect(-22, -45, 44, 30); // head body
-        ctx.fillStyle = "#000000";
-        ctx.fillRect(-15, -36, 8, 8); // left eye socket
-        ctx.fillRect(7, -36, 8, 8);  // right eye socket
-        ctx.fillStyle = "#00FF66"; // glowing green pupils
-        ctx.fillRect(-12, -33, 3, 3);
-        ctx.fillRect(10, -33, 3, 3);
+        ctx.fillRect(-22, -15, 44, 30); // head body
         
-        // Hollow voxel jaw
-        ctx.fillStyle = "#1e1e1e";
-        ctx.fillRect(-14, -15, 28, 8);
+        // Cyber-Slit Eye Sockets
+        ctx.fillStyle = "#000000";
+        ctx.shadowBlur = 0;
+        ctx.fillRect(-16, -6, 10, 8); // left socket
+        ctx.fillRect(6, -6, 10, 8);  // right socket
+        
+        // Glowing double pupils
+        ctx.fillStyle = "#00FF66";
+        ctx.fillRect(-13, -4, 4, 4);
+        ctx.fillRect(9, -4, 4, 4);
+        
+        // Holographic horns/lines shooting up
+        ctx.strokeStyle = "#00FFFF";
+        ctx.lineWidth = 2.0;
+        ctx.beginPath();
+        ctx.moveTo(-18, -15); ctx.lineTo(-24, -28);
+        ctx.moveTo(18, -15); ctx.lineTo(24, -28);
+        ctx.stroke();
+        
+        ctx.restore();
+        
         ctx.restore();
         
     } else {
@@ -4079,10 +4182,29 @@ Enemy.prototype.drawGlitch = function(ctx) {
         // ====================================================================
         ctx.save();
         
+        // Spatial Cracks (Torn canvas fragments representing broken code)
+        ctx.strokeStyle = "#FF00FF";
+        ctx.lineWidth = 2.5;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = "#FF00FF";
+        for (var cr = 0; cr < 4; cr++) {
+            var cAngle = cr * Math.PI / 2 + Math.sin(time * 3) * 0.2;
+            ctx.save();
+            ctx.rotate(cAngle);
+            ctx.beginPath();
+            ctx.moveTo(110, 0);
+            ctx.lineTo(135, -15);
+            ctx.lineTo(150, 10);
+            ctx.lineTo(170, -5);
+            ctx.stroke();
+            ctx.restore();
+        }
+        ctx.shadowBlur = 0;
+        
         // Coordinate Grid warping in the background
-        ctx.strokeStyle = "rgba(0, 255, 255, 0.08)";
+        ctx.strokeStyle = "rgba(0, 255, 255, 0.12)";
         ctx.lineWidth = 1.0;
-        var gridShear = Math.sin(time * 2.2) * 15;
+        var gridShear = Math.sin(time * 2.8) * 18;
         for (var gx = -160; gx <= 160; gx += 40) {
             ctx.beginPath();
             ctx.moveTo(gx - gridShear, -120);
@@ -4099,7 +4221,7 @@ Enemy.prototype.drawGlitch = function(ctx) {
         // Massive invader shoulder block
         ctx.fillStyle = "#09091e";
         ctx.fillRect(-150, 12, 300, 75);
-        ctx.strokeStyle = "rgba(0, 255, 255, 0.35)";
+        ctx.strokeStyle = "rgba(0, 255, 255, 0.45)";
         ctx.lineWidth = 2.0;
         ctx.strokeRect(-150, 12, 300, 75);
         
@@ -4116,24 +4238,30 @@ Enemy.prototype.drawGlitch = function(ctx) {
         var hexLines = [
             "FATAL_ERROR_0x000F",
             "REG:0x404:COREPANIC",
-            "FORMATTING_C:80%",
-            "NULL_PTR_DEREF"
+            "FORMATTING_C:95%",
+            "NULL_PTR_DEREF",
+            "SYS_CRITICAL_HALT",
+            "STACK_OVERFLOW"
         ];
-        var scrollIndex = Math.floor(time * 3) % hexLines.length;
+        var scrollIndex = Math.floor(time * 2.5) % hexLines.length;
         for (var hl = 0; hl < 4; hl++) {
             var lineY = 30 + hl * 12;
             var textStr = hexLines[(scrollIndex + hl) % hexLines.length];
+            if (hl === 3 && Math.floor(time * 3) % 2 === 0) {
+                textStr += " _"; // blinking block cursor
+            }
             ctx.fillText(textStr, -58, lineY);
         }
         
         // 2. DETAILED CLAWS TEARING Spatial coordinates on sides
         // Left Giant Claw
         ctx.save();
-        ctx.translate(-115, 30 + Math.sin(time * 3.5) * 5);
-        ctx.rotate(-0.25);
-        ctx.fillStyle = "#00";
+        ctx.translate(-120, 30 + Math.sin(time * 4) * 8);
+        ctx.rotate(-0.25 + Math.sin(time * 2) * 0.1);
+        ctx.fillStyle = "#000000";
         ctx.fillRect(-22, -15, 44, 30);
         ctx.strokeStyle = "#FF00FF";
+        ctx.lineWidth = 1.5;
         ctx.strokeRect(-22, -15, 44, 30);
         
         // 3 sharp pixel claws
@@ -4141,15 +4269,22 @@ Enemy.prototype.drawGlitch = function(ctx) {
         ctx.fillRect(-18, 15, 8, 24);
         ctx.fillRect(-4, 15, 8, 30);
         ctx.fillRect(10, 15, 8, 24);
+        
+        // Glowing claw joints
+        ctx.fillStyle = "#00FFFF";
+        ctx.fillRect(-15, 12, 3, 3);
+        ctx.fillRect(-1, 12, 3, 3);
+        ctx.fillRect(13, 12, 3, 3);
         ctx.restore();
         
         // Right Giant Claw
         ctx.save();
-        ctx.translate(115, 30 - Math.sin(time * 3.5) * 5);
-        ctx.rotate(0.25);
-        ctx.fillStyle = "#00";
+        ctx.translate(120, 30 - Math.sin(time * 4) * 8);
+        ctx.rotate(0.25 - Math.sin(time * 2) * 0.1);
+        ctx.fillStyle = "#000000";
         ctx.fillRect(-22, -15, 44, 30);
         ctx.strokeStyle = "#FF00FF";
+        ctx.lineWidth = 1.5;
         ctx.strokeRect(-22, -15, 44, 30);
         
         // 3 sharp claws
@@ -4157,12 +4292,18 @@ Enemy.prototype.drawGlitch = function(ctx) {
         ctx.fillRect(-18, 15, 8, 24);
         ctx.fillRect(-4, 15, 8, 30);
         ctx.fillRect(10, 15, 8, 24);
+        
+        // Glowing claw joints
+        ctx.fillStyle = "#00FFFF";
+        ctx.fillRect(-15, 12, 3, 3);
+        ctx.fillRect(-1, 12, 3, 3);
+        ctx.fillRect(13, 12, 3, 3);
         ctx.restore();
         
         // 3. FLOATING BINARY SKULL HEAD (CHOMPING ANIMATION)
         ctx.save();
         ctx.translate(0, -38);
-        var chompY = Math.sin(time * 6) > 0.4 ? (Math.sin(time * 6) - 0.4) * 8.0 : 0.0;
+        var chompY = Math.sin(time * 7) > 0.3 ? (Math.sin(time * 7) - 0.3) * 10.0 : 0.0;
         
         // Draw main white voxel skull
         ctx.fillStyle = "#FFFFFF";
@@ -4195,6 +4336,17 @@ Enemy.prototype.drawGlitch = function(ctx) {
         ctx.beginPath();
         ctx.moveTo(0, -4); ctx.lineTo(-2, 0); ctx.lineTo(2, 0); ctx.closePath();
         ctx.fill();
+        
+        // Rotating Crown of Hex Strings
+        ctx.fillStyle = "#00FFFF";
+        ctx.font = "bold 6px Courier";
+        var hexKeys = ["0x404", "0x0A", "0xFF", "0xDB"];
+        for (var hk = 0; hk < 4; hk++) {
+            var hkAngle = -time * 2.0 + (hk * Math.PI / 2);
+            var hkx = Math.cos(hkAngle) * 36;
+            var hky = Math.sin(hkAngle) * 8 - 14;
+            ctx.fillText(hexKeys[hk], hkx - 10, hky);
+        }
         
         ctx.restore();
         
