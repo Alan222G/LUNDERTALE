@@ -109,6 +109,77 @@ function drawErrorBox(ctx, x, y, w, h, title, message) {
     ctx.restore();
 }
 
+function drawPixelSkullForPattern(ctx, cx, cy, scale, chompY) {
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.scale(scale, scale);
+    
+    // Pixel skull map (12x12 grid)
+    // 0 = empty, 1 = skull pixel, 2 = eye socket, 3 = nasal cavity
+    var grid = [
+        [0,0,0,1,1,1,1,1,1,0,0,0],
+        [0,0,1,1,1,1,1,1,1,1,0,0],
+        [0,1,1,1,1,1,1,1,1,1,1,0],
+        [1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,2,2,1,1,1,1,2,2,1,1],
+        [1,1,2,2,1,1,1,1,2,2,1,1],
+        [1,1,1,1,1,3,3,1,1,1,1,1],
+        [0,1,1,1,1,1,1,1,1,1,1,0],
+        [0,0,1,1,1,1,1,1,1,1,0,0]
+    ];
+    
+    var size = 4; // size of each pixel
+    var offsetX = -24; // center the 12-wide grid (12 * 4 / 2 = 24)
+    var offsetY = -24;
+    
+    // Draw skull dome
+    for (var r = 0; r < grid.length; r++) {
+        for (var c = 0; c < grid[r].length; c++) {
+            var val = grid[r][c];
+            var px = offsetX + c * size;
+            var py = offsetY + r * size;
+            if (val === 1) {
+                ctx.fillStyle = "#FFFFFF";
+                ctx.fillRect(px, py, size, size);
+            } else if (val === 2) {
+                ctx.fillStyle = "#000082"; // blue eye sockets for BSOD!
+                ctx.fillRect(px, py, size, size);
+                ctx.fillStyle = "#FF0055"; // pupil
+                ctx.fillRect(px + 1, py + 1, 2, 2);
+            } else if (val === 3) {
+                ctx.fillStyle = "#000000";
+                ctx.fillRect(px, py, size, size);
+            }
+        }
+    }
+    
+    // Draw moving jaw block with voxel teeth
+    ctx.save();
+    ctx.translate(0, chompY);
+    var jawGrid = [
+        [0,0,1,1,4,4,4,4,1,1,0,0],
+        [0,0,1,1,0,0,0,0,1,1,0,0],
+        [0,0,1,1,1,1,1,1,1,1,0,0]
+    ];
+    for (var r = 0; r < jawGrid.length; r++) {
+        for (var c = 0; c < jawGrid[r].length; c++) {
+            var val = jawGrid[r][c];
+            var px = offsetX + c * size;
+            var py = offsetY + (r + 9) * size;
+            if (val === 1) {
+                ctx.fillStyle = "#FFFFFF";
+                ctx.fillRect(px, py, size, size);
+            } else if (val === 4) {
+                ctx.fillStyle = (c % 2 === 0) ? "#FFFFFF" : "#808080";
+                ctx.fillRect(px, py, size, size);
+            }
+        }
+    }
+    ctx.restore();
+    
+    ctx.restore();
+}
+
 // ============================================================================
 // PHASE 1 PATTERNS
 // ============================================================================
@@ -584,36 +655,122 @@ GlitchFlickerShardsPattern.prototype.isOver = function() {
     return this.elapsed >= this.duration && this.bullets.length === 0;
 };
 
-// 6. glitchStaticBarrier (Closing static)
+// 6. glitchStaticBarrier (Closing static & crossing scan lasers)
 var GlitchStaticBarrierPattern = function(config) {
     BulletPattern.call(this, config);
     this.duration = config.duration || 6.5;
     this.elapsed = 0;
+    this.laserTimer = 0;
+    this.spawnTimer = 0;
     this.damVal = config.damVal || 9;
+    this.lasers = []; // { y, warning, active }
 };
 GlitchStaticBarrierPattern.prototype = Object.create(BulletPattern.prototype);
 GlitchStaticBarrierPattern.prototype.generateBullets = function(battleBox) {
     BulletPattern.prototype.generateBullets.call(this, battleBox);
     this.elapsed = 0;
+    this.laserTimer = 0.2;
+    this.spawnTimer = 0;
+    this.lasers = [];
+    this.bullets = [];
 };
 GlitchStaticBarrierPattern.prototype.update = function(dt) {
     this.elapsed += dt;
+    this.laserTimer += dt;
+    this.spawnTimer += dt;
+    var bb = Cbbox.getBound();
+    
+    // Barrier width closes in over time
+    var widthScale = Math.min(80, this.elapsed * 12);
+    var safeX1 = bb[0] + widthScale;
+    var safeX2 = bb[2] - widthScale;
+    
+    // Trigger horizontal lasers to jump over
+    if (this.laserTimer >= 1.2 && this.elapsed < this.duration - 1.0) {
+        this.laserTimer = 0;
+        var ry = bb[1] + 15 + Math.random() * (bb[3] - bb[1] - 30);
+        this.lasers.push({ y: ry, warning: 0.5, active: 0.25 });
+    }
+    
+    // Spawn falling binary code rain in the safe zone
+    if (this.spawnTimer >= 0.32 && this.elapsed < this.duration - 0.8) {
+        this.spawnTimer = 0;
+        var rx = safeX1 + Math.random() * (safeX2 - safeX1 - 10);
+        this.bullets.push(new Bullet({
+            x: rx,
+            y: bb[1] - 10,
+            width: 8,
+            height: 8,
+            speed: 130,
+            damVal: this.damVal - 2,
+            color: "#00FF66",
+            vx: 0,
+            vy: 130,
+            useVelocity: true
+        }));
+    }
+    
+    // Update lasers
+    for (var i = this.lasers.length - 1; i >= 0; i--) {
+        var l = this.lasers[i];
+        if (l.warning > 0) {
+            l.warning -= dt;
+            if (l.warning <= 0) {
+                Sound.playSound("laser", true);
+            }
+        } else {
+            l.active -= dt;
+            if (l.active <= 0) {
+                this.lasers.splice(i, 1);
+            }
+        }
+    }
+    
+    // Update bullets
+    for (var i = this.bullets.length - 1; i >= 0; i--) {
+        var b = this.bullets[i];
+        b.progressMovement(dt);
+        if (b.isOutOfBounds(bb)) {
+            b.active = false;
+            this.bullets.splice(i, 1);
+        }
+    }
+    
     BulletPattern.prototype.update.call(this, dt);
 };
 GlitchStaticBarrierPattern.prototype.checkCollision = function(sx, sy, sw, sh) {
     var bb = Cbbox.getBound();
-    // Barrier width closes in over time
     var widthScale = Math.min(80, this.elapsed * 12);
-    // Left barrier
+    
+    // Left/Right barrier collision
     if (rectsOverlap(bb[0], bb[1], widthScale, bb[3] - bb[1], sx, sy, sw, sh)) return this.damVal;
-    // Right barrier
     if (rectsOverlap(bb[2] - widthScale, bb[1], widthScale, bb[3] - bb[1], sx, sy, sw, sh)) return this.damVal;
+    
+    // Laser collisions
+    for (var i = 0; i < this.lasers.length; i++) {
+        var l = this.lasers[i];
+        if (l.warning <= 0 && l.active > 0) {
+            if (rectsOverlap(bb[0], l.y - 4, bb[2] - bb[0], 8, sx, sy, sw, sh)) {
+                return this.damVal;
+            }
+        }
+    }
+    
+    // Bullet collisions
+    for (var i = 0; i < this.bullets.length; i++) {
+        var b = this.bullets[i];
+        if (b.active && rectsOverlap(b.x, b.y, b.width, b.height, sx, sy, sw, sh)) {
+            return b.damVal;
+        }
+    }
+    
     return 0;
 };
 GlitchStaticBarrierPattern.prototype.draw = function(ctx) {
     ctx.save();
     var bb = Cbbox.getBound();
     var widthScale = Math.min(80, this.elapsed * 12);
+    
     if (widthScale > 4) {
         // Draw left static wall
         drawGlitchStatic(ctx, bb[0], bb[1], widthScale, bb[3] - bb[1], 0.35);
@@ -627,6 +784,33 @@ GlitchStaticBarrierPattern.prototype.draw = function(ctx) {
         ctx.moveTo(bb[2] - widthScale, bb[1]); ctx.lineTo(bb[2] - widthScale, bb[3]);
         ctx.stroke();
     }
+    
+    // Draw lasers
+    for (var i = 0; i < this.lasers.length; i++) {
+        var l = this.lasers[i];
+        if (l.warning > 0) {
+            ctx.strokeStyle = "rgba(255, 0, 255, 0.4)";
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath();
+            ctx.moveTo(bb[0], l.y); ctx.lineTo(bb[2], l.y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        } else if (l.active > 0) {
+            ctx.fillStyle = "rgba(255, 0, 255, 0.85)";
+            ctx.fillRect(bb[0], l.y - 4, bb[2] - bb[0], 8);
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillRect(bb[0], l.y - 1, bb[2] - bb[0], 2);
+        }
+    }
+    
+    // Draw bullets
+    for (var i = 0; i < this.bullets.length; i++) {
+        var b = this.bullets[i];
+        ctx.fillStyle = b.color;
+        ctx.fillRect(b.x, b.y, b.width, b.height);
+    }
+    
     ctx.restore();
 };
 GlitchStaticBarrierPattern.prototype.isOver = function() {
@@ -1050,60 +1234,112 @@ GlitchRGBVectorSplitPattern.prototype.isOver = function() {
     return this.elapsed >= this.duration && this.lasers.length === 0;
 };
 
-// 11. glitchMemoryLeak (Rising purple acid tide)
+// 11. glitchMemoryLeak (Rising purple acid tide & leak bytes)
 var GlitchMemoryLeakPattern = function(config) {
     BulletPattern.call(this, config);
     this.duration = config.duration || 6.5;
     this.elapsed = 0;
+    this.spawnTimer = 0;
     this.damVal = config.damVal || 8;
 };
 GlitchMemoryLeakPattern.prototype = Object.create(BulletPattern.prototype);
 GlitchMemoryLeakPattern.prototype.generateBullets = function(battleBox) {
     BulletPattern.prototype.generateBullets.call(this, battleBox);
     this.elapsed = 0;
+    this.spawnTimer = 0.2;
+    this.bullets = [];
 };
 GlitchMemoryLeakPattern.prototype.update = function(dt) {
     this.elapsed += dt;
+    this.spawnTimer += dt;
+    var bb = Cbbox.getBound();
+    
+    var baseTide = Math.min(55, this.elapsed * 9.5);
+    var tideHeight = baseTide + Math.sin(this.elapsed * 5.0) * 8.0;
+    
+    // Spawn leak byte droplets shooting upwards
+    if (this.spawnTimer >= 0.38 && this.elapsed < this.duration - 0.8) {
+        this.spawnTimer = 0;
+        Sound.playSound("hit_1", true);
+        var rx = bb[0] + 15 + Math.random() * (bb[2] - bb[0] - 30);
+        this.bullets.push(new Bullet({
+            x: rx,
+            y: bb[3] - tideHeight - 2,
+            width: 8,
+            height: 8,
+            speed: 130 + Math.random() * 60,
+            damVal: this.damVal,
+            color: "#FF00FF",
+            vx: 0,
+            vy: -(130 + Math.random() * 60),
+            useVelocity: true
+        }));
+    }
+    
+    for (var i = this.bullets.length - 1; i >= 0; i--) {
+        var b = this.bullets[i];
+        b.progressMovement(dt);
+        if (b.isOutOfBounds(bb)) {
+            b.active = false;
+            this.bullets.splice(i, 1);
+        }
+    }
+    
     BulletPattern.prototype.update.call(this, dt);
 };
 GlitchMemoryLeakPattern.prototype.checkCollision = function(sx, sy, sw, sh) {
     var bb = Cbbox.getBound();
-    // Tide rises slowly
-    var tideHeight = Math.min(48, this.elapsed * 7.5);
+    var baseTide = Math.min(55, this.elapsed * 9.5);
+    var tideHeight = baseTide + Math.sin(this.elapsed * 5.0) * 8.0;
+    
+    // Tide collision
     if (rectsOverlap(bb[0], bb[3] - tideHeight, bb[2] - bb[0], tideHeight, sx, sy, sw, sh)) {
         return this.damVal;
     }
+    
+    // Droplet collisions
+    for (var i = 0; i < this.bullets.length; i++) {
+        var b = this.bullets[i];
+        if (b.active && rectsOverlap(b.x, b.y, b.width, b.height, sx, sy, sw, sh)) {
+            return b.damVal;
+        }
+    }
+    
     return 0;
 };
 GlitchMemoryLeakPattern.prototype.draw = function(ctx) {
     ctx.save();
     var bb = Cbbox.getBound();
-    var tideHeight = Math.min(48, this.elapsed * 7.5);
+    var baseTide = Math.min(55, this.elapsed * 9.5);
+    var tideHeight = baseTide + Math.sin(this.elapsed * 5.0) * 8.0;
+    
     if (tideHeight > 2) {
-        // Draw toxic checkered purple leaking memory at bottom
+        // Draw toxic checkered purple leaking memory waves at bottom
         for (var x = bb[0]; x < bb[2]; x += 16) {
-            var hOffset = Math.sin(this.elapsed * 4 + x * 0.1) * 3; // wavy surface
-            var blockH = tideHeight + hOffset;
+            var blockH = tideHeight + Math.sin(this.elapsed * 4 + x * 0.1) * 3;
             ctx.fillStyle = "#FF00FF";
             ctx.fillRect(x, bb[3] - blockH, 16, blockH);
             
-            // overlay black segments
             ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
             ctx.fillRect(x, bb[3] - blockH + 6, 8, blockH - 6);
         }
-        
-        // Draw bubbling particles rising
-        ctx.fillStyle = "#FF00FF";
-        for (var p = 0; p < 6; p++) {
-            var px = bb[0] + ((this.elapsed * 50 + p * 80) % (bb[2] - bb[0]));
-            var py = bb[3] - tideHeight - 12 - (p % 3) * 6;
-            ctx.fillRect(px, py, 4, 4);
-        }
     }
+    
+    // Draw rising droplets
+    for (var i = 0; i < this.bullets.length; i++) {
+        var b = this.bullets[i];
+        ctx.fillStyle = "#FF00FF";
+        ctx.fillRect(b.x, b.y, b.width, b.height);
+    }
+    
     ctx.restore();
 };
 GlitchMemoryLeakPattern.prototype.isOver = function() {
-    return this.elapsed >= this.duration;
+    var over = this.elapsed >= this.duration;
+    if (over) {
+        this.bullets = [];
+    }
+    return over;
 };
 
 // 12. glitchBufferOverflow (Digit flood)
@@ -1189,7 +1425,7 @@ GlitchBufferOverflowPattern.prototype.isOver = function() {
 // PHASE 3 PATTERNS
 // ============================================================================
 
-// 13. glitchBSODCrash (BSOD Screen & Hex Skull)
+// 13. glitchBSODCrash (BSOD Screen & Voxel Skull & memory lasers)
 var GlitchBSODCrashPattern = function(config) {
     BulletPattern.call(this, config);
     this.duration = config.duration || 7.2;
@@ -1197,6 +1433,8 @@ var GlitchBSODCrashPattern = function(config) {
     this.damVal = config.damVal || 12;
     this.skullY = 0;
     this.skullState = 0; // 0 (warn), 1 (chomp), 2 (retract)
+    this.laserTimer = 0;
+    this.lasers = []; // { y, warning, active }
 };
 GlitchBSODCrashPattern.prototype = Object.create(BulletPattern.prototype);
 GlitchBSODCrashPattern.prototype.generateBullets = function(battleBox) {
@@ -1204,26 +1442,87 @@ GlitchBSODCrashPattern.prototype.generateBullets = function(battleBox) {
     this.elapsed = 0;
     this.skullY = battleBox[1] - 100;
     this.skullState = 0;
+    this.laserTimer = 0.2;
+    this.lasers = [];
+    this.bullets = [];
 };
 GlitchBSODCrashPattern.prototype.update = function(dt) {
     this.elapsed += dt;
+    this.laserTimer += dt;
     var bb = Cbbox.getBound();
     
-    // Skull chomping logic
+    // Skull chomping state machine
     if (this.skullState === 0) {
         if (this.elapsed >= 1.2) {
             this.skullState = 1;
             Sound.playSound("impact", true);
         }
     } else if (this.skullState === 1) {
-        this.skullY = Math.min(bb[3] - 40, this.skullY + 220 * dt);
-        if (this.skullY >= bb[3] - 40) {
+        this.skullY = Math.min(bb[3] - 48, this.skullY + 230 * dt);
+        if (this.skullY >= bb[3] - 48) {
             this.skullState = 2;
+            
+            // Reached maximum chomp: shake screen & launch 6 radiating hex shards!
+            if (typeof Camera !== "undefined" && Camera.shake) {
+                Camera.shake(5.5);
+            }
+            Sound.playSound("hit_2_crit", true);
+            var cX = bb[0] + (bb[2] - bb[0])/2;
+            for (var d = 0; d < 6; d++) {
+                var angle = (d * Math.PI / 3) + (Math.random() - 0.5) * 0.2;
+                var b = new Bullet({
+                    x: cX,
+                    y: this.skullY + 16,
+                    width: 24,
+                    height: 12,
+                    speed: 140,
+                    damVal: this.damVal - 2,
+                    color: "#00FFFF",
+                    vx: Math.cos(angle) * 140,
+                    vy: Math.sin(angle) * 140,
+                    useVelocity: true
+                });
+                b.text = Math.random() < 0.5 ? "0x404" : "0x0A";
+                this.bullets.push(b);
+            }
         }
     } else if (this.skullState === 2) {
-        this.skullY -= 120 * dt;
+        this.skullY -= 130 * dt;
         if (this.skullY <= bb[1] - 100) {
             this.skullState = 0;
+        }
+    }
+    
+    // Spawn horizontal crossing Memory-Dump lasers
+    if (this.laserTimer >= 1.5 && this.elapsed < this.duration - 1.0) {
+        this.laserTimer = 0;
+        var ry = bb[1] + 25 + Math.random() * (bb[3] - bb[1] - 50);
+        this.lasers.push({ y: ry, warning: 0.55, active: 0.25 });
+    }
+    
+    // Update lasers
+    for (var i = this.lasers.length - 1; i >= 0; i--) {
+        var l = this.lasers[i];
+        if (l.warning > 0) {
+            l.warning -= dt;
+            if (l.warning <= 0) {
+                Sound.playSound("laser", true);
+            }
+        } else {
+            l.active -= dt;
+            if (l.active <= 0) {
+                this.lasers.splice(i, 1);
+            }
+        }
+    }
+    
+    // Update bullets (flying hex shards)
+    for (var i = this.bullets.length - 1; i >= 0; i--) {
+        var b = this.bullets[i];
+        b.progressMovement(dt);
+        if (b.isOutOfBounds(bb)) {
+            b.active = false;
+            this.bullets.splice(i, 1);
         }
     }
     
@@ -1231,21 +1530,41 @@ GlitchBSODCrashPattern.prototype.update = function(dt) {
 };
 GlitchBSODCrashPattern.prototype.checkCollision = function(sx, sy, sw, sh) {
     var bb = Cbbox.getBound();
-    if (this.skullState === 1) {
-        // Giant chomp area centered in battlebox
+    
+    // Giant chomp box collision (the pixel skull itself)
+    if (this.skullState === 1 || this.skullState === 2) {
         var cX = bb[0] + (bb[2] - bb[0])/2;
-        if (rectsOverlap(cX - 45, this.skullY, 90, 60, sx, sy, sw, sh)) {
+        if (rectsOverlap(cX - 24, this.skullY - 24, 48, 48, sx, sy, sw, sh)) {
             return this.damVal;
         }
     }
+    
+    // Laser collisions
+    for (var i = 0; i < this.lasers.length; i++) {
+        var l = this.lasers[i];
+        if (l.warning <= 0 && l.active > 0) {
+            if (rectsOverlap(bb[0], l.y - 4, bb[2] - bb[0], 8, sx, sy, sw, sh)) {
+                return this.damVal;
+            }
+        }
+    }
+    
+    // Radial hex bullet collisions
+    for (var i = 0; i < this.bullets.length; i++) {
+        var b = this.bullets[i];
+        if (b.active && rectsOverlap(b.x - 12, b.y - 6, 24, 12, sx, sy, sw, sh)) {
+            return b.damVal;
+        }
+    }
+    
     return 0;
 };
 GlitchBSODCrashPattern.prototype.draw = function(ctx) {
     ctx.save();
     var bb = Cbbox.getBound();
     
-    // 1. Draw Mini-BSOD Background inside box
-    ctx.fillStyle = "#000082"; // Windows Blue
+    // 1. Mini-BSOD Background
+    ctx.fillStyle = "#000082";
     ctx.fillRect(bb[0], bb[1], bb[2] - bb[0], bb[3] - bb[1]);
     
     ctx.fillStyle = "#ffffff";
@@ -1254,48 +1573,63 @@ GlitchBSODCrashPattern.prototype.draw = function(ctx) {
     ctx.fillText("A fatal error occurred at register 404:CORE_STR.", bb[0] + 15, bb[1] + 45);
     ctx.fillText("Formatting C:\\ ...", bb[0] + 15, bb[1] + 65);
     
-    // 2. Draw Giant Chomping Hexadecimal Skull (if warning or active)
+    // Draw lasers
+    for (var i = 0; i < this.lasers.length; i++) {
+        var l = this.lasers[i];
+        if (l.warning > 0) {
+            ctx.strokeStyle = "rgba(255, 0, 0, 0.4)";
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath();
+            ctx.moveTo(bb[0], l.y); ctx.lineTo(bb[2], l.y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        } else if (l.active > 0) {
+            ctx.fillStyle = "rgba(0, 240, 255, 0.85)";
+            ctx.fillRect(bb[0], l.y - 4, bb[2] - bb[0], 8);
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillRect(bb[0], l.y - 1, bb[2] - bb[0], 2);
+        }
+    }
+    
+    // Draw radial hex bullets
+    ctx.font = "bold 7pt Courier";
+    ctx.textAlign = "center";
+    for (var i = 0; i < this.bullets.length; i++) {
+        var b = this.bullets[i];
+        ctx.fillStyle = "#00FFFF";
+        ctx.fillRect(b.x - 12, b.y - 6, 24, 12);
+        ctx.strokeStyle = "#FFFFFF";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(b.x - 12, b.y - 6, 24, 12);
+        ctx.fillStyle = "#000000";
+        ctx.fillText(b.text || "0x404", b.x, b.y + 3);
+    }
+    
+    // 2. Draw Chomping Voxel/Pixel-Art Skull
     var cX = bb[0] + (bb[2] - bb[0])/2;
     if (this.skullState === 0) {
-        // Warning flashing line
-        ctx.strokeStyle = "rgba(255, 0, 0, 0.6)";
+        // warning guidelines
+        ctx.strokeStyle = "rgba(255, 0, 85, 0.6)";
         ctx.lineWidth = 2.0;
         ctx.setLineDash([5, 5]);
-        ctx.strokeRect(cX - 45, bb[1] + 10, 90, bb[3] - bb[1] - 20);
+        ctx.strokeRect(cX - 30, bb[1] + 10, 60, bb[3] - bb[1] - 20);
         ctx.setLineDash([]);
     } else {
-        // Draw massive digital skull
-        ctx.fillStyle = "#FFFFFF";
-        ctx.shadowBlur = 12;
-        ctx.shadowColor = "#FFFFFF";
-        
-        // Skull main round dome
-        ctx.beginPath();
-        ctx.arc(cX, this.skullY + 25, 25, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Jaw block
-        var chompY = this.skullY + 45 + Math.sin(this.elapsed * 12) * 5; // moving jaw
-        ctx.fillRect(cX - 15, chompY, 30, 15);
-        
-        // Black Eye Cavities
-        ctx.fillStyle = "#000082";
-        ctx.beginPath();
-        ctx.arc(cX - 9, this.skullY + 23, 5, 0, Math.PI * 2);
-        ctx.arc(cX + 9, this.skullY + 23, 5, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Code character outlines inside skull dome
-        ctx.fillStyle = "#000000";
-        ctx.font = "bold 7px Courier";
-        ctx.fillText("0xEF", cX - 18, this.skullY + 15);
-        ctx.fillText("0x00", cX + 4, this.skullY + 15);
+        // Draw using our pixel skull helper
+        var scale = 1.0;
+        var chompYVal = Math.sin(this.elapsed * 14) > 0.3 ? (Math.sin(this.elapsed * 14) - 0.3) * 6.0 : 0.0;
+        drawPixelSkullForPattern(ctx, cX, this.skullY, scale, chompYVal);
     }
     
     ctx.restore();
 };
 GlitchBSODCrashPattern.prototype.isOver = function() {
-    return this.elapsed >= this.duration;
+    var over = this.elapsed >= this.duration;
+    if (over) {
+        this.bullets = [];
+    }
+    return over;
 };
 
 // 14. glitchNullPointer (Coordinate Claws)
@@ -1645,6 +1979,144 @@ GlitchKernelPanicPattern.prototype.draw = function(ctx) {
     ctx.restore();
 };
 GlitchKernelPanicPattern.prototype.isOver = function() {
+    var over = this.elapsed >= this.duration;
+    if (over) {
+        this.bullets = [];
+    }
+    return over;
+};
+
+// 18. glitchScreenTear (Screen tearing & split seams)
+var GlitchScreenTearPattern = function(config) {
+    BulletPattern.call(this, config);
+    this.duration = config.duration || 7.0;
+    this.elapsed = 0;
+    this.spawnTimer = 0;
+    this.damVal = config.damVal || 9;
+};
+GlitchScreenTearPattern.prototype = Object.create(BulletPattern.prototype);
+GlitchScreenTearPattern.prototype.generateBullets = function(battleBox) {
+    BulletPattern.prototype.generateBullets.call(this, battleBox);
+    this.elapsed = 0;
+    this.spawnTimer = 0.2;
+    this.bullets = [];
+};
+GlitchScreenTearPattern.prototype.update = function(dt) {
+    this.elapsed += dt;
+    this.spawnTimer += dt;
+    var bb = Cbbox.getBound();
+    
+    // Spawn falling tear shards down the splits
+    if (this.spawnTimer >= 0.35 && this.elapsed < this.duration - 0.8) {
+        this.spawnTimer = 0;
+        var rx = bb[0] + 15 + Math.random() * (bb[2] - bb[0] - 30);
+        this.bullets.push(new Bullet({
+            x: rx,
+            y: bb[1] - 10,
+            width: 10,
+            height: 10,
+            speed: 150,
+            damVal: this.damVal,
+            color: "#FF00FF",
+            vx: 0,
+            vy: 150,
+            useVelocity: true
+        }));
+    }
+    
+    for (var i = this.bullets.length - 1; i >= 0; i--) {
+        var b = this.bullets[i];
+        b.progressMovement(dt);
+        if (b.isOutOfBounds(bb)) {
+            b.active = false;
+            this.bullets.splice(i, 1);
+        }
+    }
+    BulletPattern.prototype.update.call(this, dt);
+};
+GlitchScreenTearPattern.prototype.checkCollision = function(sx, sy, sw, sh) {
+    // Collision with falling shards
+    for (var i = 0; i < this.bullets.length; i++) {
+        var b = this.bullets[i];
+        if (b.active && rectsOverlap(b.x, b.y, b.width, b.height, sx, sy, sw, sh)) {
+            return this.damVal;
+        }
+    }
+    
+    // Horizontal screen tearing seams (slivers of high damage at static tear lines)
+    var bb = Cbbox.getBound();
+    var h = bb[3] - bb[1];
+    var line1Y = bb[1] + h / 3;
+    var line2Y = bb[1] + 2 * h / 3;
+    
+    // Small laser-like tear collision at the seams when flashing
+    if (Math.sin(this.elapsed * 15) > 0.7) {
+        if (rectsOverlap(bb[0], line1Y - 2, bb[2] - bb[0], 4, sx, sy, sw, sh)) return this.damVal;
+        if (rectsOverlap(bb[0], line2Y - 2, bb[2] - bb[0], 4, sx, sy, sw, sh)) return this.damVal;
+    }
+    
+    return 0;
+};
+GlitchScreenTearPattern.prototype.draw = function(ctx) {
+    ctx.save();
+    var bb = Cbbox.getBound();
+    var w = bb[2] - bb[0];
+    var h = bb[3] - bb[1];
+    var line1Y = bb[1] + h / 3;
+    var line2Y = bb[1] + 2 * h / 3;
+    
+    // Draw sliding horizontal grids representing "teared" screen slices
+    ctx.strokeStyle = "rgba(0, 255, 255, 0.25)";
+    ctx.lineWidth = 1;
+    
+    // Slice 1: shifts left
+    var shift1 = Math.sin(this.elapsed * 5) * 15;
+    ctx.save();
+    ctx.beginPath(); ctx.rect(bb[0], bb[1], w, h / 3); ctx.clip();
+    for (var x = bb[0] + 15 + shift1; x < bb[2] + 30; x += 30) {
+        ctx.beginPath(); ctx.moveTo(x, bb[1]); ctx.lineTo(x, line1Y); ctx.stroke();
+    }
+    ctx.restore();
+    
+    // Slice 2: shifts right
+    var shift2 = -Math.sin(this.elapsed * 5) * 15;
+    ctx.save();
+    ctx.beginPath(); ctx.rect(bb[0], line1Y, w, h / 3); ctx.clip();
+    for (var x = bb[0] + 15 + shift2; x < bb[2] + 30; x += 30) {
+        ctx.beginPath(); ctx.moveTo(x, line1Y); ctx.lineTo(x, line2Y); ctx.stroke();
+    }
+    ctx.restore();
+    
+    // Slice 3: shifts left
+    ctx.save();
+    ctx.beginPath(); ctx.rect(bb[0], line2Y, w, h / 3); ctx.clip();
+    for (var x = bb[0] + 15 + shift1; x < bb[2] + 30; x += 30) {
+        ctx.beginPath(); ctx.moveTo(x, line2Y); ctx.lineTo(x, bb[3]); ctx.stroke();
+    }
+    ctx.restore();
+    
+    // Draw red/cyan screen tear seams
+    if (Math.sin(this.elapsed * 15) > 0.7) {
+        ctx.fillStyle = "rgba(255, 0, 255, 0.8)";
+        ctx.fillRect(bb[0], line1Y - 2, w, 4);
+        ctx.fillStyle = "rgba(0, 255, 255, 0.8)";
+        ctx.fillRect(bb[0], line2Y - 2, w, 4);
+    } else {
+        ctx.fillStyle = "rgba(255, 255, 255, 0.25)";
+        ctx.fillRect(bb[0], line1Y - 1, w, 2);
+        ctx.fillRect(bb[0], line2Y - 1, w, 2);
+    }
+    
+    // Draw falling bullets
+    for (var i = 0; i < this.bullets.length; i++) {
+        var b = this.bullets[i];
+        ctx.fillStyle = b.color;
+        ctx.fillRect(b.x, b.y, b.width, b.height);
+    }
+    
+    ctx.restore();
+};
+GlitchScreenTearPattern.prototype.isOver = function() {
     var over = this.elapsed >= this.duration;
     if (over) {
         this.bullets = [];

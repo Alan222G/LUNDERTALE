@@ -120,6 +120,7 @@ var BossController = (function() {
             "glitchHexRain": function(cfg) { return new GlitchHexRainPattern(cfg || { damVal: 8, duration: 6.5 }); },
             "glitchFormatDrive": function(cfg) { return new GlitchFormatDrivePattern(cfg || { damVal: 10, duration: 7.0 }); },
             "glitchKernelPanic": function(cfg) { return new GlitchKernelPanicPattern(cfg || { damVal: 10, duration: 7.0 }); },
+            "glitchScreenTear": function(cfg) { return new GlitchScreenTearPattern(cfg || { damVal: 9, duration: 7.0 }); },
         };
     }
 
@@ -313,6 +314,8 @@ var BossController = (function() {
             w = 350; h = 280;
         } else if (patternName === "glitchKernelPanic") {
             w = 340; h = 300;
+        } else if (patternName === "glitchScreenTear") {
+            w = 320; h = 320;
         }
 
         return { patternName: patternName, width: w, height: h };

@@ -596,17 +596,17 @@ var Cgroup = (function() {
                     "glitchErrorWindows", "glitchMissingTexture", "glitchCodeRain", "glitchCoordinateWarp", "glitchFlickerShards", 
                     "glitchStaticBarrier", "glitchSpamWarning", "glitchBBoxMorph", "glitchDualSoul", "glitchRGBVectorSplit", 
                     "glitchMemoryLeak", "glitchBufferOverflow", "glitchBSODCrash", "glitchNullPointer", "glitchHexRain", 
-                    "glitchFormatDrive", "glitchKernelPanic"
+                    "glitchFormatDrive", "glitchKernelPanic", "glitchScreenTear"
                 ],
                 phases: [
                     { 
-                        patterns: ["glitchErrorWindows", "glitchMissingTexture", "glitchCodeRain", "glitchCoordinateWarp", "glitchFlickerShards", "glitchStaticBarrier", "glitchSpamWarning"], 
+                        patterns: ["glitchErrorWindows", "glitchBBoxMorph", "glitchCodeRain", "glitchCoordinateWarp", "glitchFlickerShards", "glitchStaticBarrier", "glitchMissingTexture"], 
                         soulMode: "red", 
                         renderType: "glitch_minor",
                         speech: ["EXCEPTION...", "404_NOT_FOUND", "ERR_MEM_1"] 
                     },
                     { 
-                        patterns: ["glitchErrorWindows", "glitchMissingTexture", "glitchBBoxMorph", "glitchDualSoul", "glitchRGBVectorSplit", "glitchMemoryLeak", "glitchBufferOverflow"], 
+                        patterns: ["glitchErrorWindows", "glitchRGBVectorSplit", "glitchSpamWarning", "glitchDualSoul", "glitchMemoryLeak", "glitchBufferOverflow", "glitchScreenTear"], 
                         soulMode: "red", 
                         renderType: "glitch_core",
                         speech: ["SYS_PANIC!", "BUFFER_OVFL...", "RGB_SPLIT"] 

@@ -990,6 +990,32 @@ Enemy.prototype.onHitPlayer = function(damageDealt) {
         // AT Field Reflect: heal 30% of damage dealt
         var reflectHeal = Math.ceil(damageDealt * 0.3);
         this.curHP = Math.min(this.maxHP, this.curHP + reflectHeal);
+    } else if (this.renderType === "glitch_minor" || this.renderType === "glitch_core" || this.renderType === "glitch_fatal") {
+        // Passive: Memory Corruption Latency (Inestabilidad del Sistema)
+        this.corruption = (this.corruption || 0) + 1;
+        if (this.corruption >= 3) {
+            this.corruption = 0;
+            if (typeof Soul !== "undefined") {
+                var oldMode = Soul.getSoulMode();
+                // Force inverse controls for 2.2 seconds!
+                Soul.setSoulMode(Soul.SOUL_MODE.INVERSE);
+                Sound.playSound("hit_2_crit", true);
+                
+                // Visual screen shake / camera alert
+                if (typeof Camera !== "undefined" && Camera.shake) {
+                    Camera.shake(7.0);
+                }
+                
+                this.latencyActive = true;
+                var self = this;
+                setTimeout(function() {
+                    if (typeof Soul !== "undefined" && Soul.getSoulMode() === Soul.SOUL_MODE.INVERSE) {
+                        Soul.setSoulMode(oldMode);
+                    }
+                    self.latencyActive = false;
+                }, 2200);
+            }
+        }
     }
 };
 
@@ -4182,6 +4208,40 @@ Enemy.prototype.drawGlitch = function(ctx) {
         // ====================================================================
         ctx.save();
         
+        // 0. GLITCH CLOCKWORK ORBIT (Hourglass-inspired epic rings)
+        ctx.save();
+        ctx.translate(0, 30);
+        ctx.rotate(time * 0.4);
+        ctx.strokeStyle = "rgba(0, 240, 255, 0.2)";
+        ctx.lineWidth = 1.5;
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = "#00FFFF";
+        
+        // Delicate cyber-ring
+        ctx.beginPath();
+        ctx.arc(0, 0, 100, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        ctx.restore();
+        
+        ctx.save();
+        ctx.translate(0, 30);
+        ctx.rotate(-time * 0.25);
+        ctx.fillStyle = "rgba(255, 0, 255, 0.25)";
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = "#FF00FF";
+        ctx.font = "bold 8px Courier";
+        var cyberNumerals = ["0x00", "0x0A", "0x7F", "0xDB", "0xFF", "0xEF", "0x404", "0x88"];
+        for (var n = 0; n < 8; n++) {
+            var a = (n / 8) * Math.PI * 2 - Math.PI / 2;
+            ctx.save();
+            ctx.translate(Math.cos(a) * 115, Math.sin(a) * 115);
+            ctx.rotate(a + Math.PI / 2);
+            ctx.fillText(cyberNumerals[n], -10, 0);
+            ctx.restore();
+        }
+        ctx.restore();
+        
         // Spatial Cracks (Torn canvas fragments representing broken code)
         ctx.strokeStyle = "#FF00FF";
         ctx.lineWidth = 2.5;
@@ -4253,62 +4313,111 @@ Enemy.prototype.drawGlitch = function(ctx) {
             ctx.fillText(textStr, -58, lineY);
         }
         
-        // 2. DETAILED CLAWS TEARING Spatial coordinates on sides
+        // 2. DETAILED BIOMECHANICAL CLAWS TEARING Spatial coordinates on sides
         // Left Giant Claw
         ctx.save();
-        ctx.translate(-120, 30 + Math.sin(time * 4) * 8);
-        ctx.rotate(-0.25 + Math.sin(time * 2) * 0.1);
-        ctx.fillStyle = "#000000";
-        ctx.fillRect(-22, -15, 44, 30);
+        ctx.translate(-122, 30 + Math.sin(time * 4.5) * 9);
+        ctx.rotate(-0.25 + Math.sin(time * 2.5) * 0.12);
+        
+        // Arm main casing (shaded dark voxel plates)
+        ctx.fillStyle = "#1e1e1e";
+        ctx.fillRect(-26, -18, 52, 36);
         ctx.strokeStyle = "#FF00FF";
-        ctx.lineWidth = 1.5;
-        ctx.strokeRect(-22, -15, 44, 30);
+        ctx.lineWidth = 2.0;
+        ctx.strokeRect(-26, -18, 52, 36);
         
-        // 3 sharp pixel claws
+        // Glowing internal circuit traces
+        ctx.strokeStyle = "#00FFFF";
+        ctx.lineWidth = 1.0;
+        ctx.beginPath();
+        ctx.moveTo(-16, -10); ctx.lineTo(16, -10);
+        ctx.moveTo(-16, 0); ctx.lineTo(16, 0);
+        ctx.moveTo(-16, 10); ctx.lineTo(16, 10);
+        ctx.stroke();
+        
+        // Segmented hydraulic piston shaft
+        ctx.fillStyle = "#c0c0c0";
+        var shaftOsc = Math.sin(time * 4.5) * 5;
+        ctx.fillRect(-10, 18, 8, 12 + shaftOsc);
+        ctx.fillRect(2, 18, 8, 12 + shaftOsc);
+        
+        // 3 sharp biomechanical voxel claws (metallic silver)
         ctx.fillStyle = "#e0e0e0";
-        ctx.fillRect(-18, 15, 8, 24);
-        ctx.fillRect(-4, 15, 8, 30);
-        ctx.fillRect(10, 15, 8, 24);
+        ctx.fillRect(-22, 30 + shaftOsc, 10, 22);
+        ctx.fillRect(-6, 30 + shaftOsc, 12, 28);
+        ctx.fillRect(12, 30 + shaftOsc, 10, 22);
         
-        // Glowing claw joints
-        ctx.fillStyle = "#00FFFF";
-        ctx.fillRect(-15, 12, 3, 3);
-        ctx.fillRect(-1, 12, 3, 3);
-        ctx.fillRect(13, 12, 3, 3);
+        // Flashing crimson tip lasers
+        ctx.fillStyle = Math.random() < 0.25 ? "#00FFFF" : "#FF0055";
+        ctx.fillRect(-19, 48 + shaftOsc, 4, 4);
+        ctx.fillRect(-2, 54 + shaftOsc, 4, 4);
+        ctx.fillRect(15, 48 + shaftOsc, 4, 4);
+        
         ctx.restore();
         
         // Right Giant Claw
         ctx.save();
-        ctx.translate(120, 30 - Math.sin(time * 4) * 8);
-        ctx.rotate(0.25 - Math.sin(time * 2) * 0.1);
-        ctx.fillStyle = "#000000";
-        ctx.fillRect(-22, -15, 44, 30);
+        ctx.translate(122, 30 - Math.sin(time * 4.5) * 9);
+        ctx.rotate(0.25 - Math.sin(time * 2.5) * 0.12);
+        
+        // Arm main casing
+        ctx.fillStyle = "#161616";
+        ctx.fillRect(-26, -18, 52, 36);
         ctx.strokeStyle = "#FF00FF";
-        ctx.lineWidth = 1.5;
-        ctx.strokeRect(-22, -15, 44, 30);
+        ctx.lineWidth = 2.0;
+        ctx.strokeRect(-26, -18, 52, 36);
         
-        // 3 sharp claws
+        // Circuit traces
+        ctx.strokeStyle = "#00FFFF";
+        ctx.lineWidth = 1.0;
+        ctx.beginPath();
+        ctx.moveTo(-16, -10); ctx.lineTo(16, -10);
+        ctx.moveTo(-16, 0); ctx.lineTo(16, 0);
+        ctx.moveTo(-16, 10); ctx.lineTo(16, 10);
+        ctx.stroke();
+        
+        // Hydraulic shaft
+        ctx.fillStyle = "#c0c0c0";
+        ctx.fillRect(-10, 18, 8, 12 - shaftOsc);
+        ctx.fillRect(2, 18, 8, 12 - shaftOsc);
+        
+        // claws
         ctx.fillStyle = "#e0e0e0";
-        ctx.fillRect(-18, 15, 8, 24);
-        ctx.fillRect(-4, 15, 8, 30);
-        ctx.fillRect(10, 15, 8, 24);
+        ctx.fillRect(-22, 30 - shaftOsc, 10, 22);
+        ctx.fillRect(-6, 30 - shaftOsc, 12, 28);
+        ctx.fillRect(12, 30 - shaftOsc, 10, 22);
         
-        // Glowing claw joints
-        ctx.fillStyle = "#00FFFF";
-        ctx.fillRect(-15, 12, 3, 3);
-        ctx.fillRect(-1, 12, 3, 3);
-        ctx.fillRect(13, 12, 3, 3);
+        // Flashing tip lasers
+        ctx.fillStyle = Math.random() < 0.25 ? "#00FFFF" : "#FF0055";
+        ctx.fillRect(-19, 48 - shaftOsc, 4, 4);
+        ctx.fillRect(-2, 54 - shaftOsc, 4, 4);
+        ctx.fillRect(15, 48 - shaftOsc, 4, 4);
+        
         ctx.restore();
         
-        // 3. FLOATING BINARY SKULL HEAD (CHOMPING ANIMATION)
+        // 3. FLOATING BINARY SKULL SOVEREIGN (Redesigned Phase 3 Head)
         ctx.save();
         ctx.translate(0, -38);
-        var chompY = Math.sin(time * 7) > 0.3 ? (Math.sin(time * 7) - 0.3) * 10.0 : 0.0;
+        var chompY = Math.sin(time * 7.5) > 0.25 ? (Math.sin(time * 7.5) - 0.25) * 11.0 : 0.0;
+        
+        // Draw double cybernetic neon outline shadow for the skull
+        ctx.strokeStyle = "#FF00FF";
+        ctx.lineWidth = 3.0;
+        ctx.shadowBlur = 18 + Math.sin(time * 6) * 5;
+        ctx.shadowColor = "#FF00FF";
+        ctx.beginPath();
+        ctx.arc(0, -10, 26, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        
+        ctx.strokeStyle = "#00FFFF";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(0, -10, 28, 0, Math.PI * 2);
+        ctx.stroke();
         
         // Draw main white voxel skull
         ctx.fillStyle = "#FFFFFF";
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = "#FFFFFF";
         
         // dome
         ctx.beginPath();
@@ -4317,10 +4426,15 @@ Enemy.prototype.drawGlitch = function(ctx) {
         
         // Jaw block (moving down)
         ctx.fillRect(-14, 10 + chompY, 28, 12);
+        // Sharp metallic silver teeth rows
+        ctx.fillStyle = "#a0a0a0";
+        for (var t = -12; t <= 12; t += 6) {
+            ctx.fillRect(t - 2, 8, 4, 4);
+            ctx.fillRect(t - 2, 10 + chompY, 4, 4);
+        }
         
         // Black Eye Cavities
         ctx.fillStyle = "#000000";
-        ctx.shadowBlur = 0;
         ctx.beginPath();
         ctx.arc(-8, -12, 5, 0, Math.PI * 2);
         ctx.arc(8, -12, 5, 0, Math.PI * 2);
@@ -4330,6 +4444,14 @@ Enemy.prototype.drawGlitch = function(ctx) {
         ctx.fillStyle = "#FF0055";
         ctx.fillRect(-10, -13, 4, 2);
         ctx.fillRect(6, -13, 4, 2);
+        
+        // Neon energy trails shooting out of eyes
+        ctx.strokeStyle = "rgba(255, 0, 85, 0.4)";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(-10, -12); ctx.lineTo(-30 - Math.sin(time*5)*5, -12);
+        ctx.moveTo(6, -12); ctx.lineTo(30 + Math.sin(time*5)*5, -12);
+        ctx.stroke();
         
         // Nasal Cavity
         ctx.fillStyle = "#000000";
@@ -4349,6 +4471,11 @@ Enemy.prototype.drawGlitch = function(ctx) {
         }
         
         ctx.restore();
+        
+        // 4. VERTICAL GLITCH TERMINAL SCANLINES OVERLAY
+        ctx.fillStyle = "rgba(0, 255, 100, 0.05)";
+        var scanY = (time * 120) % 220 - 110;
+        ctx.fillRect(-150, scanY, 300, 4);
         
         ctx.restore();
     }
