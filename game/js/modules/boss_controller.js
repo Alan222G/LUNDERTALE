@@ -102,22 +102,24 @@ var BossController = (function() {
             "vaderImperialMarch": function(cfg) { return new VaderImperialMarchPattern(cfg || { damVal: 8, duration: 8 }); },
             "vaderRedemptionShock": function(cfg) { return new VaderRedemptionShockPattern(cfg || { damVal: 9, duration: 8 }); },
             "vaderDarkPresence": function(cfg) { return new VaderDarkPresencePattern(cfg || { damVal: 9, duration: 8 }); },
-            // --- Custom Alien (Xenomorph) Attacks ---
-            "alienAcidSpit": function(cfg) { return new AlienAcidSpitPattern(cfg || { damVal: 8, duration: 8 }); },
-            "alienTailWhip": function(cfg) { return new AlienTailWhipPattern(cfg || { damVal: 9, duration: 8 }); },
-            "alienInnerJaw": function(cfg) { return new AlienInnerJawPattern(cfg || { damVal: 12, duration: 8 }); },
-            "alienClawSlash": function(cfg) { return new AlienClawSlashPattern(cfg || { damVal: 9, duration: 8 }); },
-            "alienWallCrawl": function(cfg) { return new AlienWallCrawlPattern(cfg || { damVal: 8, duration: 8 }); },
-            "alienFacehugger": function(cfg) { return new AlienFacehuggerPattern(cfg || { damVal: 7, duration: 8 }); },
-            "alienTailSpear": function(cfg) { return new AlienTailSpearPattern(cfg || { damVal: 10, duration: 8 }); },
-            "alienAcidPuddle": function(cfg) { return new AlienAcidPuddlePattern(cfg || { damVal: 9, duration: 8 }); },
-            "alienCeilingDrop": function(cfg) { return new AlienCeilingDropPattern(cfg || { damVal: 8, duration: 8 }); },
-            "alienTailSweep": function(cfg) { return new AlienTailSweepPattern(cfg || { damVal: 9, duration: 8 }); },
-            "alienHiveSpike": function(cfg) { return new AlienHiveSpikePattern(cfg || { damVal: 10, duration: 8 }); },
-            "alienChestburster": function(cfg) { return new AlienChestbursterPattern(cfg || { damVal: 8, duration: 8 }); },
-            "alienQueenCall": function(cfg) { return new AlienQueenCallPattern(cfg || { damVal: 12, duration: 8 }); },
-            "alienHiveWebbing": function(cfg) { return new AlienHiveWebbingPattern(cfg || { damVal: 7, duration: 8 }); },
-            "alienSpitfire": function(cfg) { return new AlienSpitfirePattern(cfg || { damVal: 9, duration: 8 }); },
+            // --- Custom Glitch (Error 404) Attacks ---
+            "glitchErrorWindows": function(cfg) { return new GlitchErrorWindowsPattern(cfg || { damVal: 8, duration: 6.5 }); },
+            "glitchMissingTexture": function(cfg) { return new GlitchMissingTexturePattern(cfg || { damVal: 9, duration: 6.5 }); },
+            "glitchCodeRain": function(cfg) { return new GlitchCodeRainPattern(cfg || { damVal: 8, duration: 6.5 }); },
+            "glitchCoordinateWarp": function(cfg) { return new GlitchCoordinateWarpPattern(cfg || { damVal: 8, duration: 7.0 }); },
+            "glitchFlickerShards": function(cfg) { return new GlitchFlickerShardsPattern(cfg || { damVal: 8, duration: 6.5 }); },
+            "glitchStaticBarrier": function(cfg) { return new GlitchStaticBarrierPattern(cfg || { damVal: 9, duration: 6.5 }); },
+            "glitchSpamWarning": function(cfg) { return new GlitchSpamWarningPattern(cfg || { damVal: 9, duration: 6.5 }); },
+            "glitchBBoxMorph": function(cfg) { return new GlitchBBoxMorphPattern(cfg || { damVal: 9, duration: 7.0 }); },
+            "glitchDualSoul": function(cfg) { return new GlitchDualSoulPattern(cfg || { damVal: 8, duration: 6.5 }); },
+            "glitchRGBVectorSplit": function(cfg) { return new GlitchRGBVectorSplitPattern(cfg || { damVal: 9, duration: 6.5 }); },
+            "glitchMemoryLeak": function(cfg) { return new GlitchMemoryLeakPattern(cfg || { damVal: 8, duration: 6.5 }); },
+            "glitchBufferOverflow": function(cfg) { return new GlitchBufferOverflowPattern(cfg || { damVal: 8, duration: 6.5 }); },
+            "glitchBSODCrash": function(cfg) { return new GlitchBSODCrashPattern(cfg || { damVal: 12, duration: 7.2 }); },
+            "glitchNullPointer": function(cfg) { return new GlitchNullPointerPattern(cfg || { damVal: 10, duration: 6.5 }); },
+            "glitchHexRain": function(cfg) { return new GlitchHexRainPattern(cfg || { damVal: 8, duration: 6.5 }); },
+            "glitchFormatDrive": function(cfg) { return new GlitchFormatDrivePattern(cfg || { damVal: 10, duration: 7.0 }); },
+            "glitchKernelPanic": function(cfg) { return new GlitchKernelPanicPattern(cfg || { damVal: 10, duration: 7.0 }); },
         };
     }
 
@@ -277,36 +279,40 @@ var BossController = (function() {
             w = 300; h = 300;
         } else if (patternName === "vaderDarkPresence") {
             w = 320; h = 320;
-        } else if (patternName === "alienAcidSpit") {
+        } else if (patternName === "glitchErrorWindows") {
             w = 300; h = 300;
-        } else if (patternName === "alienTailWhip") {
-            w = 320; h = 300;
-        } else if (patternName === "alienInnerJaw") {
-            w = 300; h = 320;
-        } else if (patternName === "alienClawSlash") {
+        } else if (patternName === "glitchMissingTexture") {
             w = 320; h = 320;
-        } else if (patternName === "alienWallCrawl") {
+        } else if (patternName === "glitchCodeRain") {
+            w = 320; h = 320;
+        } else if (patternName === "glitchCoordinateWarp") {
+            w = 300; h = 300;
+        } else if (patternName === "glitchFlickerShards") {
+            w = 320; h = 320;
+        } else if (patternName === "glitchStaticBarrier") {
+            w = 320; h = 320;
+        } else if (patternName === "glitchSpamWarning") {
+            w = 300; h = 300;
+        } else if (patternName === "glitchBBoxMorph") {
             w = 340; h = 280;
-        } else if (patternName === "alienFacehugger") {
-            w = 300; h = 300;
-        } else if (patternName === "alienTailSpear") {
-            w = 300; h = 320;
-        } else if (patternName === "alienAcidPuddle") {
+        } else if (patternName === "glitchDualSoul") {
+            w = 320; h = 320;
+        } else if (patternName === "glitchRGBVectorSplit") {
+            w = 320; h = 320;
+        } else if (patternName === "glitchMemoryLeak") {
             w = 320; h = 280;
-        } else if (patternName === "alienCeilingDrop") {
+        } else if (patternName === "glitchBufferOverflow") {
             w = 320; h = 320;
-        } else if (patternName === "alienTailSweep") {
-            w = 340; h = 260;
-        } else if (patternName === "alienHiveSpike") {
-            w = 300; h = 320;
-        } else if (patternName === "alienChestburster") {
-            w = 300; h = 300;
-        } else if (patternName === "alienQueenCall") {
-            w = 360; h = 300;
-        } else if (patternName === "alienHiveWebbing") {
-            w = 320; h = 300;
-        } else if (patternName === "alienSpitfire") {
+        } else if (patternName === "glitchBSODCrash") {
+            w = 350; h = 300;
+        } else if (patternName === "glitchNullPointer") {
             w = 320; h = 320;
+        } else if (patternName === "glitchHexRain") {
+            w = 320; h = 320;
+        } else if (patternName === "glitchFormatDrive") {
+            w = 350; h = 280;
+        } else if (patternName === "glitchKernelPanic") {
+            w = 340; h = 300;
         }
 
         return { patternName: patternName, width: w, height: h };

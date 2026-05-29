@@ -22,8 +22,8 @@ var Cgroup = (function() {
             setupGodzilla();
         } else if (currentBossId === "vader") {
             setupVader();
-        } else if (currentBossId === "alien") {
-            setupAlien();
+        } else if (currentBossId === "glitch") {
+            setupGlitch();
         } else {
             setupSingularity();
         }
@@ -543,83 +543,84 @@ var Cgroup = (function() {
         defends = [];
     }
 
-    function setupAlien() {
+    function setupGlitch() {
         enemies = [
             new Enemy({
-                name: "Xenomorfo",
-                checkText: "El organismo perfecto. Su sangre es ácido concentrado y su agresividad es absoluta.",
-                maxHP: 3500,
-                curHP: 3500,
-                renderType: "alien_stalker",
-                atk: 28,
-                def: 24,
-                defense: 1.5,
-                acts: ["Check", "Resin/Clean", "Distract", "Flee"],
+                name: "Error 404",
+                checkText: "Una falla crítica en el espacio-tiempo de LUNDERTALE. Nada tiene sentido.",
+                maxHP: 4000,
+                curHP: 4000,
+                renderType: "glitch_minor",
+                atk: 32,
+                def: 30,
+                defense: 1.3,
+                acts: ["Check", "Reboot/Rest", "Decode/Fix", "Flee"],
                 actResponses: [
-                    "* XENOMORFO - ATK 28 DEF 24\n* El organismo perfecto. Su estructura biológica no tiene debilidades.",
-                    "* Intentas limpiar la resina ácida pegajosa a tu alrededor.\n* Te mueves con mayor soltura y agilidad.",
-                    "* Haces ruidos metálicos fuertes para distraer sus sensores.\n* El Alien se desorienta momentáneamente. Su defensa disminuye.",
-                    "* ¡No hay escape del depredador perfecto!"
+                    "* ERROR 404 - ATK 32 DEF 30\n* La Falla Criptográfica. Su inestabilidad corrompe todo lo que toca.",
+                    "* Intentas reiniciar tus sensores temporales.\n* Recuperas algo de balance y curas 15 HP.",
+                    "* Tratas de depurar y corregir los punteros de la Falla.\n* Su inestabilidad aumenta y su defensa disminuye.",
+                    "* ¡No puedes huir de una excepción fatal de kernel!"
                 ],
                 actFunctions: [
-                    function() { console.log("Checked Alien"); },
+                    function() { console.log("Checked Glitch"); },
                     function() {
-                        console.log("Cleaned Resin");
+                        console.log("Rebooted Sensors / Healed");
                         enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 20);
-                        if (typeof Player !== "undefined" && Player.addSpeedBuff) {
-                            Player.addSpeedBuff(1.3, 2.0); // Boost speed by 30% for 2s
+                        if (typeof Player !== "undefined" && Player.heal) {
+                            Player.heal(15);
                         }
                     },
                     function() {
-                        console.log("Distracted Alien");
-                        enemies[0].defense = Math.max(0.85, enemies[0].defense - 0.12);
+                        console.log("Decoded Glitch / Defense down");
+                        enemies[0].defense = Math.max(0.85, enemies[0].defense - 0.15);
                         enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 25);
                     },
                     function() {
-                        console.log("Flee Alien failed");
+                        console.log("Flee Glitch failed");
                     }
                 ],
                 texts: [
-                    "* Un siseo metálico resuena desde las tuberías del techo.",
-                    "* Hueles ácido corrosivo y vapores químicos letales.",
-                    "* El Xenomorfo acecha desde las sombras, con su cola segmentada siseando.",
-                    "* La saliva ácida gotea lentamente al suelo, corroyendo el metal."
+                    "* Una cascada de caracteres binarios parpadea en el borde de tu visión.",
+                    "* Hueles a silicio quemado y a registros de memoria corruptos.",
+                    "* La pantalla parece temblar con aberración cromática.",
+                    "* Una ventana de error del sistema se abre y se cierra instantáneamente."
                 ],
                 speech: [
-                    "HISSSSS...",
-                    "SCREEECH!",
-                    "*siseo metálico*",
-                    "*goteo de ácido*"
+                    "EXCEPTION...",
+                    "NULL_PTR...",
+                    "FATAL ERROR!",
+                    "BSOD_INCOMING..."
                 ],
                 spriteId: "napstablook",
                 attacks: [
-                    "alienAcidSpit", "alienTailWhip", "alienInnerJaw", "alienClawSlash", "alienWallCrawl", 
-                    "alienFacehugger", "alienTailSpear", "alienAcidPuddle", "alienCeilingDrop", "alienTailSweep", 
-                    "alienHiveSpike", "alienChestburster", "alienQueenCall", "alienHiveWebbing", "alienSpitfire"
+                    "glitchErrorWindows", "glitchMissingTexture", "glitchCodeRain", "glitchCoordinateWarp", "glitchFlickerShards", 
+                    "glitchStaticBarrier", "glitchSpamWarning", "glitchBBoxMorph", "glitchDualSoul", "glitchRGBVectorSplit", 
+                    "glitchMemoryLeak", "glitchBufferOverflow", "glitchBSODCrash", "glitchNullPointer", "glitchHexRain", 
+                    "glitchFormatDrive", "glitchKernelPanic"
                 ],
                 phases: [
                     { 
-                        patterns: ["alienAcidSpit", "alienTailWhip", "alienInnerJaw", "alienClawSlash", "alienWallCrawl", "alienFacehugger", "alienTailSpear"], 
+                        patterns: ["glitchErrorWindows", "glitchMissingTexture", "glitchCodeRain", "glitchCoordinateWarp", "glitchFlickerShards", "glitchStaticBarrier", "glitchSpamWarning"], 
                         soulMode: "red", 
-                        renderType: "alien_stalker",
-                        speech: ["HISSSSS...", "SCREEECH!", "*siseo*"] 
+                        renderType: "glitch_minor",
+                        speech: ["EXCEPTION...", "404_NOT_FOUND", "ERR_MEM_1"] 
                     },
                     { 
-                        patterns: ["alienAcidSpit", "alienTailWhip", "alienAcidPuddle", "alienCeilingDrop", "alienTailSweep", "alienHiveSpike", "alienChestburster"], 
+                        patterns: ["glitchErrorWindows", "glitchMissingTexture", "glitchBBoxMorph", "glitchDualSoul", "glitchRGBVectorSplit", "glitchMemoryLeak", "glitchBufferOverflow"], 
                         soulMode: "red", 
-                        renderType: "alien_warrior",
-                        speech: ["*goteo de ácido*", "SCREEECH!", "¡HISSSSS!"] 
+                        renderType: "glitch_core",
+                        speech: ["SYS_PANIC!", "BUFFER_OVFL...", "RGB_SPLIT"] 
                     },
                     { 
-                        patterns: ["alienInnerJaw", "alienTailSpear", "alienQueenCall", "alienHiveWebbing", "alienSpitfire", "alienAcidPuddle", "alienHiveSpike"], 
+                        patterns: ["glitchBBoxMorph", "glitchRGBVectorSplit", "glitchBSODCrash", "glitchNullPointer", "glitchHexRain", "glitchFormatDrive", "glitchKernelPanic"], 
                         soulMode: "red", 
-                        renderType: "alien_queen",
-                        speech: ["¡SCREEEEEECH!", "¡CRACK!", "¡SANGRE ÁCIDA!"] 
+                        renderType: "glitch_fatal",
+                        speech: ["BSOD!", "FORMATTING_C...", "FATAL_EXCEPTION!"] 
                     }
                 ],
-                phaseHP: [3500, 4800, 6500],
+                phaseHP: [4000, 5200, 7200],
                 karmaEnabled: false,
-                jitterEnabled: false,
+                jitterEnabled: true,
                 damagePos: new Vect(370, 290, 0),
                 damageVel: 120,
                 bubbleOff: 30,

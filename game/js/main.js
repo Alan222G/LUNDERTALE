@@ -281,7 +281,7 @@ var main = {
 
         var bosses = [
             "Anti-gravity (Singularity)", "Seraphina Vex", "RAMIEL", "PARADOJA",
-            "SACHIEL", "GODZILLA", "DARTH VADER", "XENOMORFO"
+            "SACHIEL", "GODZILLA", "DARTH VADER", "ERROR 404"
         ];
 
         ctx.font = "12pt Determination Mono";

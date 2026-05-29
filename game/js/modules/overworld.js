@@ -171,13 +171,13 @@ var Overworld = (function() {
             }
         });
 
-        // Alien battle trigger (Guest/Special Group)
+        // Glitch battle trigger (Anomalies Group)
         triggerList.push({
             x: 377, y: 207, w: 26, h: 26,
             triggered: false,
-            bossId: "alien",
-            label: "ALIEN",
-            color: "rgba(0, 230, 118, 0.6)",
+            bossId: "glitch",
+            label: "ERROR 404",
+            color: "rgba(255, 0, 255, 0.6)",
             action: function() {
                 var self = this;
                 Transition.start(function() {
@@ -346,7 +346,7 @@ var Overworld = (function() {
                 if (t.bossId === "seraphina") {
                     var frameIdx = Math.floor(animTimer * 4) % seraFrames.length;
                     img = seraFrames[frameIdx];
-                } else if (t.bossId === "ramiel" || t.bossId === "paradox" || t.bossId === "sachiel" || t.bossId === "vader" || t.bossId === "godzilla" || t.bossId === "alien") {
+                } else if (t.bossId === "ramiel" || t.bossId === "paradox" || t.bossId === "sachiel" || t.bossId === "vader" || t.bossId === "godzilla" || t.bossId === "glitch") {
                     // Procedural mini crystal or colored box for new bosses
                     img = null; 
                 } else {
@@ -720,56 +720,40 @@ var Overworld = (function() {
                     ctx.stroke();
                     
                     ctx.restore();
-                   } else if (t.bossId === "alien") {
-                    // Epic mini Alien (Xenomorph) representation
+                   } else if (t.bossId === "glitch") {
+                    // Epic Glitch (Error 404) representation
                     var tTime = animTimer;
-                    var tSize = 14;
+                    var tSize = 13;
                     ctx.save();
-                    ctx.translate(gcx, gcy - 2 + Math.sin(tTime * 3.5) * 1.5); // Floating/breathing
+                    ctx.translate(gcx, gcy + Math.sin(tTime * 5.0) * 3.0); // Floating nervously
                     
-                    // 1. Biomechanical Ribbed Spine/Torso
-                    ctx.fillStyle = "#161616"; // Glossy black body
-                    ctx.fillRect(-3, -2, 6, 8);
+                    // 1. Draw a flickering checkered magenta and black cube (Missing Texture)
+                    var pulse = Math.sin(tTime * 12.0) * 0.15 + 0.85;
+                    ctx.fillStyle = "rgba(255, 0, 255, " + pulse.toFixed(2) + ")";
+                    ctx.shadowBlur = 12;
+                    ctx.shadowColor = "#FF00FF";
                     
-                    ctx.strokeStyle = "#2c2c2c";
-                    ctx.lineWidth = 2.5;
-                    ctx.beginPath();
-                    ctx.moveTo(-6, 0); ctx.lineTo(6, 0); // Shoulders
-                    ctx.moveTo(-5, 3); ctx.lineTo(5, 3); // Ribs
-                    ctx.moveTo(-4, 6); ctx.lineTo(4, 6);
-                    ctx.stroke();
+                    for (var dx = -tSize; dx < tSize; dx += 6) {
+                        for (var dy = -tSize; dy < tSize; dy += 6) {
+                            ctx.fillStyle = ((dx + dy) % 12 === 0) ? "#FF00FF" : "#000000";
+                            var jitterX = (Math.random() - 0.5) * 1.5;
+                            var jitterY = (Math.random() - 0.5) * 1.5;
+                            ctx.fillRect(dx + jitterX, dy + jitterY, 6, 6);
+                        }
+                    }
                     
-                    // 2. Ribbed Prehensile Tail (Swaying behind)
-                    ctx.strokeStyle = "#39FF14"; // Glowing acid green tail line
-                    ctx.lineWidth = 1.8;
-                    ctx.beginPath();
-                    ctx.moveTo(-2, 5);
-                    ctx.quadraticCurveTo(-14 + Math.sin(tTime * 4.0) * 3, 3, -10, -10 + Math.sin(tTime * 3.2) * 2);
-                    ctx.stroke();
+                    // 2. Draw flashing green cybernetic code outline or lines floating around it
+                    ctx.strokeStyle = "#00FF66";
+                    ctx.lineWidth = 1.5;
+                    ctx.strokeRect(-tSize - 2, -tSize - 2, tSize * 2 + 4, tSize * 2 + 4);
                     
-                    // Tail silver spade-tip
-                    ctx.fillStyle = "#EAEAEA";
-                    ctx.beginPath();
-                    ctx.arc(-10, -10 + Math.sin(tTime * 3.2) * 2, 2.5, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    // 3. Elongated Dome Head (Pointing back-left)
-                    ctx.fillStyle = "#0c0c0c"; // Blackest dome
-                    ctx.beginPath();
-                    ctx.ellipse(1, -6, 9, 4, -0.28, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    // Glossy neon green reflection on top of the dome (Image 2 profile glow style!)
-                    ctx.strokeStyle = "#39FF14";
-                    ctx.lineWidth = 1.2;
-                    ctx.beginPath();
-                    ctx.ellipse(1, -6, 8, 3, -0.28, Math.PI * 1.1, Math.PI * 1.8);
-                    ctx.stroke();
-                    
-                    // Metallic chrome teeth siseando
-                    ctx.fillStyle = "#FFFFFF";
-                    ctx.fillRect(4, -4, 1.5, 2);
-                    ctx.fillRect(5.5, -4, 1.5, 2);
+                    // 3. Chromatic aberration splits (extra ghost lines)
+                    if (Math.random() < 0.35) {
+                        ctx.strokeStyle = "rgba(0, 255, 255, 0.7)";
+                        ctx.strokeRect(-tSize - 4, -tSize - 3, tSize * 2 + 8, tSize * 2 + 6);
+                        ctx.strokeStyle = "rgba(255, 0, 255, 0.7)";
+                        ctx.strokeRect(-tSize + 2, -tSize + 3, tSize * 2 - 4, tSize * 2 - 6);
+                    }
                     
                     ctx.restore();
                     ctx.shadowBlur = 0;
