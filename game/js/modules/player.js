@@ -28,6 +28,8 @@ var Player = (function() {
     
     // Pop Culture Heart States
     var mahoragaDefStack = 0;
+    var mahoragaAdaptations = {};
+    var mahoragaWheelSpinTimer = 0;
     var gojoTurns = 0;
     var subaruRevives = 1;
     var sansDodgeCount = 4;
@@ -59,7 +61,9 @@ var Player = (function() {
         noHorizontalMovement = false;
         
         mahoragaDefStack = 0;
-        gojoTurns = 4; // Gojo starts with Infinity charged!
+        mahoragaAdaptations = {};
+        mahoragaWheelSpinTimer = 0;
+        gojoTurns = 3; // Gojo starts with Infinity charged!
         subaruRevives = 1;
         sansDodgeCount = 4;
         hitboxScaleOverride = 1.0;
@@ -249,7 +253,7 @@ var Player = (function() {
         return false;
     }
 
-    function damage(value) {
+    function damage(value, attackName) {
         if (invulnerableTurns > 0) return false; // Immune
         
         if (shieldCharges > 0) {
@@ -268,8 +272,8 @@ var Player = (function() {
             return false; // Blocked by thorn shield
         }
 
-        // Gojo Infinity passive (blocks 1 hit every 4 turns)
-        if (soulClass === 14 && gojoTurns >= 4) {
+        // Gojo Infinity passive (blocks 1 hit every 3 turns)
+        if (soulClass === 14 && gojoTurns >= 3) {
             gojoTurns = 0;
             Sound.playSound("ting", true);
             console.log("INFINITY: Gojo blocked the hit!");
@@ -289,6 +293,25 @@ var Player = (function() {
             Sound.playSound("ting", true);
             console.log("LUFFY DODGE: Gear 5 cartoon dodge!");
             return false;
+        }
+
+        // Mahoraga Adaptation (soulClass 12)
+        if (soulClass === 12 && attackName) {
+            if (!mahoragaAdaptations[attackName]) {
+                mahoragaAdaptations[attackName] = 0;
+            }
+            if (mahoragaAdaptations[attackName] >= 3) {
+                mahoragaWheelSpinTimer = 2.5;
+                Sound.playSound("ting", true);
+                console.log("MAHORAGA 100% ADAPTED: No damage from: " + attackName);
+                return false;
+            }
+            mahoragaAdaptations[attackName]++;
+            if (mahoragaAdaptations[attackName] === 3) {
+                mahoragaWheelSpinTimer = 2.5;
+                Sound.playSound("heal", true);
+                console.log("MAHORAGA 100% ADAPTATION ACHIEVED FOR: " + attackName);
+            }
         }
 
         // Divergent zilla adaptation (stack +20% DEF on hit, up to +100%)
@@ -375,6 +398,11 @@ var Player = (function() {
             hpCur = Math.min(hpMax, hpCur + 2.0 * dt);
         }
         
+        // Decrement Mahoraga wheel spin timer
+        if (mahoragaWheelSpinTimer > 0) {
+            mahoragaWheelSpinTimer = Math.max(0, mahoragaWheelSpinTimer - dt);
+        }
+        
         return false;
     }
     function getKarma() { return karmaBuffer; }
@@ -437,9 +465,17 @@ var Player = (function() {
         reduceMaxHP: function(amount) { hpMax = Math.max(20, hpMax - amount); hpCur = Math.min(hpCur, hpMax); },
         getBulletSpeedMultiplier: function() {
             if (soulClass === 21 && typeof myKeys !== "undefined" && myKeys.isCancel()) return 0.7; // Tanjiro slows bullets by 30%
+            if (soulClass === 14) { // Gojo Six Eyes
+                if (typeof myKeys !== "undefined" && myKeys.isCancel()) {
+                    return 0.60;
+                }
+                return 0.85;
+            }
             return 1.0;
         },
         getHitboxScaleMultiplier: function() { return hitboxScaleOverride; },
-        setHitboxScaleMultiplier: function(val, turns) { hitboxScaleOverride = val; hitboxScaleTurns = turns; }
+        setHitboxScaleMultiplier: function(val, turns) { hitboxScaleOverride = val; hitboxScaleTurns = turns; },
+        getGojoTurns: function() { return gojoTurns; },
+        getMahoragaWheelSpinTimer: function() { return mahoragaWheelSpinTimer; }
     };
 }());

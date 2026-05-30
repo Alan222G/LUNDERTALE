@@ -379,8 +379,11 @@ var BossController = (function() {
     }
 
     function createPattern(name) {
-        if (patternMap[name]) return patternMap[name]();
-        return patternMap["bulletRain"]();
+        var pattern = patternMap[name] ? patternMap[name]() : patternMap["bulletRain"]();
+        if (pattern) {
+            pattern.name = name;
+        }
+        return pattern;
     }
 
     // Update the current attack
@@ -420,9 +423,9 @@ var BossController = (function() {
                     var finalDmg = Math.ceil((dmg * dmgMult) / (Player.getBuffDef ? Player.getBuffDef() : 1.0));
                     if (enemy && enemy.karmaEnabled) {
                         Player.addKarma(finalDmg);
-                        Player.damage(1); // Minimal direct damage with karma
+                        Player.damage(1, currentPattern.name); // Minimal direct damage with karma
                     } else {
-                        Player.damage(finalDmg);
+                        Player.damage(finalDmg, currentPattern.name);
                     }
                     // Trigger brutal passives
                     if (enemy && typeof enemy.onHitPlayer === 'function') {

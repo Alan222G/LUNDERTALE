@@ -615,7 +615,9 @@ Enemy.prototype.dealDamage = function(damage) {
     if (sClass === 16 && Math.random() < 0.20) {
         finalDmg *= 2.5;
         Sound.playSound("hit_2_crit", true);
-        if (typeof Camera !== "undefined" && Camera.shake) {
+        if (typeof triggerBlackFlash === "function") {
+            triggerBlackFlash();
+        } else if (typeof Camera !== "undefined" && Camera.shake) {
             Camera.shake(8.0);
         }
         console.log("BLACK FLASH! 2.5x damage dealt!");
@@ -1158,7 +1160,7 @@ Enemy.prototype.drawOctahedron = function(ctx, cx, cy, size, rotation, colors) {
 Enemy.prototype.drawRamielCrystal = function(ctx) {
     var time = this.timeCounter;
     ctx.save();
-    var cx = 370, cy = 170;
+    var cx = 370, cy = 195;
 
     // Soft blue aura
     var auraAlpha = (0.1 + Math.sin(time * 1.2) * 0.04).toFixed(3);
@@ -4609,7 +4611,7 @@ Enemy.prototype.drawPrism = function(ctx) {
     var floatY = Math.sin(time * 1.8) * 6.0;
     
     ctx.save();
-    ctx.translate(370, 140 + floatY);
+    ctx.translate(370, 200 + floatY);
     ctx.scale(breathe, breathe);
     
     // Local helper for drawing crystal facets

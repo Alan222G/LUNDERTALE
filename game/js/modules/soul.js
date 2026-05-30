@@ -135,7 +135,7 @@ var Soul = (function() {
         else if (sClass === 9) ctx.filter = "hue-rotate(185deg) saturate(1.2) brightness(1.4)"; // Crystal
         else if (sClass === 10) ctx.filter = "hue-rotate(350deg) saturate(2.5) brightness(0.8)"; // Vampire
         else if (sClass === 11) ctx.filter = "hue-rotate(" + ((Date.now() / 4) % 360) + "deg) saturate(2)"; // Chaos (Rainbow)
-        else if (sClass === 12) ctx.filter = "grayscale(40%) sepia(80%) brightness(1.1)"; // Divergent zilla (Mahoraga Bronze)
+        else if (sClass === 12) ctx.filter = "grayscale(100%) brightness(2.0)"; // Divergent zilla (Mahoraga White)
         else if (sClass === 13) ctx.filter = "hue-rotate(290deg) saturate(2.2) brightness(1.2)"; // Eva 01 Purple/Green
         else if (sClass === 14) ctx.filter = "hue-rotate(190deg) saturate(3) brightness(1.6)"; // Gojo Celestial Blue
         else if (sClass === 15) ctx.filter = "hue-rotate(260deg) saturate(0.6) brightness(0.7)"; // Subaru Dark Cursed
@@ -163,8 +163,17 @@ var Soul = (function() {
         if (sClass === 12) { // Divergent zilla (Mahoraga wheel)
             ctx.save();
             ctx.translate(drawPos.x + sw/2, drawPos.y - 8);
-            ctx.rotate((Date.now() / 600) % (Math.PI * 2));
-            ctx.strokeStyle = "#D2691E"; // Bronze wheel
+            
+            var isSpinning = (typeof Player !== "undefined" && Player.getMahoragaWheelSpinTimer && Player.getMahoragaWheelSpinTimer() > 0);
+            var spinSpeed = isSpinning ? 70 : 600;
+            ctx.rotate((Date.now() / spinSpeed) % (Math.PI * 2));
+            
+            if (isSpinning) {
+                ctx.shadowBlur = 12;
+                ctx.shadowColor = "#FFD700";
+            }
+            
+            ctx.strokeStyle = "#DAA520"; // Golden wheel
             ctx.lineWidth = 1.5;
             ctx.beginPath();
             ctx.arc(0, 0, 7, 0, Math.PI * 2);
@@ -178,7 +187,7 @@ var Soul = (function() {
                 ctx.moveTo(0, 0);
                 ctx.lineTo(Math.cos(sAngle)*9, Math.sin(sAngle)*9);
                 ctx.stroke();
-                ctx.fillStyle = "#8B4513";
+                ctx.fillStyle = "#FFD700"; // Gold spokes/knobs
                 ctx.fillRect(Math.cos(sAngle)*9 - 1, Math.sin(sAngle)*9 - 1, 2.5, 2.5);
             }
             ctx.restore();
@@ -205,16 +214,44 @@ var Soul = (function() {
                 }
             }
             ctx.restore();
-        } else if (sClass === 14) { // Gojo (Limitless Ring)
+        } else if (sClass === 14) { // Gojo (Limitless Ring + Six Eyes)
+            // 1. Limitless barrier ring (pulses and glows extra thick if charged/active)
             ctx.save();
-            ctx.strokeStyle = "rgba(0, 229, 255, 0.75)";
-            ctx.lineWidth = 1.5;
-            ctx.shadowBlur = 10;
+            var infCharged = (typeof Player !== "undefined" && Player.getGojoTurns && Player.getGojoTurns() >= 3);
+            ctx.strokeStyle = infCharged ? "rgba(0, 229, 255, 0.95)" : "rgba(0, 229, 255, 0.45)";
+            ctx.lineWidth = infCharged ? 3.0 : 1.5;
+            ctx.shadowBlur = infCharged ? 18 : 8;
             ctx.shadowColor = "#00E5FF";
             ctx.beginPath();
             ctx.arc(drawPos.x + sw/2, drawPos.y + sh/2, sw * 1.1 + Math.sin(Date.now()/250)*2, 0, Math.PI*2);
             ctx.stroke();
             ctx.restore();
+            
+            // 2. Six Eyes pupil/radial lines (active when Cancel / X is held down)
+            if (typeof myKeys !== "undefined" && myKeys.isCancel()) {
+                ctx.save();
+                ctx.translate(drawPos.x + sw/2, drawPos.y + sh/2);
+                ctx.rotate((Date.now() / 400) % (Math.PI * 2));
+                ctx.strokeStyle = "rgba(0, 255, 255, 0.85)";
+                ctx.lineWidth = 1.0;
+                ctx.shadowBlur = 6;
+                ctx.shadowColor = "#00FFFF";
+                
+                // Iris ring
+                ctx.beginPath();
+                ctx.arc(0, 0, sw * 0.45, 0, Math.PI * 2);
+                ctx.stroke();
+                
+                // 6 spokes
+                for (var sp = 0; sp < 6; sp++) {
+                    var sAngle = (sp * Math.PI / 3);
+                    ctx.beginPath();
+                    ctx.moveTo(Math.cos(sAngle) * (sw * 0.2), Math.sin(sAngle) * (sw * 0.2));
+                    ctx.lineTo(Math.cos(sAngle) * (sw * 0.75), Math.sin(sAngle) * (sw * 0.75));
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
         } else if (sClass === 15) { // Subaru (Shadow Hands)
             ctx.save();
             ctx.strokeStyle = "rgba(75, 0, 130, 0.8)";

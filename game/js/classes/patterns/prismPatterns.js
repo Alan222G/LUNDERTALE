@@ -315,7 +315,7 @@ PrismBeamGridPattern.prototype.draw = function(ctx) {
     ctx.restore();
 };
 PrismBeamGridPattern.prototype.isOver = function() {
-    return this.elapsed >= this.duration && this.nodes.length === 0 && this.beams.length === 0;
+    return (this.elapsed >= this.duration && this.nodes.length === 0 && this.beams.length === 0) || this.elapsed >= this.duration + 1.5;
 };
 
 
@@ -441,7 +441,7 @@ ShatteringSpikesPattern.prototype.draw = function(ctx) {
     ctx.restore();
 };
 ShatteringSpikesPattern.prototype.isOver = function() {
-    return this.elapsed >= this.duration && this.spikes.length === 0 && this.bullets.length === 0;
+    return (this.elapsed >= this.duration && this.spikes.length === 0 && this.bullets.length === 0) || this.elapsed >= this.duration + 1.5;
 };
 
 
@@ -598,7 +598,7 @@ MirrorReflectPattern.prototype.draw = function(ctx) {
     ctx.restore();
 };
 MirrorReflectPattern.prototype.isOver = function() {
-    return this.elapsed >= this.duration && this.lasers.length === 0 && this.bullets.length === 0;
+    return (this.elapsed >= this.duration && this.lasers.length === 0 && this.bullets.length === 0) || this.elapsed >= this.duration + 1.5;
 };
 
 
@@ -743,7 +743,7 @@ CrystallineShieldPattern.prototype.draw = function(ctx) {
     ctx.restore();
 };
 CrystallineShieldPattern.prototype.isOver = function() {
-    return this.elapsed >= this.duration && this.rings.length === 0;
+    return (this.elapsed >= this.duration && this.rings.length === 0) || this.elapsed >= this.duration + 1.5;
 };
 
 
@@ -852,7 +852,7 @@ RefractionCascadePattern.prototype.draw = function(ctx) {
     ctx.restore();
 };
 RefractionCascadePattern.prototype.isOver = function() {
-    return this.elapsed >= this.duration && this.bullets.length === 0;
+    return (this.elapsed >= this.duration && this.bullets.length === 0) || this.elapsed >= this.duration + 1.5;
 };
 
 
@@ -1024,7 +1024,7 @@ GlassFracturePattern.prototype.draw = function(ctx) {
     ctx.restore();
 };
 GlassFracturePattern.prototype.isOver = function() {
-    return this.elapsed >= this.duration && this.fractures.length === 0 && this.bullets.length === 0;
+    return (this.elapsed >= this.duration && this.fractures.length === 0 && this.bullets.length === 0) || this.elapsed >= this.duration + 1.5;
 };
 
 
@@ -1310,7 +1310,7 @@ BirefringenceSplitPattern.prototype.draw = function(ctx) {
     ctx.restore();
 };
 BirefringenceSplitPattern.prototype.isOver = function() {
-    return this.elapsed >= this.duration && this.bullets.length === 0;
+    return (this.elapsed >= this.duration && this.bullets.length === 0) || this.elapsed >= this.duration + 1.5;
 };
 
 
@@ -1421,7 +1421,7 @@ MirrorMazePattern.prototype.draw = function(ctx) {
     ctx.restore();
 };
 MirrorMazePattern.prototype.isOver = function() {
-    return this.elapsed >= this.duration && this.bullets.length === 0;
+    return (this.elapsed >= this.duration && this.bullets.length === 0) || this.elapsed >= this.duration + 1.5;
 };
 
 
@@ -1550,7 +1550,7 @@ ShatteredCorePattern.prototype.draw = function(ctx) {
     ctx.restore();
 };
 ShatteredCorePattern.prototype.isOver = function() {
-    return this.elapsed >= this.duration && this.bullets.length === 0;
+    return (this.elapsed >= this.duration && this.bullets.length === 0) || this.elapsed >= this.duration + 1.5;
 };
 
 
@@ -1687,7 +1687,7 @@ SpectralRefractPattern.prototype.draw = function(ctx) {
     ctx.restore();
 };
 SpectralRefractPattern.prototype.isOver = function() {
-    return this.elapsed >= this.duration && this.bullets.length === 0;
+    return (this.elapsed >= this.duration && this.bullets.length === 0) || this.elapsed >= this.duration + 1.5;
 };
 
 
@@ -1813,7 +1813,7 @@ MirrorDimensionPattern.prototype.draw = function(ctx) {
     ctx.restore();
 };
 MirrorDimensionPattern.prototype.isOver = function() {
-    return this.elapsed >= this.duration && this.bullets.length === 0;
+    return (this.elapsed >= this.duration && this.bullets.length === 0) || this.elapsed >= this.duration + 1.5;
 };
 
 
@@ -1935,7 +1935,7 @@ CrystalCataclysmPattern.prototype.draw = function(ctx) {
     ctx.restore();
 };
 CrystalCataclysmPattern.prototype.isOver = function() {
-    return this.elapsed >= this.duration && this.spikes.length === 0 && this.bullets.length === 0;
+    return (this.elapsed >= this.duration && this.spikes.length === 0 && this.bullets.length === 0) || this.elapsed >= this.duration + 1.5;
 };
 
 
@@ -2040,7 +2040,7 @@ PrismStrobePattern.prototype.draw = function(ctx) {
     ctx.restore();
 };
 PrismStrobePattern.prototype.isOver = function() {
-    return this.elapsed >= this.duration && !this.strobeActive;
+    return (this.elapsed >= this.duration && !this.strobeActive) || this.elapsed >= this.duration + 1.5;
 };
 
 
@@ -2114,7 +2114,7 @@ GlassRainPattern.prototype.draw = function(ctx) {
     ctx.restore();
 };
 GlassRainPattern.prototype.isOver = function() {
-    return this.elapsed >= this.duration && this.bullets.length === 0;
+    return (this.elapsed >= this.duration && this.bullets.length === 0) || this.elapsed >= this.duration + 1.5;
 };
 
 
@@ -2236,5 +2236,5 @@ CrystallineRayPattern.prototype.draw = function(ctx) {
     ctx.restore();
 };
 CrystallineRayPattern.prototype.isOver = function() {
-    return this.elapsed >= this.duration && this.rays.length === 0;
+    return (this.elapsed >= this.duration && this.rays.length === 0) || this.elapsed >= this.duration + 1.5;
 };

@@ -30,15 +30,7 @@ var Overworld = (function() {
         { name: "Subaru", desc: "Retorno por Muerte. HP:70. Revive una vez por combate con 1 HP y 2 segundos de invulnerabilidad absoluta." },
         { name: "Yuji Itadori", desc: "Destello Negro. HP:120, ATK:+20%. 20% probabilidad de asestar un Destello Negro (Black Flash) infligiendo 2.5x daño." },
         { name: "All Might", desc: "One For All. HP:150. Símbolo de la Paz (+60% ATK, +40% DEF), pero tu HP Máximo decae en 5 por turno por fatiga." },
-        { name: "Saitama", desc: "One Punch. HP:50, VEL:+20%, ATK:+200%. Poder absoluto, pero tu HP Máximo está limitado a 50 y no puedes curarte con ítems." },
-        { name: "Luffy", desc: "Gear 5. HP:100, VEL:+30%. Libertad de caricatura: 20% de probabilidad de esquivar automáticamente cualquier ataque." },
-        { name: "Naruto", desc: "Kurama. HP:110. Modo Sabueso de Nueve Colas: regenera pasivamente 3 HP por segundo durante la evasión." },
-        { name: "Tanjiro", desc: "Concentración Total. HP:100. Al presionar Cancelar (tecla X), ralentizas todos los proyectiles un 30% usando técnicas de respiración." },
-        { name: "Deku", desc: "Full Cowl. HP:90, VEL:+100%. Velocidad extrema, pero el 20% del daño recibido se te devuelve como retroceso físico." },
-        { name: "Zoro", desc: "Tres Espadas. HP:115, ATK:+50%. El estilo de tres espadas aumenta tu ataque, pero tu área de impacto (hitbox) crece un 25%." },
-        { name: "Rimuru", desc: "Depredador Slime. HP:100. Rozar proyectiles (graze) tiene un 20% de probabilidad de absorberlos y curarte 5 HP." },
-        { name: "Sans", desc: "Juicio del Vago. HP:1, VEL:+50%. Tienes solo 1 HP, pero esquivas automáticamente los primeros 4 golpes del combate." },
-        { name: "Denji", desc: "Motosierra. HP:105, DEF:-50%. Sangre por motosierra: curas el 25% de todo daño infligido al jefe, pero tu defensa se reduce a la mitad." }
+        { name: "Saitama", desc: "One Punch. HP:50, VEL:+20%, ATK:+200%. Poder absoluto, pero tu HP Máximo está limitado a 50 y no puedes curarte con ítems." }
     ];
 
     var bgImage = new Image();
