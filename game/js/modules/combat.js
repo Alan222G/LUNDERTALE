@@ -246,6 +246,15 @@ var Combat = (function() {
                     Soul.setSoulMode(Soul.SOUL_MODE.RED);
                     Cbbox.setSize(574, 140, false);
                     Player.resetBuffs();
+                    
+                    // Sachiel Turn-End passive: core regeneration (3% of Max HP)
+                    var currentBoss = Cgroup.getEnemy(selectStateEnemy);
+                    if (currentBoss && currentBoss.name === "Sachiel") {
+                        var regen = Math.ceil(currentBoss.maxHP * 0.03);
+                        currentBoss.curHP = Math.min(currentBoss.maxHP, currentBoss.curHP + regen);
+                        console.log("Sachiel core regenerated " + regen + " HP.");
+                    }
+
                     if (typeof Player !== 'undefined' && Player.isPoisonEnemy && Player.isPoisonEnemy()) {
                         var _enemy = Cgroup.getEnemy(selectStateEnemy);
                         if (_enemy && _enemy.mercyHP !== undefined) {

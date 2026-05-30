@@ -121,6 +121,25 @@ var BossController = (function() {
             "glitchFormatDrive": function(cfg) { return new GlitchFormatDrivePattern(cfg || { damVal: 10, duration: 7.0 }); },
             "glitchKernelPanic": function(cfg) { return new GlitchKernelPanicPattern(cfg || { damVal: 10, duration: 7.0 }); },
             "glitchScreenTear": function(cfg) { return new GlitchScreenTearPattern(cfg || { damVal: 9, duration: 7.0 }); },
+            // --- Custom Coloso de Espejos (Mirror Colossus) Attacks ---
+            "prismBeamGrid": function(cfg) { return new PrismBeamGridPattern(cfg || { damVal: 8, duration: 7.0 }); },
+            "shatteringSpikes": function(cfg) { return new ShatteringSpikesPattern(cfg || { damVal: 8, duration: 7.0 }); },
+            "mirrorReflect": function(cfg) { return new MirrorReflectPattern(cfg || { damVal: 8, duration: 7.0 }); },
+            "crystallineShield": function(cfg) { return new CrystallineShieldPattern(cfg || { damVal: 8, duration: 7.0 }); },
+            "refractionCascade": function(cfg) { return new RefractionCascadePattern(cfg || { damVal: 8, duration: 7.0 }); },
+            "glassFracture": function(cfg) { return new GlassFracturePattern(cfg || { damVal: 9, duration: 7.0 }); },
+            "kaleidoscopeSpiral": function(cfg) { return new KaleidoscopeSpiralPattern(cfg || { damVal: 8, duration: 7.0 }); },
+            "prismLaserSweep": function(cfg) { return new PrismLaserSweepPattern(cfg || { damVal: 8, duration: 7.0 }); },
+            "birefringenceSplit": function(cfg) { return new BirefringenceSplitPattern(cfg || { damVal: 8, duration: 7.0 }); },
+            "mirrorMaze": function(cfg) { return new MirrorMazePattern(cfg || { damVal: 8, duration: 7.0 }); },
+            "shatteredCore": function(cfg) { return new ShatteredCorePattern(cfg || { damVal: 10, duration: 7.5 }); },
+            "auroraBorealis": function(cfg) { return new AuroraBorealisPattern(cfg || { damVal: 9, duration: 7.5 }); },
+            "spectralRefract": function(cfg) { return new SpectralRefractPattern(cfg || { damVal: 8, duration: 7.5 }); },
+            "mirrorDimension": function(cfg) { return new MirrorDimensionPattern(cfg || { damVal: 8, duration: 7.5 }); },
+            "crystalCataclysm": function(cfg) { return new CrystalCataclysmPattern(cfg || { damVal: 10, duration: 7.5 }); },
+            "prismStrobe": function(cfg) { return new PrismStrobePattern(cfg || { damVal: 8, duration: 6.5 }); },
+            "glassRain": function(cfg) { return new GlassRainPattern(cfg || { damVal: 8, duration: 7.0 }); },
+            "crystallineRay": function(cfg) { return new CrystallineRayPattern(cfg || { damVal: 8, duration: 7.0 }); },
         };
     }
 
@@ -316,6 +335,18 @@ var BossController = (function() {
             w = 340; h = 300;
         } else if (patternName === "glitchScreenTear") {
             w = 320; h = 320;
+        } else if (patternName === "prismBeamGrid" || patternName === "refractionCascade" || patternName === "kaleidoscopeSpiral" || patternName === "auroraBorealis" || patternName === "spectralRefract") {
+            w = 320; h = 320;
+        } else if (patternName === "shatteringSpikes" || patternName === "glassFracture" || patternName === "prismLaserSweep" || patternName === "shatteredCore" || patternName === "mirrorDimension" || patternName === "prismStrobe" || patternName === "glassRain" || patternName === "crystallineRay") {
+            w = 300; h = 300;
+        } else if (patternName === "mirrorReflect" || patternName === "birefringenceSplit") {
+            w = 340; h = 280;
+        } else if (patternName === "crystallineShield") {
+            w = 280; h = 280;
+        } else if (patternName === "mirrorMaze") {
+            w = 300; h = 300;
+        } else if (patternName === "crystalCataclysm") {
+            w = 340; h = 300;
         }
 
         return { patternName: patternName, width: w, height: h };

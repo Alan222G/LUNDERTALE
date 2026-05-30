@@ -19,19 +19,26 @@ var Overworld = (function() {
         { name: "Corazón Azul", desc: "Saltador. HP:120, VEL:+20%, Gravedad activa" },
         { name: "Corazón Naranja", desc: "Imparable. HP:110, VEL:+60%, ATK:+10%" },
         { name: "Corazón Celeste", desc: "Paciente. HP:140, VEL:-10%, DEF:+20%" },
-        { name: "Corazón Rosa", desc: "Magnético. HP:100, VEL:+40%, ATK:+20%" },
-        { name: "Corazón Púrpura Oscuro", desc: "Invertido. HP:130, DEF:+10%, Gravedad invertida" },
-        { name: "Corazón Blanco", desc: "Evasivo. HP:90, VEL:+20%, DEF:-20%" },
-        { name: "Corazón Fénix", desc: "Fénix. HP:80, Revive una vez por combate con 50% HP." },
-        { name: "Corazón Gigante", desc: "Gigante. HP:160, Escala 1.8x, +80% DEF." },
-        { name: "Corazón Diminuto", desc: "Diminuto. HP:70, Escala 0.5x, +30% daño recibido." },
-        { name: "Corazón Espinoso", desc: "Espinoso. HP:100, Escudo espinoso (bloquea 1er golpe, 30 piedad/turno)." },
-        { name: "Corazón de Hierro", desc: "Hierro. HP:150, Sin movimiento horizontal, +150% DEF, regenera 3 HP/seg." },
         { name: "Corazón Cafeína", desc: "Cafeína. HP:110, VEL +80%, pero sufres veneno de 1 HP/seg." },
         { name: "Corazón Magnético", desc: "Magnético. HP:90, Atrae balas, pero rozar balas cura 3 HP." },
         { name: "Corazón Cristalino", desc: "Cristalino. HP:100, Refleja 30% del daño recibido al jefe." },
         { name: "Corazón de Vampiro", desc: "Vampiro. HP:90, Lifesteal (cura 10% del daño infligido al jefe)." },
-        { name: "Corazón Caótico", desc: "Caótico. HP:100, Cada turno cambia de alma y stats. Arcoíris." }
+        { name: "Corazón Caótico", desc: "Caótico. HP:100, Cada turno cambia de alma y stats. Arcoíris." },
+        { name: "Divergent zilla", desc: "Adaptación. HP:120. Se adapta al daño ganando permanentemente +20% DEF por golpe recibido (hasta +100%)." },
+        { name: "Eva 01", desc: "Berserk. HP:110. Si tu HP baja del 30%, entras en furia (+80% ATK, +50% VEL, regenera 2 HP/seg, no puedes usar ítems)." },
+        { name: "Gojo", desc: "Infinito. HP:90, VEL:+20%. Satoru Gojo. Tu barrera de Infinito bloquea un golpe de forma absoluta cada 4 turnos." },
+        { name: "Subaru", desc: "Retorno por Muerte. HP:70. Revive una vez por combate con 1 HP y 2 segundos de invulnerabilidad absoluta." },
+        { name: "Yuji Itadori", desc: "Destello Negro. HP:120, ATK:+20%. 20% probabilidad de asestar un Destello Negro (Black Flash) infligiendo 2.5x daño." },
+        { name: "All Might", desc: "One For All. HP:150. Símbolo de la Paz (+60% ATK, +40% DEF), pero tu HP Máximo decae en 5 por turno por fatiga." },
+        { name: "Saitama", desc: "One Punch. HP:50, VEL:+20%, ATK:+200%. Poder absoluto, pero tu HP Máximo está limitado a 50 y no puedes curarte con ítems." },
+        { name: "Luffy", desc: "Gear 5. HP:100, VEL:+30%. Libertad de caricatura: 20% de probabilidad de esquivar automáticamente cualquier ataque." },
+        { name: "Naruto", desc: "Kurama. HP:110. Modo Sabueso de Nueve Colas: regenera pasivamente 3 HP por segundo durante la evasión." },
+        { name: "Tanjiro", desc: "Concentración Total. HP:100. Al presionar Cancelar (tecla X), ralentizas todos los proyectiles un 30% usando técnicas de respiración." },
+        { name: "Deku", desc: "Full Cowl. HP:90, VEL:+100%. Velocidad extrema, pero el 20% del daño recibido se te devuelve como retroceso físico." },
+        { name: "Zoro", desc: "Tres Espadas. HP:115, ATK:+50%. El estilo de tres espadas aumenta tu ataque, pero tu área de impacto (hitbox) crece un 25%." },
+        { name: "Rimuru", desc: "Depredador Slime. HP:100. Rozar proyectiles (graze) tiene un 20% de probabilidad de absorberlos y curarte 5 HP." },
+        { name: "Sans", desc: "Juicio del Vago. HP:1, VEL:+50%. Tienes solo 1 HP, pero esquivas automáticamente los primeros 4 golpes del combate." },
+        { name: "Denji", desc: "Motosierra. HP:105, DEF:-50%. Sangre por motosierra: curas el 25% de todo daño infligido al jefe, pero tu defensa se reduce a la mitad." }
     ];
 
     var bgImage = new Image();
@@ -178,6 +185,23 @@ var Overworld = (function() {
             bossId: "glitch",
             label: "ERROR 404",
             color: "rgba(255, 0, 255, 0.6)",
+            action: function() {
+                var self = this;
+                Transition.start(function() {
+                    main.gameState = main.GAME_STATE.COMBAT;
+                    Combat.init(self.bossId);
+                    Combat.setup(main.ctx);
+                });
+            }
+        });
+        
+        // Mirror Colossus battle trigger (Anomalies Group)
+        triggerList.push({
+            x: 520, y: 207, w: 26, h: 26,
+            triggered: false,
+            bossId: "prism",
+            label: "COLOSO DE ESPEJOS",
+            color: "rgba(0, 240, 255, 0.6)",
             action: function() {
                 var self = this;
                 Transition.start(function() {
@@ -757,6 +781,46 @@ var Overworld = (function() {
                     
                     ctx.restore();
                     ctx.shadowBlur = 0;
+                } else if (t.bossId === "prism") {
+                    // Crystalline Coloso de Espejos representation
+                    var pTime = animTimer;
+                    var pSize = 16;
+                    ctx.save();
+                    ctx.translate(gcx, gcy - 5 + Math.sin(pTime * 2.5) * 3); // floating gently
+                    
+                    // Rotate over time
+                    var rot = pTime * 0.8;
+                    
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = "#00FFFF";
+                    ctx.strokeStyle = "#FFFFFF";
+                    ctx.lineWidth = 1.0;
+                    
+                    // Draw outer crystal structure (overlapping glowing triangles)
+                    for (var f = 0; f < 3; f++) {
+                        var fAngle = rot + (f * Math.PI * 2 / 3);
+                        ctx.fillStyle = "rgba(0, 220, 255, 0.4)";
+                        ctx.beginPath();
+                        ctx.moveTo(0, -pSize);
+                        ctx.lineTo(Math.cos(fAngle) * pSize, Math.sin(fAngle) * (pSize * 0.5));
+                        ctx.lineTo(Math.cos(fAngle + Math.PI*2/3) * pSize, Math.sin(fAngle + Math.PI*2/3) * (pSize * 0.5));
+                        ctx.closePath();
+                        ctx.fill();
+                        ctx.stroke();
+                    }
+                    
+                    // Core diamond
+                    ctx.fillStyle = "#FFFFFF";
+                    ctx.beginPath();
+                    ctx.moveTo(0, -pSize * 0.4);
+                    ctx.lineTo(pSize * 0.3, 0);
+                    ctx.lineTo(0, pSize * 0.4);
+                    ctx.lineTo(-pSize * 0.3, 0);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    ctx.restore();
+                    ctx.shadowBlur = 0;
                 } else if (img && img.complete) {
                     ctx.drawImage(img, t.x, t.y, t.w, t.h);
                 } else {
@@ -961,8 +1025,9 @@ var Overworld = (function() {
             // Bottom Pane (Description)
             ctx.strokeRect(20, 300, 600, 160);
             
-            var colors = ["#F00", "#0F0", "#FF0", "#A0A", "#00F", "#F80", "#0FF", "#F0F", "#408", "#FFF",
-                          "#FFA500", "#006400", "#ADFF2F", "#B22222", "#708090", "#8B4513", "#C0C0C0", "#87CEEB", "#DC143C", "hsl(" + (Date.now() / 5 % 360) + ", 100%, 50%)"];
+            var colors = ["#F00", "#0F0", "#FF0", "#A0A", "#00F", "#F80", "#0FF",
+                          "#8B4513", "#C0C0C0", "#87CEEB", "#DC143C", "hsl(" + (Date.now() / 5 % 360) + ", 100%, 50%)",
+                          "#4B0082", "#9400D3", "#00E5FF", "#FF5722", "#E91E63", "#FFD700", "#FFEB3B", "#FF1744", "#FF9100", "#00BFA5", "#00E676", "#2E7D32", "#80DEEA", "#0077FF", "#FF3D00"];
             
             if (catalogTab === 0) {
                 // =====================

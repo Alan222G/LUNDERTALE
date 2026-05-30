@@ -5,7 +5,7 @@ var Player = (function() {
     var buffSpd = 1.0, buffDef = 1.0, buffAtk = 1.0;
     var soulClass = 0; // 0=Red, 1=Green, 2=Yellow, 3=Purple
 
-    // Item Effects
+    // Item/Passive Effects
     var invulnerableTurns = 0;
     var reflectionTurns = 0, reflectionRate = 0;
     var noSmallHeals = false;
@@ -25,6 +25,14 @@ var Player = (function() {
     var giant = false;
     var magnetActive = false;
     var noHorizontalMovement = false;
+    
+    // Pop Culture Heart States
+    var mahoragaDefStack = 0;
+    var gojoTurns = 0;
+    var subaruRevives = 1;
+    var sansDodgeCount = 4;
+    var hitboxScaleOverride = 1.0;
+    var hitboxScaleTurns = 0;
     
     var activeSpdBuffs = []; // {val: 0.3, turns: 1}
     var activeDefBuffs = [];
@@ -50,16 +58,20 @@ var Player = (function() {
         magnetActive = false;
         noHorizontalMovement = false;
         
+        mahoragaDefStack = 0;
+        gojoTurns = 4; // Gojo starts with Infinity charged!
+        subaruRevives = 1;
+        sansDodgeCount = 4;
+        hitboxScaleOverride = 1.0;
+        hitboxScaleTurns = 0;
+        
         activeSpdBuffs = []; activeDefBuffs = []; activeAtkBuffs = [];
         
         setSoulClass(soulClass || 0); // Keep current class, just reset HP and buffs
 
         // Passives based on soulClass
-        if (soulClass === 10) { phoenixEggActive = true; } // Phoenix Heart
-        if (soulClass === 13) { thornShield = true; } // Thorn Heart
-        if (soulClass === 14) { noHorizontalMovement = true; } // Iron Heart
-        if (soulClass === 15) { selfPoison = 1.0; } // Caffeine Heart
-        if (soulClass === 16) { magnetActive = true; } // Magnetic Heart
+        if (soulClass === 7) { selfPoison = 1.0; } // Caffeine Heart
+        if (soulClass === 8) { magnetActive = true; } // Magnetic Heart
     }
 
     function setSoulClass(classId) {
@@ -72,19 +84,26 @@ var Player = (function() {
             case 4: hpMax = 120; baseSpd = 1.2; baseAtk = 1.0; baseDef = 1.0; break;
             case 5: hpMax = 110; baseSpd = 1.6; baseAtk = 1.1; baseDef = 0.8; break;
             case 6: hpMax = 140; baseSpd = 0.9; baseAtk = 1.0; baseDef = 1.2; break;
-            case 7: hpMax = 100; baseSpd = 1.4; baseAtk = 1.2; baseDef = 0.9; break;
-            case 8: hpMax = 130; baseSpd = 1.0; baseAtk = 1.0; baseDef = 1.1; break;
-            case 9: hpMax = 90;  baseSpd = 1.2; baseAtk = 0.9; baseDef = 0.8; break;
-            case 10: hpMax = 80;  baseSpd = 1.0; baseAtk = 1.0; baseDef = 1.0; break; // Phoenix
-            case 11: hpMax = 160; baseSpd = 0.7; baseAtk = 1.2; baseDef = 1.8; break; // Giant
-            case 12: hpMax = 70;  baseSpd = 1.2; baseAtk = 1.0; baseDef = 0.7; break; // Tiny
-            case 13: hpMax = 100; baseSpd = 1.0; baseAtk = 1.0; baseDef = 1.0; break; // Thorn
-            case 14: hpMax = 150; baseSpd = 0.5; baseAtk = 1.0; baseDef = 2.5; break; // Iron
-            case 15: hpMax = 110; baseSpd = 1.8; baseAtk = 1.1; baseDef = 0.8; break; // Caffeine
-            case 16: hpMax = 90;  baseSpd = 1.0; baseAtk = 1.0; baseDef = 1.0; break; // Magnetic
-            case 17: hpMax = 100; baseSpd = 1.0; baseAtk = 1.0; baseDef = 0.8; break; // Crystal
-            case 18: hpMax = 90;  baseSpd = 1.1; baseAtk = 1.2; baseDef = 1.0; break; // Vampire
-            case 19: hpMax = 100; baseSpd = 1.0; baseAtk = 1.0; baseDef = 1.0; break; // Chaos
+            case 7: hpMax = 110; baseSpd = 1.8; baseAtk = 1.1; baseDef = 0.8; break; // Cafeina
+            case 8: hpMax = 90;  baseSpd = 1.0; baseAtk = 1.0; baseDef = 1.0; break; // Magnetico
+            case 9: hpMax = 100; baseSpd = 1.0; baseAtk = 1.0; baseDef = 0.8; break; // Cristalino
+            case 10: hpMax = 90;  baseSpd = 1.1; baseAtk = 1.2; baseDef = 1.0; break; // Vampire
+            case 11: hpMax = 100; baseSpd = 1.0; baseAtk = 1.0; baseDef = 1.0; break; // Chaos
+            case 12: hpMax = 120; baseSpd = 1.0; baseAtk = 1.0; baseDef = 1.0; break; // Divergent zilla
+            case 13: hpMax = 110; baseSpd = 1.0; baseAtk = 1.0; baseDef = 1.0; break; // Eva 01
+            case 14: hpMax = 90;  baseSpd = 1.2; baseAtk = 1.0; baseDef = 1.0; break; // Gojo
+            case 15: hpMax = 70;  baseSpd = 1.0; baseAtk = 1.0; baseDef = 1.0; break; // Subaru
+            case 16: hpMax = 120; baseSpd = 1.0; baseAtk = 1.2; baseDef = 1.0; break; // Yuji Itadori
+            case 17: hpMax = 150; baseSpd = 1.0; baseAtk = 1.6; baseDef = 1.4; break; // All Might
+            case 18: hpMax = 50;  baseSpd = 1.2; baseAtk = 3.0; baseDef = 1.0; break; // Saitama
+            case 19: hpMax = 100; baseSpd = 1.3; baseAtk = 1.0; baseDef = 1.0; break; // Luffy
+            case 20: hpMax = 110; baseSpd = 1.0; baseAtk = 1.0; baseDef = 1.0; break; // Naruto
+            case 21: hpMax = 100; baseSpd = 1.0; baseAtk = 1.0; baseDef = 1.0; break; // Tanjiro
+            case 22: hpMax = 90;  baseSpd = 2.0; baseAtk = 1.0; baseDef = 1.0; break; // Deku
+            case 23: hpMax = 115; baseSpd = 1.0; baseAtk = 1.5; baseDef = 1.0; break; // Zoro
+            case 24: hpMax = 100; baseSpd = 1.0; baseAtk = 1.0; baseDef = 1.0; break; // Rimuru
+            case 25: hpMax = 1;   baseSpd = 1.5; baseAtk = 1.0; baseDef = 1.0; break; // Sans
+            case 26: hpMax = 105; baseSpd = 1.0; baseAtk = 1.0; baseDef = 0.5; break; // Denji
         }
         hpCur = hpMax;
         recalculateBuffs();
@@ -98,6 +117,12 @@ var Player = (function() {
         
         if (permanentGravityDust) {
             buffSpd += 0.3;
+        }
+
+        // Eva 01 Berserk Mode (under 30% HP)
+        if (soulClass === 13 && hpCur < hpMax * 0.3) {
+            buffAtk += 0.8;
+            buffSpd += 0.5;
         }
     }
 
@@ -120,12 +145,29 @@ var Player = (function() {
         if (hyperCoffee) hyperCoffee = false;
         if (magnetActive) magnetActive = false;
 
+        // Decrement hitbox scale turns
+        if (hitboxScaleTurns > 0) {
+            hitboxScaleTurns--;
+            if (hitboxScaleTurns <= 0) {
+                hitboxScaleOverride = 1.0;
+            }
+        }
+
         // Refresh/Restore passives based on active soulClass
-        if (soulClass === 13) { thornShield = true; } // Re-charge Thorn Heart shield
-        if (soulClass === 14) { noHorizontalMovement = true; } // Iron Heart restriction
-        if (soulClass === 15) { selfPoison = 1.0; } // Caffeine Heart poison
-        if (soulClass === 16) { magnetActive = true; } // Magnetic Heart pull
-        if (soulClass === 19) {
+        if (soulClass === 7) { selfPoison = 1.0; } // Caffeine Heart poison
+        if (soulClass === 8) { magnetActive = true; } // Magnetic Heart pull
+        
+        // Gojo Infinity charging
+        if (soulClass === 14) {
+            gojoTurns++;
+        }
+        
+        // All Might fatigue decay
+        if (soulClass === 17) {
+            reduceMaxHP(5);
+        }
+
+        if (soulClass === 11) { // Chaos Heart (Rainbow)
             // Chaos Heart: random soul mode
             if (typeof Soul !== "undefined" && Soul.setSoulMode) {
                 var modes = [Soul.SOUL_MODE.RED, Soul.SOUL_MODE.BLUE, Soul.SOUL_MODE.YELLOW, Soul.SOUL_MODE.INVERSE];
@@ -167,6 +209,16 @@ var Player = (function() {
         var actualHeal = value * healMultiplier;
         Sound.playSound("heal", true);
         hpCur += actualHeal;
+        
+        // Mirror Colossus healing refraction copying passive
+        if (typeof Cgroup !== "undefined") {
+            var enemyObj = Cgroup.getEnemy(0);
+            if (enemyObj && enemyObj.name === "Coloso de Espejos") {
+                enemyObj.curHP = Math.min(enemyObj.maxHP, enemyObj.curHP + actualHeal);
+                console.log("Coloso de Espejos copied and refracted player healing: +" + actualHeal + " HP.");
+            }
+        }
+
         if (hpCur >= hpMax) {
             hpCur = hpMax;
             return true;
@@ -202,11 +254,50 @@ var Player = (function() {
             if (enemy) {
                 enemy.mercyHP = Math.max(0, enemy.mercyHP - 30);
             }
-            return false; // Blocked by thorn shield, mercy damage done!
+            return false; // Blocked by thorn shield
+        }
+
+        // Gojo Infinity passive (blocks 1 hit every 4 turns)
+        if (soulClass === 14 && gojoTurns >= 4) {
+            gojoTurns = 0;
+            Sound.playSound("ting", true);
+            console.log("INFINITY: Gojo blocked the hit!");
+            return false;
+        }
+
+        // Sans Judgement passive (auto-dodge first 4 hits)
+        if (soulClass === 25 && sansDodgeCount > 0) {
+            sansDodgeCount--;
+            Sound.playSound("ting", true);
+            console.log("SANS AUTO-DODGE: Slashes left: " + sansDodgeCount);
+            return false;
+        }
+
+        // Luffy Gear 5 passive (20% dodge chance)
+        if (soulClass === 19 && Math.random() < 0.20) {
+            Sound.playSound("ting", true);
+            console.log("LUFFY DODGE: Gear 5 cartoon dodge!");
+            return false;
+        }
+
+        // Divergent zilla adaptation (stack +20% DEF on hit, up to +100%)
+        if (soulClass === 12 && mahoragaDefStack < 5) {
+            mahoragaDefStack++;
+            baseDef += 0.20;
+            recalculateBuffs();
+            console.log("MAHORAGA ADAPTED: Stack " + mahoragaDefStack);
         }
 
         var dmg = value;
         if (permanentGravityDust) dmg *= 1.2;
+        
+        // Deku Recoil: 20% extra damage taken
+        if (soulClass === 22) {
+            dmg *= 1.20;
+        }
+        
+        // Apply defense reduction
+        dmg = Math.ceil(dmg / buffDef);
 
         Sound.playSound("damage", true);
         hpCur -= dmg;
@@ -214,6 +305,17 @@ var Player = (function() {
             if (checkPhoenixRevive()) {
                 return false; // Revived!
             }
+            
+            // Subaru Return by Death revival (once per combat)
+            if (soulClass === 15 && subaruRevives > 0) {
+                subaruRevives--;
+                hpCur = 1;
+                invulnerableTurns = 2; // Invulnerable for 2 turns
+                Sound.playSound("heal", true);
+                console.log("SUBARU REVIVED: Return by Death!");
+                return false;
+            }
+            
             hpCur = 0;
             return true; // Dead
         }
@@ -263,9 +365,14 @@ var Player = (function() {
             }
         }
         
-        if (soulClass === 14) {
-            // Iron Heart regenerates 3 HP per second
+        // Naruto Kurama Mode regeneration (3 HP/sec)
+        if (soulClass === 20) {
             hpCur = Math.min(hpMax, hpCur + 3.0 * dt);
+        }
+        
+        // Eva 01 Berserk regeneration (2 HP/sec under 30% HP)
+        if (soulClass === 13 && hpCur < hpMax * 0.3) {
+            hpCur = Math.min(hpMax, hpCur + 2.0 * dt);
         }
         
         return false;
@@ -294,7 +401,7 @@ var Player = (function() {
         setInvulnerable: function(turns) { invulnerableTurns = turns; },
         setReflection: function(rate, turns) { reflectionRate = rate; reflectionTurns = turns; },
         getReflectionRate: function() { 
-            if (soulClass === 17) return 0.30;
+            if (soulClass === 9) return 0.30; // Crystal is class 9
             return reflectionTurns > 0 ? reflectionRate : 0; 
         },
         setNoSmallHeals: function(val) { noSmallHeals = val; },
@@ -316,17 +423,23 @@ var Player = (function() {
         setHyperCoffee: function(val) { hyperCoffee = val; if (val) { Player.addBuffSpd(1.0, 2); } },
         isHyperCoffee: function() { return hyperCoffee; },
         setThornShield: function(val) { thornShield = val; },
-        isThornShield: function() { return thornShield || soulClass === 13; },
+        isThornShield: function() { return thornShield; },
         setGravityAnchor: function(val) { gravityAnchor = val; },
         isGravityAnchor: function() { return gravityAnchor; },
         setShrunk: function(val) { shrunk = val; },
-        isShrunk: function() { return shrunk || soulClass === 12; },
+        isShrunk: function() { return shrunk; },
         setGiant: function(val) { giant = val; },
-        isGiant: function() { return giant || soulClass === 11; },
+        isGiant: function() { return giant; },
         setMagnetActive: function(val) { magnetActive = val; },
-        isMagnetActive: function() { return magnetActive || soulClass === 16; },
+        isMagnetActive: function() { return magnetActive || soulClass === 8; },
         setNoHorizontalMovement: function(val) { noHorizontalMovement = val; },
-        isNoHorizontalMovement: function() { return noHorizontalMovement || soulClass === 14; },
-        reduceMaxHP: function(amount) { hpMax = Math.max(20, hpMax - amount); hpCur = Math.min(hpCur, hpMax); }
+        isNoHorizontalMovement: function() { return noHorizontalMovement; },
+        reduceMaxHP: function(amount) { hpMax = Math.max(20, hpMax - amount); hpCur = Math.min(hpCur, hpMax); },
+        getBulletSpeedMultiplier: function() {
+            if (soulClass === 21 && typeof myKeys !== "undefined" && myKeys.isCancel()) return 0.7; // Tanjiro slows bullets by 30%
+            return 1.0;
+        },
+        getHitboxScaleMultiplier: function() { return hitboxScaleOverride; },
+        setHitboxScaleMultiplier: function(val, turns) { hitboxScaleOverride = val; hitboxScaleTurns = turns; }
     };
 }());

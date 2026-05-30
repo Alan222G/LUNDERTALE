@@ -24,6 +24,8 @@ var Cgroup = (function() {
             setupVader();
         } else if (currentBossId === "glitch") {
             setupGlitch();
+        } else if (currentBossId === "prism") {
+            setupPrism();
         } else {
             setupSingularity();
         }
@@ -627,6 +629,94 @@ var Cgroup = (function() {
                 mercyHP: 100,
                 xpReward: 2500,
                 goldReward: 1200,
+            })
+        ];
+        enemies[0].bubblePos = enemies[0].damagePos.getAdd(new Vect(60, -160, 0));
+        mercies = ["Spare", "Flee"];
+        defends = [];
+    }
+
+    function setupPrism() {
+        enemies = [
+            new Enemy({
+                name: "Coloso de Espejos",
+                checkText: "Un gigante de cristal y reflejos. Sus facetas brillan con luz espectral.",
+                maxHP: 4500,
+                curHP: 4500,
+                renderType: "prism_phase1",
+                atk: 25,
+                def: 24,
+                defense: 1.25,
+                acts: ["Check", "Polish/Clean", "Refract/Shatter", "Flee"],
+                actResponses: [
+                    "* COLOSO DE ESPEJOS - ATK 25 DEF 24\n* Un gigante de cristal y reflejos.\n* Su superficie copia todo destello de luz.",
+                    "* Limpias y pules las facetas del Coloso.\n* Las reflexiones brillan con más intensidad, aumentando su vulnerabilidad (DEF -20%).",
+                    "* Golpeas el aire creando vibraciones resonantes.\n* El cristal resuena y se debilita levemente.",
+                    "* ¡No puedes escapar de tus propias reflexiones!"
+                ],
+                actFunctions: [
+                    function() { console.log("Checked Coloso"); },
+                    function() {
+                        console.log("Polished Coloso / Defense down");
+                        enemies[0].defense = Math.max(0.75, enemies[0].defense - 0.20);
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 20);
+                    },
+                    function() {
+                        console.log("Refracted Coloso");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 25);
+                    },
+                    function() {
+                        console.log("Flee Coloso failed");
+                    }
+                ],
+                texts: [
+                    "* Destellos de luz multicolor parpadean en los espejos gigantes.",
+                    "* Escuchas el sonido tintineante de cristales rozando entre sí.",
+                    "* El Coloso de Espejos gira majestuosamente, refractando la luz.",
+                    "* Te ves reflejado infinitas veces en las caras del coloso."
+                ],
+                speech: [
+                    "SOY TU\nREPRODUCCION.",
+                    "TE REFLEJAS\nEN MIS ESPEJOS.",
+                    "NO PUEDES\nCORRER DE\nTI MISMO.",
+                    "TODO SE\nFRACTURA."
+                ],
+                spriteId: "mettaton",
+                attacks: [
+                    "prismBeamGrid", "shatteringSpikes", "mirrorReflect", "crystallineShield", "refractionCascade",
+                    "glassFracture", "kaleidoscopeSpiral", "prismLaserSweep", "birefringenceSplit", "mirrorMaze",
+                    "shatteredCore", "auroraBorealis", "spectralRefract", "mirrorDimension", "crystalCataclysm",
+                    "prismStrobe", "glassRain", "crystallineRay"
+                ],
+                phases: [
+                    { 
+                        patterns: ["prismBeamGrid", "shatteringSpikes", "mirrorReflect", "crystallineShield", "refractionCascade", "prismStrobe", "crystallineRay"], 
+                        soulMode: "red", 
+                        renderType: "prism_phase1",
+                        speech: ["SOY TU\nREPRODUCCION.", "TE REFLEJAS\nEN MIS ESPEJOS.", "NO PUEDES\nCORRER DE\nTI MISMO."] 
+                    },
+                    { 
+                        patterns: ["glassFracture", "kaleidoscopeSpiral", "prismLaserSweep", "birefringenceSplit", "mirrorMaze", "prismStrobe", "glassRain"], 
+                        soulMode: "yellow", 
+                        renderType: "prism_phase2",
+                        speech: ["EL REFLEJO SE\nDISTORSIONA.", "LA BIREFRINGENCIA\nTE DIVIDE.", "MIRA LAS GRIETAS."] 
+                    },
+                    { 
+                        patterns: ["shatteredCore", "auroraBorealis", "spectralRefract", "mirrorDimension", "crystalCataclysm", "glassRain", "crystallineRay"], 
+                        soulMode: "inverse", 
+                        renderType: "prism_phase3",
+                        speech: ["TODO SE\nFRACTURA.", "EL ABISMO\nREFLEJA TU\nALMA.", "CRISTALIZATE!"] 
+                    }
+                ],
+                phaseHP: [4500, 5800, 7800],
+                karmaEnabled: false,
+                jitterEnabled: false,
+                damagePos: new Vect(370, 290, 0),
+                damageVel: 120,
+                bubbleOff: 30,
+                mercyHP: 100,
+                xpReward: 3000,
+                goldReward: 1500,
             })
         ];
         enemies[0].bubblePos = enemies[0].damagePos.getAdd(new Vect(60, -160, 0));

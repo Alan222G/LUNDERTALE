@@ -179,6 +179,10 @@ Enemy.prototype.draw = function(ctx) {
         ctx.save(); ctx.translate(370, 160); ctx.scale(1.3, 1.3); ctx.translate(-370, -160);
         this.drawGlitch(ctx);
         ctx.restore();
+    } else if (this.renderType === "prism_phase1" || this.renderType === "prism_phase2" || this.renderType === "prism_phase3") {
+        ctx.save(); ctx.translate(370, 160); ctx.scale(1.4, 1.4); ctx.translate(-370, -160);
+        this.drawPrism(ctx);
+        ctx.restore();
     } else if (this.renderType === "sachiel") {
         ctx.save(); ctx.translate(370, 160); ctx.scale(1.4, 1.4); ctx.translate(-370, -160);
         this.drawSachiel(ctx);
@@ -604,7 +608,30 @@ Enemy.prototype.getRandomText = function() {
 
 // Deal damage to this enemy
 Enemy.prototype.dealDamage = function(damage) {
-    this.curHP -= damage / this.defense;
+    var finalDmg = damage;
+    var sClass = (typeof Player !== "undefined") ? Player.getSoulClass() : 0;
+    
+    // Yuji Itadori Black Flash (20% chance, 2.5x damage)
+    if (sClass === 16 && Math.random() < 0.20) {
+        finalDmg *= 2.5;
+        Sound.playSound("hit_2_crit", true);
+        if (typeof Camera !== "undefined" && Camera.shake) {
+            Camera.shake(8.0);
+        }
+        console.log("BLACK FLASH! 2.5x damage dealt!");
+    }
+    
+    this.curHP -= finalDmg / this.defense;
+    
+    // Lifesteal Passives
+    if (typeof Player !== "undefined") {
+        if (sClass === 10) { // Vampire: 10% lifesteal
+            Player.heal(Math.ceil(finalDmg * 0.10));
+        } else if (sClass === 26) { // Denji Chainsaw: 25% lifesteal
+            Player.heal(Math.ceil(finalDmg * 0.25));
+        }
+    }
+    
     if (this.curHP <= 0) {
         if (this.phases && this.currentPhase < this.phases.length - 1) {
             this.currentPhase++;
@@ -968,9 +995,10 @@ Enemy.prototype.drawThrone = function(ctx) {
     ctx.restore();
 };
 
-// Hook called when the enemy successfully damages the player
 Enemy.prototype.onHitPlayer = function(damageDealt) {
-    // Only Seraphina has these brutal passives
+    if (typeof Player === "undefined") return;
+    
+    // 1. Seraphina passives
     if (this.renderType === "seraph") {
         var healAmount = damageDealt * 10;
         this.curHP = Math.min(this.maxHP, this.curHP + healAmount);
@@ -983,29 +1011,70 @@ Enemy.prototype.onHitPlayer = function(damageDealt) {
             console.log("Seraphina stole an item!");
         }
     } else if (this.renderType === "throne") {
-        if (typeof Player !== "undefined" && Player.addBleed) {
+        if (Player.addBleed) {
             Player.addBleed(5.0);
         }
-    } else if (this.renderType === "ramiel_morph" || this.renderType === "ramiel_berserk") {
-        // AT Field Reflect: heal 30% of damage dealt
+    }
+    
+    // 2. Anti-gravity passive: slow player speed by 15% on hit
+    if (this.name === "Anti-gravity") {
+        if (Player.addBuffSpd) {
+            Player.addBuffSpd(-0.15, 1);
+            console.log("Anti-gravity pull slowed your speed by 15%!");
+        }
+    }
+    
+    // 3. Ramiel passive: AT Field reflect (heals 30% of damage dealt)
+    if (this.name === "RAMIEL") {
         var reflectHeal = Math.ceil(damageDealt * 0.3);
         this.curHP = Math.min(this.maxHP, this.curHP + reflectHeal);
-    } else if (this.renderType === "glitch_minor" || this.renderType === "glitch_core" || this.renderType === "glitch_fatal") {
-        // Passive: Memory Corruption Latency (Inestabilidad del Sistema)
+        console.log("Ramiel AT Field reflected heal: +" + reflectHeal);
+    }
+    
+    // 4. Paradox passive: time dilation (slows player speed by 40% for 2 turns)
+    if (this.name === "Paradoja") {
+        if (Player.addBuffSpd) {
+            Player.addBuffSpd(-0.40, 2);
+            console.log("Paradoja dilated time! Speed -40%.");
+        }
+    }
+    
+    // 5. Godzilla passive: radiation burn (bleed drain for 6 seconds)
+    if (this.name === "Godzilla") {
+        if (Player.addBleed) {
+            Player.addBleed(6.0);
+            console.log("Godzilla irradiated you! Draining 1 HP/sec.");
+        }
+    }
+    
+    // 6. Darth Vader passive: force choke (speed -60% for 1 turn)
+    if (this.name === "Darth Vader") {
+        if (Player.addBuffSpd) {
+            Player.addBuffSpd(-0.60, 1);
+            console.log("Darth Vader choked you! Speed -60%.");
+        }
+    }
+    
+    // 7. Coloso de Espejos passive: refraction distortion (hitbox size +20% for 3 turns)
+    if (this.name === "Coloso de Espejos") {
+        if (Player.setHitboxScaleMultiplier) {
+            Player.setHitboxScaleMultiplier(1.2, 3);
+            console.log("Coloso de Espejos distorted reflection! Hitbox +20%.");
+        }
+    }
+    
+    // 8. Error 404 (Glitch) passive: controls inversion
+    if (this.name === "Error 404") {
         this.corruption = (this.corruption || 0) + 1;
         if (this.corruption >= 3) {
             this.corruption = 0;
             if (typeof Soul !== "undefined") {
                 var oldMode = Soul.getSoulMode();
-                // Force inverse controls for 2.2 seconds!
                 Soul.setSoulMode(Soul.SOUL_MODE.INVERSE);
                 Sound.playSound("hit_2_crit", true);
-                
-                // Visual screen shake / camera alert
                 if (typeof Camera !== "undefined" && Camera.shake) {
                     Camera.shake(7.0);
                 }
-                
                 this.latencyActive = true;
                 var self = this;
                 setTimeout(function() {
@@ -3906,38 +3975,76 @@ Enemy.prototype.drawGlitch = function(ctx) {
     var type = this.renderType; // "glitch_minor", "glitch_core", "glitch_fatal"
     
     // Nervous glitchy breathing and float
-    var breatheSpeed = type === "glitch_fatal" ? 4.5 : (type === "glitch_core" ? 3.5 : 2.5);
-    var breathe = 1.0 + Math.sin(time * breatheSpeed) * 0.018;
-    var jitterX = (Math.random() < 0.15 && type !== "glitch_minor") ? (Math.random() - 0.5) * 6 : 0;
-    var jitterY = (Math.random() < 0.15 && type !== "glitch_minor") ? (Math.random() - 0.5) * 6 : 0;
-    var floatAmp = type === "glitch_fatal" ? 10.0 : (type === "glitch_minor" ? 4.0 : 7.0);
-    var floatY = Math.sin(time * 2.5) * floatAmp + jitterY;
+    var breatheSpeed = type === "glitch_fatal" ? 5.5 : (type === "glitch_core" ? 4.2 : 2.8);
+    var breathe = 1.0 + Math.sin(time * breatheSpeed) * 0.025;
+    
+    // Core jitter is highly pronounced in Phase 2 & 3, causing dramatic screen offsets
+    var jitterX = 0;
+    var jitterY = 0;
+    if (Math.random() < 0.25) {
+        var jitterAmt = type === "glitch_fatal" ? 12 : (type === "glitch_core" ? 7 : 3);
+        jitterX = (Math.random() - 0.5) * jitterAmt;
+        jitterY = (Math.random() - 0.5) * jitterAmt;
+    }
+    
+    var floatAmp = type === "glitch_fatal" ? 14.0 : (type === "glitch_minor" ? 5.0 : 9.0);
+    var floatY = Math.sin(time * 3.0) * floatAmp + jitterY;
 
     ctx.save();
     ctx.translate(370 + jitterX, 145 + floatY); // Centered and adjusted height
     ctx.scale(breathe, breathe);
 
-    // 0. CHROMATIC ABERRATION PRE-EFFECTS (RGB Split Shadow)
-    if (type !== "glitch_minor") {
-        ctx.save();
-        ctx.globalCompositeOperation = "screen";
+    // ====================================================================
+    // CHROMATIC ABERRATION SHADOW LAYERS (Dynamic screen-split composite rendering)
+    // ====================================================================
+    ctx.save();
+    ctx.globalCompositeOperation = "screen";
+    var splitVal = type === "glitch_fatal" ? 12 + Math.sin(time * 24) * 6 : (type === "glitch_core" ? 7 + Math.sin(time * 16) * 4 : 3);
+    
+    // Magenta Left-Shift Copy
+    ctx.save();
+    ctx.translate(-splitVal, 0);
+    ctx.fillStyle = "rgba(255, 0, 128, 0.35)";
+    ctx.fillRect(-65, -10, 130, 90);
+    ctx.restore();
+    
+    // Cyan Right-Shift Copy
+    ctx.save();
+    ctx.translate(splitVal, 0);
+    ctx.fillStyle = "rgba(0, 240, 255, 0.35)";
+    ctx.fillRect(-65, -10, 130, 90);
+    ctx.restore();
+    
+    ctx.restore();
+
+    // ====================================================================
+    // DYNAMIC FLOATING CORRUPTED DATA MATRIX PACKETS (Floating Voxel Particles)
+    // ====================================================================
+    ctx.save();
+    for (var p = 0; p < 12; p++) {
+        var pSeed = p * 1234.56;
+        var pAngle = time * 1.5 + (p * Math.PI / 6);
+        var pxDist = 65 + (Math.sin(time + pSeed) * 20);
+        var pyDist = 35 + (Math.cos(time * 1.2 + pSeed) * 45);
+        var px = Math.cos(pAngle) * pxDist;
+        var py = Math.sin(pAngle) * pyDist;
         
-        // Ghost red copy shifted left
-        ctx.save();
-        ctx.translate(-5 + Math.sin(time * 16) * 3, Math.cos(time * 16) * 2);
-        ctx.fillStyle = "rgba(255, 0, 85, 0.28)";
-        ctx.fillRect(-70, -15, 140, 100);
-        ctx.restore();
+        if (Math.random() < 0.15) continue; // Shimmering
+        ctx.fillStyle = (Math.floor(p + time * 5) % 2 === 0) ? "#FF00FF" : "#00FFFF";
+        var pSize = 4 + (p % 3) * 3;
+        ctx.fillRect(px - pSize/2, py - pSize/2, pSize, pSize);
         
-        // Ghost cyan copy shifted right
-        ctx.save();
-        ctx.translate(5 - Math.sin(time * 16) * 3, -Math.cos(time * 16) * 2);
-        ctx.fillStyle = "rgba(0, 240, 255, 0.28)";
-        ctx.fillRect(-70, -15, 140, 100);
-        ctx.restore();
-        
-        ctx.restore();
+        // Draw cyber-link traces joining particles
+        if (p % 3 === 0 && type !== "glitch_minor") {
+            ctx.strokeStyle = "rgba(0, 255, 100, 0.15)";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(px, py);
+            ctx.lineTo(0, 30);
+            ctx.stroke();
+        }
     }
+    ctx.restore();
 
     if (type === "glitch_minor") {
         // ====================================================================
@@ -3946,12 +4053,12 @@ Enemy.prototype.drawGlitch = function(ctx) {
         ctx.save();
         
         // Background spatial lines
-        ctx.strokeStyle = "rgba(255, 0, 255, 0.1)";
-        ctx.lineWidth = 1;
-        for (var l = -60; l <= 60; l += 20) {
+        ctx.strokeStyle = "rgba(255, 0, 255, 0.15)";
+        ctx.lineWidth = 1.5;
+        for (var l = -70; l <= 70; l += 20) {
             ctx.beginPath(); 
-            ctx.moveTo(l, -80); 
-            ctx.lineTo(l + Math.sin(time * 5) * 10, 80); 
+            ctx.moveTo(l, -90); 
+            ctx.lineTo(l + Math.sin(time * 6) * 15, 90); 
             ctx.stroke();
         }
         
@@ -3960,24 +4067,31 @@ Enemy.prototype.drawGlitch = function(ctx) {
         for (var y = -24; y < 85; y += pxSize) {
             var xSpan = 45;
             if (y < 0) xSpan = 18; // Neck/Head
-            else if (y < 28) xSpan = 55; // Pectorals/Shoulders
-            else if (y < 65) xSpan = 38; // Abs/Waist
-            else xSpan = 45; // Pelvis
+            else if (y < 28) xSpan = 58; // Pectorals/Shoulders
+            else if (y < 65) xSpan = 40; // Abs/Waist
+            else xSpan = 48; // Pelvis
             
             for (var x = -xSpan; x < xSpan; x += pxSize) {
                 // Flicker transparency
-                if (Math.random() < 0.12) continue;
-                ctx.fillStyle = ((Math.floor(x/pxSize) + Math.floor(y/pxSize)) % 2 === 0) ? "#FF00FF" : "#000000";
+                if (Math.random() < 0.10) continue;
+                ctx.fillStyle = ((Math.floor(x/pxSize) + Math.floor(y/pxSize) + Math.floor(time * 2)) % 2 === 0) ? "#FF00FF" : "#000000";
                 ctx.fillRect(x, y, pxSize, pxSize);
+                
+                // Neon glow outline overlay on random blocks
+                if (Math.random() < 0.04) {
+                    ctx.strokeStyle = "#00FFFF";
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(x, y, pxSize, pxSize);
+                }
             }
         }
         
         // Green matrix code rain
         ctx.fillStyle = "#00FF66";
-        ctx.font = "bold 8px Courier";
-        for (var c = 0; c < 6; c++) {
-            var cx = -40 + c * 16;
-            var cy = (time * 80 + c * 20) % 95 - 20;
+        ctx.font = "bold 9px Courier";
+        for (var c = 0; c < 8; c++) {
+            var cx = -50 + c * 14;
+            var cy = (time * 95 + c * 25) % 115 - 30;
             ctx.fillText(Math.random() < 0.5 ? "0" : "1", cx, cy);
         }
         
@@ -3989,8 +4103,8 @@ Enemy.prototype.drawGlitch = function(ctx) {
         for (var hy = -15; hy <= 15; hy += 5) {
             for (var hx = -15; hx <= 15; hx += 5) {
                 if (Math.abs(hx) + Math.abs(hy) > 22) continue; // Round corners
-                if (Math.random() < 0.1) continue; // Shimmer
-                ctx.fillStyle = ((Math.floor(hx/5) + Math.floor(hy/5) + Math.floor(time * 3)) % 2 === 0) ? "#FF00FF" : "#00FFFF";
+                if (Math.random() < 0.08) continue; // Shimmer
+                ctx.fillStyle = ((Math.floor(hx/5) + Math.floor(hy/5) + Math.floor(time * 4)) % 2 === 0) ? "#FF00FF" : "#00FFFF";
                 ctx.fillRect(hx, hy, 5, 5);
             }
         }
@@ -4000,14 +4114,14 @@ Enemy.prototype.drawGlitch = function(ctx) {
         ctx.fillRect(-10, -5, 6, 6);
         ctx.fillRect(4, -5, 6, 6);
         // Neon green/red flashing pupils
-        ctx.fillStyle = Math.random() < 0.2 ? "#FF0055" : "#00FF66";
+        ctx.fillStyle = Math.random() < 0.25 ? "#FF0055" : "#00FF66";
         ctx.fillRect(-8, -3, 3, 3);
         ctx.fillRect(6, -3, 3, 3);
         
         // Rotating bracket framing vectors
         ctx.strokeStyle = "#00FFFF";
-        ctx.lineWidth = 1.5;
-        var scaleBrac = 1.1 + Math.sin(time * 6) * 0.08;
+        ctx.lineWidth = 2.0;
+        var scaleBrac = 1.12 + Math.sin(time * 7) * 0.09;
         ctx.scale(scaleBrac, scaleBrac);
         // Left bracket
         ctx.beginPath();
@@ -4024,11 +4138,11 @@ Enemy.prototype.drawGlitch = function(ctx) {
         ctx.save();
         ctx.translate(0, -62);
         ctx.fillStyle = "#00FF66";
-        ctx.font = "bold 7px Courier";
-        for (var bi = 0; bi < 8; bi++) {
-            var bAngle = time * 2.0 + (bi * Math.PI / 4);
-            var bx = Math.cos(bAngle) * 24;
-            var by = Math.sin(bAngle) * 6;
+        ctx.font = "bold 8px Courier";
+        for (var bi = 0; bi < 10; bi++) {
+            var bAngle = time * 2.5 + (bi * Math.PI / 5);
+            var bx = Math.cos(bAngle) * 26;
+            var by = Math.sin(bAngle) * 7;
             ctx.fillText(bi % 2 === 0 ? "0" : "1", bx - 2, by + 2);
         }
         ctx.restore();
@@ -4042,132 +4156,133 @@ Enemy.prototype.drawGlitch = function(ctx) {
         ctx.save();
         
         // Massive voxel shoulders backing shadow
-        ctx.fillStyle = "#0c0c0c";
-        ctx.fillRect(-85, 10, 170, 75);
-        ctx.strokeStyle = "rgba(255, 0, 255, 0.25)";
-        ctx.strokeRect(-85, 10, 170, 75);
-        
-        // Overlapping Pectoral Voxel Plates
-        ctx.fillStyle = "#1e1e1e";
-        ctx.fillRect(-45, 15, 40, 24); // Left chest
-        ctx.fillRect(5, 15, 40, 24);  // Right chest
-        
-        // Cyan highlights on chest voxel edges
-        ctx.strokeStyle = "#00FFFF";
+        ctx.fillStyle = "#070707";
+        ctx.fillRect(-90, 8, 180, 80);
+        ctx.strokeStyle = "rgba(255, 0, 255, 0.4)";
         ctx.lineWidth = 1.5;
-        ctx.strokeRect(-45, 15, 40, 24);
-        ctx.strokeRect(5, 15, 40, 24);
+        ctx.strokeRect(-90, 8, 180, 80);
+        
+        // Overlapping Pectoral Voxel Plates (cyber armor plates)
+        ctx.fillStyle = "#1b1b1b";
+        ctx.fillRect(-50, 14, 45, 26); // Left chest
+        ctx.fillRect(5, 14, 45, 26);  // Right chest
+        
+        // Neon cyan/magenta highlights on chest voxel edges
+        ctx.strokeStyle = Math.random() < 0.2 ? "#FF00FF" : "#00FFFF";
+        ctx.lineWidth = 2.0;
+        ctx.strokeRect(-50, 14, 45, 26);
+        ctx.strokeRect(5, 14, 45, 26);
         
         // Pulsating Concentric Core Reactor Rings
-        ctx.strokeStyle = "rgba(255, 204, 0, 0.35)";
-        ctx.lineWidth = 1.0;
-        for (var r = 0; r < 3; r++) {
-            var radius = 12 + r * 10 + (time * 12) % 10;
+        ctx.strokeStyle = "rgba(255, 170, 0, 0.55)";
+        ctx.lineWidth = 1.5;
+        for (var r = 0; r < 4; r++) {
+            var radius = 10 + r * 11 + (time * 15) % 11;
             ctx.beginPath();
-            ctx.ellipse(0, 20, radius, radius * 0.4, 0, 0, Math.PI * 2);
+            ctx.ellipse(0, 20, radius, radius * 0.42, 0, 0, Math.PI * 2);
             ctx.stroke();
         }
         
-        // Glowing Core Reactor (System Warning Icon)
+        // Glowing Core Reactor (System Warning Icon with extreme glow)
         ctx.save();
-        ctx.fillStyle = "#FFCC00"; // Yellow Warning color
-        ctx.shadowBlur = 12 + Math.sin(time * 8) * 4;
-        ctx.shadowColor = "#FFCC00";
+        ctx.fillStyle = "#FFAA00";
+        ctx.shadowBlur = 18 + Math.sin(time * 10) * 6;
+        ctx.shadowColor = "#FFAA00";
         ctx.beginPath();
-        ctx.moveTo(0, 10); ctx.lineTo(12, 28); ctx.lineTo(-12, 28); ctx.closePath();
+        ctx.moveTo(0, 8); ctx.lineTo(14, 28); ctx.lineTo(-14, 28); ctx.closePath();
         ctx.fill();
         ctx.fillStyle = "#000000";
-        ctx.fillRect(-1, 16, 2, 6);
-        ctx.fillRect(-1, 24, 2, 2);
+        ctx.shadowBlur = 0;
+        ctx.fillRect(-1.5, 14, 3, 7);
+        ctx.fillRect(-1.5, 23, 3, 3);
         ctx.restore();
         
         // Orbiting Warning Nodes
-        for (var o = 0; o < 3; o++) {
-            var oAngle = time * 2.2 + (o * Math.PI * 2 / 3);
-            var ox = Math.cos(oAngle) * 55;
-            var oy = Math.sin(oAngle) * 12 + 20;
+        for (var o = 0; o < 4; o++) {
+            var oAngle = time * 2.6 + (o * Math.PI / 2);
+            var ox = Math.cos(oAngle) * 60;
+            var oy = Math.sin(oAngle) * 14 + 20;
             ctx.fillStyle = "#FFCC00";
-            ctx.shadowBlur = 6;
+            ctx.shadowBlur = 10;
             ctx.shadowColor = "#FFCC00";
-            ctx.fillRect(ox - 3, oy - 3, 6, 6);
+            ctx.fillRect(ox - 4, oy - 4, 8, 8);
             ctx.shadowBlur = 0;
         }
         
         // Ripped 8-Pack Abs drawn as Shaded Voxel blocks
-        var abGlow = "rgba(0, 255, 102, " + (0.5 + Math.sin(time * 6) * 0.25).toFixed(2) + ")";
+        var abGlow = "rgba(0, 255, 102, " + (0.6 + Math.sin(time * 8) * 0.3).toFixed(2) + ")";
         for (var row = 0; row < 4; row++) {
             var abY = 44 + row * 12;
-            var abW = 16 - row * 1.2;
+            var abW = 18 - row * 1.5;
             
-            // Shaded Left block
-            ctx.fillStyle = "#222222";
-            ctx.fillRect(-abW - 4, abY, abW, 9);
-            // Highlight
-            ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
-            ctx.lineWidth = 1;
-            ctx.strokeRect(-abW - 4, abY, abW, 9);
+            // Left ab block
+            ctx.fillStyle = "#252525";
+            ctx.fillRect(-abW - 5, abY, abW, 10);
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+            ctx.strokeRect(-abW - 5, abY, abW, 10);
             
-            // Shaded Right block
-            ctx.fillStyle = "#1a1a1a";
-            ctx.fillRect(4, abY, abW, 9);
-            ctx.strokeRect(4, abY, abW, 9);
+            // Right ab block
+            ctx.fillStyle = "#1e1e1e";
+            ctx.fillRect(5, abY, abW, 10);
+            ctx.strokeRect(5, abY, abW, 10);
             
-            // Glowing green lines separating abs
+            // Glowing neon separators
             ctx.strokeStyle = abGlow;
-            ctx.lineWidth = 1.5;
+            ctx.lineWidth = 2.0;
             ctx.beginPath();
-            ctx.moveTo(-abW - 10, abY + 10);
-            ctx.lineTo(abW + 10, abY + 10);
+            ctx.moveTo(-abW - 12, abY + 11);
+            ctx.lineTo(abW + 12, abY + 11);
             ctx.stroke();
         }
         
         // Biomechanical Rib Voxel Lines
-        ctx.strokeStyle = "#424242";
-        ctx.lineWidth = 2.0;
+        ctx.strokeStyle = "#505050";
+        ctx.lineWidth = 2.5;
         for (var ri = 0; ri < 4; ri++) {
-            var ribY = 20 + ri * 13;
-            ctx.strokeRect(-62, ribY, 15, 6);
-            ctx.strokeRect(47, ribY, 15, 6);
+            var ribY = 18 + ri * 14;
+            ctx.strokeRect(-66, ribY, 16, 7);
+            ctx.strokeRect(50, ribY, 16, 7);
         }
         
         // Overlapping Shoulder Deltoid Plates
-        ctx.fillStyle = "#2a2a2a";
-        ctx.fillRect(-80, 20, 28, 30);
-        ctx.fillRect(52, 20, 28, 30);
-        ctx.strokeStyle = "#808080";
-        ctx.strokeRect(-80, 20, 28, 30);
-        ctx.strokeRect(52, 20, 28, 30);
+        ctx.fillStyle = "#303030";
+        ctx.fillRect(-85, 16, 32, 34);
+        ctx.fillRect(53, 16, 32, 34);
+        ctx.strokeStyle = "#909090";
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(-85, 16, 32, 34);
+        ctx.strokeRect(53, 16, 32, 34);
         
-        // Floating cybernetic weapon nodes at sides
+        // Floating cybernetic weapon nodes at sides (Glow)
         ctx.save();
         ctx.fillStyle = "#00FFFF";
-        ctx.shadowBlur = 8;
+        ctx.shadowBlur = 12;
         ctx.shadowColor = "#00FFFF";
-        var wingOsc = Math.sin(time * 4) * 8;
-        ctx.fillRect(-98, 32 + wingOsc, 8, 16);
-        ctx.fillRect(90, 32 - wingOsc, 8, 16);
+        var wingOsc = Math.sin(time * 5) * 10;
+        ctx.fillRect(-105, 30 + wingOsc, 10, 20);
+        ctx.fillRect(95, 30 - wingOsc, 10, 20);
         ctx.restore();
         
         // Glowing red orbital threat rings (Rotating in 3D perspective)
-        ctx.strokeStyle = "rgba(255, 0, 85, 0.5)";
-        ctx.lineWidth = 1.8;
+        ctx.strokeStyle = "rgba(255, 0, 85, 0.65)";
+        ctx.lineWidth = 2.2;
         ctx.save();
-        ctx.rotate(time * 1.5);
+        ctx.rotate(time * 1.8);
         ctx.beginPath();
-        ctx.ellipse(0, 38, 90, 28, 0.25, 0, Math.PI * 2);
+        ctx.ellipse(0, 38, 95, 30, 0.28, 0, Math.PI * 2);
         ctx.stroke();
         ctx.restore();
         
         ctx.save();
-        ctx.rotate(-time * 1.5);
+        ctx.rotate(-time * 1.8);
         ctx.beginPath();
-        ctx.ellipse(0, 38, 90, 28, -0.25, 0, Math.PI * 2);
+        ctx.ellipse(0, 38, 95, 30, -0.28, 0, Math.PI * 2);
         ctx.stroke();
         ctx.restore();
         
         // Muscular voxel neck
-        ctx.fillStyle = "#161616";
-        ctx.fillRect(-15, -15, 30, 16);
+        ctx.fillStyle = "#1e1e1e";
+        ctx.fillRect(-16, -16, 32, 17);
         
         // Floating Voxel Glitch Skull Head (Redesigned Phase 2 Head)
         ctx.save();
@@ -4175,27 +4290,27 @@ Enemy.prototype.drawGlitch = function(ctx) {
         
         // Voxel matrix grid face
         ctx.fillStyle = "#FF00FF";
-        ctx.shadowBlur = 10;
+        ctx.shadowBlur = 15;
         ctx.shadowColor = "#FF00FF";
-        ctx.fillRect(-22, -15, 44, 30); // head body
+        ctx.fillRect(-24, -16, 48, 32);
         
         // Cyber-Slit Eye Sockets
         ctx.fillStyle = "#000000";
         ctx.shadowBlur = 0;
-        ctx.fillRect(-16, -6, 10, 8); // left socket
-        ctx.fillRect(6, -6, 10, 8);  // right socket
+        ctx.fillRect(-18, -7, 11, 9);
+        ctx.fillRect(7, -7, 11, 9);
         
         // Glowing double pupils
         ctx.fillStyle = "#00FF66";
-        ctx.fillRect(-13, -4, 4, 4);
-        ctx.fillRect(9, -4, 4, 4);
+        ctx.fillRect(-15, -5, 5, 5);
+        ctx.fillRect(10, -5, 5, 5);
         
         // Holographic horns/lines shooting up
         ctx.strokeStyle = "#00FFFF";
-        ctx.lineWidth = 2.0;
+        ctx.lineWidth = 2.5;
         ctx.beginPath();
-        ctx.moveTo(-18, -15); ctx.lineTo(-24, -28);
-        ctx.moveTo(18, -15); ctx.lineTo(24, -28);
+        ctx.moveTo(-20, -16); ctx.lineTo(-26, -32);
+        ctx.moveTo(20, -16); ctx.lineTo(26, -32);
         ctx.stroke();
         
         ctx.restore();
@@ -4211,199 +4326,197 @@ Enemy.prototype.drawGlitch = function(ctx) {
         // 0. GLITCH CLOCKWORK ORBIT (Hourglass-inspired epic rings)
         ctx.save();
         ctx.translate(0, 30);
-        ctx.rotate(time * 0.4);
-        ctx.strokeStyle = "rgba(0, 240, 255, 0.2)";
-        ctx.lineWidth = 1.5;
-        ctx.shadowBlur = 12;
+        ctx.rotate(time * 0.45);
+        ctx.strokeStyle = "rgba(0, 240, 255, 0.3)";
+        ctx.lineWidth = 2.0;
+        ctx.shadowBlur = 16;
         ctx.shadowColor = "#00FFFF";
         
-        // Delicate cyber-ring
         ctx.beginPath();
-        ctx.arc(0, 0, 100, 0, Math.PI * 2);
+        ctx.arc(0, 0, 110, 0, Math.PI * 2);
         ctx.stroke();
         
         ctx.restore();
         
         ctx.save();
         ctx.translate(0, 30);
-        ctx.rotate(-time * 0.25);
-        ctx.fillStyle = "rgba(255, 0, 255, 0.25)";
-        ctx.shadowBlur = 8;
+        ctx.rotate(-time * 0.35);
+        ctx.fillStyle = "rgba(255, 0, 255, 0.45)";
+        ctx.shadowBlur = 10;
         ctx.shadowColor = "#FF00FF";
-        ctx.font = "bold 8px Courier";
+        ctx.font = "bold 9px Courier";
         var cyberNumerals = ["0x00", "0x0A", "0x7F", "0xDB", "0xFF", "0xEF", "0x404", "0x88"];
         for (var n = 0; n < 8; n++) {
             var a = (n / 8) * Math.PI * 2 - Math.PI / 2;
             ctx.save();
-            ctx.translate(Math.cos(a) * 115, Math.sin(a) * 115);
+            ctx.translate(Math.cos(a) * 125, Math.sin(a) * 125);
             ctx.rotate(a + Math.PI / 2);
-            ctx.fillText(cyberNumerals[n], -10, 0);
+            ctx.fillText(cyberNumerals[n], -12, 0);
             ctx.restore();
         }
         ctx.restore();
         
         // Spatial Cracks (Torn canvas fragments representing broken code)
         ctx.strokeStyle = "#FF00FF";
-        ctx.lineWidth = 2.5;
-        ctx.shadowBlur = 10;
+        ctx.lineWidth = 3.0;
+        ctx.shadowBlur = 15;
         ctx.shadowColor = "#FF00FF";
-        for (var cr = 0; cr < 4; cr++) {
-            var cAngle = cr * Math.PI / 2 + Math.sin(time * 3) * 0.2;
+        for (var cr = 0; cr < 6; cr++) {
+            var cAngle = cr * Math.PI / 3 + Math.sin(time * 3.5) * 0.25;
             ctx.save();
             ctx.rotate(cAngle);
             ctx.beginPath();
-            ctx.moveTo(110, 0);
-            ctx.lineTo(135, -15);
-            ctx.lineTo(150, 10);
-            ctx.lineTo(170, -5);
+            ctx.moveTo(115, 0);
+            ctx.lineTo(142, -18);
+            ctx.lineTo(158, 12);
+            ctx.lineTo(180, -6);
             ctx.stroke();
             ctx.restore();
         }
         ctx.shadowBlur = 0;
         
         // Coordinate Grid warping in the background
-        ctx.strokeStyle = "rgba(0, 255, 255, 0.12)";
-        ctx.lineWidth = 1.0;
-        var gridShear = Math.sin(time * 2.8) * 18;
-        for (var gx = -160; gx <= 160; gx += 40) {
+        ctx.strokeStyle = "rgba(0, 255, 255, 0.18)";
+        ctx.lineWidth = 1.2;
+        var gridShear = Math.sin(time * 3.2) * 22;
+        for (var gx = -180; gx <= 180; gx += 40) {
             ctx.beginPath();
-            ctx.moveTo(gx - gridShear, -120);
-            ctx.lineTo(gx + gridShear, 120);
+            ctx.moveTo(gx - gridShear, -130);
+            ctx.lineTo(gx + gridShear, 130);
             ctx.stroke();
         }
-        for (var gy = -120; gy <= 120; gy += 40) {
+        for (var gy = -130; gy <= 130; gy += 40) {
             ctx.beginPath();
-            ctx.moveTo(-160, gy);
-            ctx.lineTo(160, gy);
+            ctx.moveTo(-180, gy - Math.cos(time * 3)*10);
+            ctx.lineTo(180, gy + Math.cos(time * 3)*10);
             ctx.stroke();
         }
         
         // Massive invader shoulder block
-        ctx.fillStyle = "#09091e";
-        ctx.fillRect(-150, 12, 300, 75);
-        ctx.strokeStyle = "rgba(0, 255, 255, 0.45)";
-        ctx.lineWidth = 2.0;
-        ctx.strokeRect(-150, 12, 300, 75);
+        ctx.fillStyle = "#060618";
+        ctx.fillRect(-155, 10, 310, 78);
+        ctx.strokeStyle = "rgba(0, 255, 255, 0.6)";
+        ctx.lineWidth = 2.5;
+        ctx.strokeRect(-155, 10, 310, 78);
         
         // 1. CHEST: BLUE SCREEN OF DEATH (BSOD) TERMINAL REACTOR CORE
-        ctx.fillStyle = "#000080"; // deep royal blue
-        ctx.fillRect(-65, 18, 130, 60);
-        ctx.strokeStyle = "#00e5ff"; // neon cyan border
-        ctx.lineWidth = 2.0;
-        ctx.strokeRect(-65, 18, 130, 60);
+        ctx.fillStyle = "#000099"; // deep royal blue
+        ctx.fillRect(-70, 16, 140, 64);
+        ctx.strokeStyle = "#00f0ff"; // neon cyan border
+        ctx.lineWidth = 2.5;
+        ctx.strokeRect(-70, 16, 140, 64);
         
         // Scrolling raw white hex strings inside BSOD
         ctx.fillStyle = "#FFFFFF";
-        ctx.font = "bold 6px Courier";
+        ctx.font = "bold 7px Courier";
         var hexLines = [
             "FATAL_ERROR_0x000F",
             "REG:0x404:COREPANIC",
-            "FORMATTING_C:95%",
+            "FORMATTING_C:99%",
             "NULL_PTR_DEREF",
             "SYS_CRITICAL_HALT",
-            "STACK_OVERFLOW"
+            "STACK_OVERFLOW_404",
+            "KERNEL_PANIC_00A"
         ];
-        var scrollIndex = Math.floor(time * 2.5) % hexLines.length;
-        for (var hl = 0; hl < 4; hl++) {
-            var lineY = 30 + hl * 12;
+        var scrollIndex = Math.floor(time * 3.0) % hexLines.length;
+        for (var hl = 0; hl < 5; hl++) {
+            var lineY = 28 + hl * 11;
             var textStr = hexLines[(scrollIndex + hl) % hexLines.length];
-            if (hl === 3 && Math.floor(time * 3) % 2 === 0) {
+            if (hl === 4 && Math.floor(time * 3) % 2 === 0) {
                 textStr += " _"; // blinking block cursor
             }
-            ctx.fillText(textStr, -58, lineY);
+            ctx.fillText(textStr, -64, lineY);
         }
         
         // 2. DETAILED BIOMECHANICAL CLAWS TEARING Spatial coordinates on sides
         // Left Giant Claw
         ctx.save();
-        ctx.translate(-122, 30 + Math.sin(time * 4.5) * 9);
-        ctx.rotate(-0.25 + Math.sin(time * 2.5) * 0.12);
+        ctx.translate(-126, 30 + Math.sin(time * 5.0) * 11);
+        ctx.rotate(-0.3 + Math.sin(time * 3.0) * 0.15);
         
-        // Arm main casing (shaded dark voxel plates)
-        ctx.fillStyle = "#1e1e1e";
-        ctx.fillRect(-26, -18, 52, 36);
+        ctx.fillStyle = "#1a1a1a";
+        ctx.fillRect(-28, -20, 56, 40);
         ctx.strokeStyle = "#FF00FF";
-        ctx.lineWidth = 2.0;
-        ctx.strokeRect(-26, -18, 52, 36);
+        ctx.lineWidth = 2.2;
+        ctx.strokeRect(-28, -20, 56, 40);
         
         // Glowing internal circuit traces
         ctx.strokeStyle = "#00FFFF";
-        ctx.lineWidth = 1.0;
+        ctx.lineWidth = 1.2;
         ctx.beginPath();
-        ctx.moveTo(-16, -10); ctx.lineTo(16, -10);
-        ctx.moveTo(-16, 0); ctx.lineTo(16, 0);
-        ctx.moveTo(-16, 10); ctx.lineTo(16, 10);
+        ctx.moveTo(-18, -12); ctx.lineTo(18, -12);
+        ctx.moveTo(-18, 0); ctx.lineTo(18, 0);
+        ctx.moveTo(-18, 12); ctx.lineTo(18, 12);
         ctx.stroke();
         
         // Segmented hydraulic piston shaft
-        ctx.fillStyle = "#c0c0c0";
-        var shaftOsc = Math.sin(time * 4.5) * 5;
-        ctx.fillRect(-10, 18, 8, 12 + shaftOsc);
-        ctx.fillRect(2, 18, 8, 12 + shaftOsc);
+        ctx.fillStyle = "#d0d0d0";
+        var shaftOsc = Math.sin(time * 5.0) * 6;
+        ctx.fillRect(-11, 20, 9, 14 + shaftOsc);
+        ctx.fillRect(2, 20, 9, 14 + shaftOsc);
         
         // 3 sharp biomechanical voxel claws (metallic silver)
-        ctx.fillStyle = "#e0e0e0";
-        ctx.fillRect(-22, 30 + shaftOsc, 10, 22);
-        ctx.fillRect(-6, 30 + shaftOsc, 12, 28);
-        ctx.fillRect(12, 30 + shaftOsc, 10, 22);
+        ctx.fillStyle = "#ededed";
+        ctx.fillRect(-24, 32 + shaftOsc, 11, 24);
+        ctx.fillRect(-6, 32 + shaftOsc, 13, 30);
+        ctx.fillRect(13, 32 + shaftOsc, 11, 24);
         
         // Flashing crimson tip lasers
-        ctx.fillStyle = Math.random() < 0.25 ? "#00FFFF" : "#FF0055";
-        ctx.fillRect(-19, 48 + shaftOsc, 4, 4);
-        ctx.fillRect(-2, 54 + shaftOsc, 4, 4);
-        ctx.fillRect(15, 48 + shaftOsc, 4, 4);
+        ctx.fillStyle = Math.random() < 0.3 ? "#00FFFF" : "#FF0055";
+        ctx.fillRect(-21, 52 + shaftOsc, 5, 5);
+        ctx.fillRect(-2, 58 + shaftOsc, 5, 5);
+        ctx.fillRect(16, 52 + shaftOsc, 5, 5);
         
         ctx.restore();
         
         // Right Giant Claw
         ctx.save();
-        ctx.translate(122, 30 - Math.sin(time * 4.5) * 9);
-        ctx.rotate(0.25 - Math.sin(time * 2.5) * 0.12);
+        ctx.translate(126, 30 - Math.sin(time * 5.0) * 11);
+        ctx.rotate(0.3 - Math.sin(time * 3.0) * 0.15);
         
-        // Arm main casing
-        ctx.fillStyle = "#161616";
-        ctx.fillRect(-26, -18, 52, 36);
+        ctx.fillStyle = "#121212";
+        ctx.fillRect(-28, -20, 56, 40);
         ctx.strokeStyle = "#FF00FF";
-        ctx.lineWidth = 2.0;
-        ctx.strokeRect(-26, -18, 52, 36);
+        ctx.lineWidth = 2.2;
+        ctx.strokeRect(-28, -20, 56, 40);
         
         // Circuit traces
         ctx.strokeStyle = "#00FFFF";
-        ctx.lineWidth = 1.0;
+        ctx.lineWidth = 1.2;
         ctx.beginPath();
-        ctx.moveTo(-16, -10); ctx.lineTo(16, -10);
-        ctx.moveTo(-16, 0); ctx.lineTo(16, 0);
-        ctx.moveTo(-16, 10); ctx.lineTo(16, 10);
+        ctx.moveTo(-18, -12); ctx.lineTo(18, -12);
+        ctx.moveTo(-18, 0); ctx.lineTo(18, 0);
+        ctx.moveTo(-18, 12); ctx.lineTo(18, 12);
         ctx.stroke();
         
         // Hydraulic shaft
-        ctx.fillStyle = "#c0c0c0";
-        ctx.fillRect(-10, 18, 8, 12 - shaftOsc);
-        ctx.fillRect(2, 18, 8, 12 - shaftOsc);
+        ctx.fillStyle = "#d0d0d0";
+        ctx.fillRect(-11, 20, 9, 14 - shaftOsc);
+        ctx.fillRect(2, 20, 9, 14 - shaftOsc);
         
-        // claws
-        ctx.fillStyle = "#e0e0e0";
-        ctx.fillRect(-22, 30 - shaftOsc, 10, 22);
-        ctx.fillRect(-6, 30 - shaftOsc, 12, 28);
-        ctx.fillRect(12, 30 - shaftOsc, 10, 22);
+        // Claws
+        ctx.fillStyle = "#ededed";
+        ctx.fillRect(-24, 32 - shaftOsc, 11, 24);
+        ctx.fillRect(-6, 32 - shaftOsc, 13, 30);
+        ctx.fillRect(13, 32 - shaftOsc, 11, 24);
         
         // Flashing tip lasers
-        ctx.fillStyle = Math.random() < 0.25 ? "#00FFFF" : "#FF0055";
-        ctx.fillRect(-19, 48 - shaftOsc, 4, 4);
-        ctx.fillRect(-2, 54 - shaftOsc, 4, 4);
-        ctx.fillRect(15, 48 - shaftOsc, 4, 4);
+        ctx.fillStyle = Math.random() < 0.3 ? "#00FFFF" : "#FF0055";
+        ctx.fillRect(-21, 52 - shaftOsc, 5, 5);
+        ctx.fillRect(-2, 58 - shaftOsc, 5, 5);
+        ctx.fillRect(16, 52 - shaftOsc, 5, 5);
         
         ctx.restore();
         
         // 3. FLOATING BINARY SKULL SOVEREIGN (Redesigned Phase 3 Head)
         ctx.save();
         ctx.translate(0, -38);
-        var chompY = Math.sin(time * 7.5) > 0.25 ? (Math.sin(time * 7.5) - 0.25) * 11.0 : 0.0;
+        var chompY = Math.sin(time * 8.5) > 0.15 ? (Math.sin(time * 8.5) - 0.15) * 12.0 : 0.0;
         
-        // Draw double cybernetic neon outline shadow for the skull
+        // Draw double cybernetic neon outline shadow for the skull (extreme glow)
         ctx.strokeStyle = "#FF00FF";
-        ctx.lineWidth = 3.0;
-        ctx.shadowBlur = 18 + Math.sin(time * 6) * 5;
+        ctx.lineWidth = 3.5;
+        ctx.shadowBlur = 22 + Math.sin(time * 8) * 6;
         ctx.shadowColor = "#FF00FF";
         ctx.beginPath();
         ctx.arc(0, -10, 26, 0, Math.PI * 2);
@@ -4411,9 +4524,9 @@ Enemy.prototype.drawGlitch = function(ctx) {
         ctx.shadowBlur = 0;
         
         ctx.strokeStyle = "#00FFFF";
-        ctx.lineWidth = 1.5;
+        ctx.lineWidth = 2.0;
         ctx.beginPath();
-        ctx.arc(0, -10, 28, 0, Math.PI * 2);
+        ctx.arc(0, -10, 29, 0, Math.PI * 2);
         ctx.stroke();
         
         // Draw main white voxel skull
@@ -4425,61 +4538,300 @@ Enemy.prototype.drawGlitch = function(ctx) {
         ctx.fill();
         
         // Jaw block (moving down)
-        ctx.fillRect(-14, 10 + chompY, 28, 12);
+        ctx.fillRect(-15, 10 + chompY, 30, 13);
         // Sharp metallic silver teeth rows
-        ctx.fillStyle = "#a0a0a0";
+        ctx.fillStyle = "#b0b0b0";
         for (var t = -12; t <= 12; t += 6) {
-            ctx.fillRect(t - 2, 8, 4, 4);
-            ctx.fillRect(t - 2, 10 + chompY, 4, 4);
+            ctx.fillRect(t - 2.5, 8, 5, 4);
+            ctx.fillRect(t - 2.5, 10 + chompY, 5, 4);
         }
         
         // Black Eye Cavities
         ctx.fillStyle = "#000000";
         ctx.beginPath();
-        ctx.arc(-8, -12, 5, 0, Math.PI * 2);
-        ctx.arc(8, -12, 5, 0, Math.PI * 2);
+        ctx.arc(-8, -12, 6, 0, Math.PI * 2);
+        ctx.arc(8, -12, 6, 0, Math.PI * 2);
         ctx.fill();
         
         // Red glowing warning slits in eyes
         ctx.fillStyle = "#FF0055";
-        ctx.fillRect(-10, -13, 4, 2);
-        ctx.fillRect(6, -13, 4, 2);
+        ctx.fillRect(-11, -14, 5, 3);
+        ctx.fillRect(6, -14, 5, 3);
         
         // Neon energy trails shooting out of eyes
-        ctx.strokeStyle = "rgba(255, 0, 85, 0.4)";
-        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = "rgba(255, 0, 85, 0.65)";
+        ctx.lineWidth = 2.0;
         ctx.beginPath();
-        ctx.moveTo(-10, -12); ctx.lineTo(-30 - Math.sin(time*5)*5, -12);
-        ctx.moveTo(6, -12); ctx.lineTo(30 + Math.sin(time*5)*5, -12);
+        ctx.moveTo(-10, -12); ctx.lineTo(-35 - Math.sin(time*6)*6, -12);
+        ctx.moveTo(6, -12); ctx.lineTo(35 + Math.sin(time*6)*6, -12);
         ctx.stroke();
         
         // Nasal Cavity
         ctx.fillStyle = "#000000";
         ctx.beginPath();
-        ctx.moveTo(0, -4); ctx.lineTo(-2, 0); ctx.lineTo(2, 0); ctx.closePath();
+        ctx.moveTo(0, -4); ctx.lineTo(-2.5, 0.5); ctx.lineTo(2.5, 0.5); ctx.closePath();
         ctx.fill();
         
         // Rotating Crown of Hex Strings
         ctx.fillStyle = "#00FFFF";
-        ctx.font = "bold 6px Courier";
+        ctx.font = "bold 7px Courier";
         var hexKeys = ["0x404", "0x0A", "0xFF", "0xDB"];
         for (var hk = 0; hk < 4; hk++) {
-            var hkAngle = -time * 2.0 + (hk * Math.PI / 2);
-            var hkx = Math.cos(hkAngle) * 36;
-            var hky = Math.sin(hkAngle) * 8 - 14;
-            ctx.fillText(hexKeys[hk], hkx - 10, hky);
+            var hkAngle = -time * 2.2 + (hk * Math.PI / 2);
+            var hkx = Math.cos(hkAngle) * 38;
+            var hky = Math.sin(hkAngle) * 9 - 14;
+            ctx.fillText(hexKeys[hk], hkx - 11, hky);
         }
         
         ctx.restore();
         
-        // 4. VERTICAL GLITCH TERMINAL SCANLINES OVERLAY
-        ctx.fillStyle = "rgba(0, 255, 100, 0.05)";
-        var scanY = (time * 120) % 220 - 110;
-        ctx.fillRect(-150, scanY, 300, 4);
+        // 4. VERTICAL GLITCH TERMINAL SCANLINES OVERLAY (Thicker and flickering)
+        ctx.fillStyle = "rgba(0, 255, 100, 0.08)";
+        var scanY = (time * 140) % 220 - 110;
+        ctx.fillRect(-155, scanY, 310, 5);
+        if (Math.random() < 0.1) {
+            ctx.fillStyle = "rgba(255, 0, 255, 0.07)";
+            ctx.fillRect(-155, -110, 310, 220); // full space flash glitch
+        }
         
         ctx.restore();
     }
 
+    ctx.restore();
+};
+
+Enemy.prototype.drawPrism = function(ctx) {
+    var time = Date.now() / 1000;
+    var type = this.renderType; // "prism_phase1", "prism_phase2", "prism_phase3"
+    
+    // Floating and breathing motions
+    var breathe = 1.0 + Math.sin(time * 2.0) * 0.02;
+    var floatY = Math.sin(time * 1.8) * 6.0;
+    
+    ctx.save();
+    ctx.translate(370, 140 + floatY);
+    ctx.scale(breathe, breathe);
+    
+    // Local helper for drawing crystal facets
+    function drawFacet(x1, y1, x2, y2, x3, y3, fill, stroke) {
+        ctx.fillStyle = fill;
+        ctx.strokeStyle = stroke;
+        ctx.lineWidth = 1.0;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.lineTo(x3, y3);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+    }
+    
+    if (type === "prism_phase1") {
+        // ====================================================================
+        // PHASE 1: IMMACULATE CRYSTAL GOLEM
+        // ====================================================================
+        ctx.save();
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = "#00FFFF";
+        
+        // 1. Draw floating crystal shoulders
+        var shDist = 55 + Math.sin(time * 3) * 3;
+        drawCrystalShard(ctx, -shDist, -15, 14, time * 0.5, "#00E5FF");
+        drawCrystalShard(ctx, shDist, -15, 14, -time * 0.5, "#00E5FF");
+        
+        // 2. Draw diamond head
+        ctx.save();
+        ctx.translate(0, -50);
+        drawFacet(0, -22, 12, 0, 0, 12, "rgba(224, 255, 255, 0.7)", "#FFFFFF");
+        drawFacet(0, -22, -12, 0, 0, 12, "rgba(0, 240, 255, 0.7)", "#FFFFFF");
+        drawFacet(0, 12, 12, 0, 0, 22, "rgba(0, 191, 255, 0.7)", "#FFFFFF");
+        drawFacet(0, 12, -12, 0, 0, 22, "rgba(0, 150, 255, 0.7)", "#FFFFFF");
+        // Glowing eyes (cyan sparks)
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillRect(-3, 0, 2, 2);
+        ctx.fillRect(2, 0, 2, 2);
+        ctx.restore();
+        
+        // 3. Draw heavy multi-faceted torso
+        ctx.save();
+        ctx.translate(0, 10);
+        // Top front facet
+        drawFacet(0, -30, 28, -10, -28, -10, "rgba(224, 255, 255, 0.75)", "#FFFFFF");
+        // Left facet
+        drawFacet(-28, -10, 0, 30, -38, 10, "rgba(0, 220, 255, 0.75)", "#FFFFFF");
+        // Right facet
+        drawFacet(28, -10, 0, 30, 38, 10, "rgba(0, 180, 255, 0.75)", "#FFFFFF");
+        // Bottom front facet
+        drawFacet(0, 30, 28, -10, -28, -10, "rgba(0, 200, 255, 0.65)", "#FFFFFF");
+        // Rear side wings/crystals
+        drawFacet(-28, -10, -38, 10, -18, -40, "rgba(0, 130, 240, 0.5)", "#FFFFFF");
+        drawFacet(28, -10, 38, 10, 18, -40, "rgba(0, 130, 240, 0.5)", "#FFFFFF");
+        ctx.restore();
+        
+        ctx.restore();
+        
+    } else if (type === "prism_phase2") {
+        // ====================================================================
+        // PHASE 2: CRACKED KALEIDOSCOPIC GOLEM (Refracting spectrum light)
+        // ====================================================================
+        ctx.save();
+        
+        // 1. Rainbow light sweeps radiating from back
+        ctx.save();
+        var numRays = 8;
+        ctx.globalCompositeOperation = "screen";
+        for (var r = 0; r < numRays; r++) {
+            var rayAngle = time * 0.5 + (r * Math.PI * 2 / numRays);
+            var grad = ctx.createLinearGradient(0, 0, Math.cos(rayAngle) * 120, Math.sin(rayAngle) * 120);
+            var colors = ["rgba(255,0,0,0.25)", "rgba(0,255,0,0.25)", "rgba(0,0,255,0.25)", "rgba(255,255,0,0.25)", "rgba(255,0,255,0.25)", "rgba(0,255,255,0.25)"];
+            grad.addColorStop(0, "rgba(255, 255, 255, 0.6)");
+            grad.addColorStop(0.5, colors[r % colors.length]);
+            grad.addColorStop(1, "rgba(0, 0, 0, 0)");
+            
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(Math.cos(rayAngle - 0.15) * 140, Math.sin(rayAngle - 0.15) * 140);
+            ctx.lineTo(Math.cos(rayAngle + 0.15) * 140, Math.sin(rayAngle + 0.15) * 140);
+            ctx.closePath();
+            ctx.fill();
+        }
+        ctx.restore();
+        
+        // 2. Rotating hexagonal crystal ring around it
+        ctx.save();
+        ctx.strokeStyle = "rgba(0, 240, 255, 0.6)";
+        ctx.lineWidth = 2.0;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = "#00FFFF";
+        ctx.beginPath();
+        for (var h = 0; h <= 6; h++) {
+            var hAngle = -time * 1.2 + (h * Math.PI / 3);
+            var hx = Math.cos(hAngle) * 65;
+            var hy = Math.sin(hAngle) * 45;
+            if (h === 0) ctx.moveTo(hx, hy);
+            else ctx.lineTo(hx, hy);
+        }
+        ctx.stroke();
+        // Draw small shards on vertices of the hex ring
+        for (var h = 0; h < 6; h++) {
+            var hAngle = -time * 1.2 + (h * Math.PI / 3);
+            drawCrystalShard(ctx, Math.cos(hAngle) * 65, Math.sin(hAngle) * 45, 6, hAngle, "#FFFFFF");
+        }
+        ctx.restore();
+        
+        // 3. Cracked head (gaps between facets)
+        ctx.save();
+        ctx.translate(0, -50 + Math.sin(time*5.0)*1.5);
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = "#FF1493";
+        // Displace facets outward slightly to represent cracks
+        var gap = 2.0 + Math.sin(time * 8) * 1.0;
+        drawFacet(0, -22 - gap, 12 + gap, -gap, 0 + gap, 12, "rgba(224, 255, 255, 0.75)", "#FF00FF");
+        drawFacet(0, -22 - gap, -12 - gap, -gap, 0 - gap, 12, "rgba(0, 240, 255, 0.75)", "#FF00FF");
+        drawFacet(0, 12 + gap, 12 + gap, gap, 0, 22 + gap, "rgba(0, 191, 255, 0.75)", "#FF00FF");
+        drawFacet(0, 12 + gap, -12 - gap, gap, 0, 22 + gap, "rgba(0, 150, 255, 0.75)", "#FF00FF");
+        ctx.restore();
+        
+        // 4. Cracked torso
+        ctx.save();
+        ctx.translate(0, 10);
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = "#FF00FF";
+        var cgap = 3.0;
+        drawFacet(0, -30 - cgap, 28 + cgap, -10 - cgap, -28 - cgap, -10 - cgap, "rgba(224, 255, 255, 0.8)", "#FF1493");
+        drawFacet(-28 - cgap, -10, 0, 30 + cgap, -38 - cgap, 10, "rgba(0, 220, 255, 0.8)", "#FF1493");
+        drawFacet(28 + cgap, -10, 0, 30 + cgap, 38 + cgap, 10, "rgba(0, 180, 255, 0.8)", "#FF1493");
+        drawFacet(0, 30 + cgap, 28 + cgap, -10 + cgap, -28 - cgap, -10 + cgap, "rgba(0, 200, 255, 0.7)", "#FF1493");
+        ctx.restore();
+        
+        // 5. Floating shoulders oscillating
+        var shDist = 60 + Math.sin(time * 4) * 5;
+        drawCrystalShard(ctx, -shDist, -15, 14, time * 0.9, "#FF00FF");
+        drawCrystalShard(ctx, shDist, -15, 14, -time * 0.9, "#00FFFF");
+        
+        ctx.restore();
+        
+    } else if (type === "prism_phase3") {
+        // ====================================================================
+        // PHASE 3: SHATTERED KALEIDOSCOPE CORE (Floating fragments & hyper core)
+        // ====================================================================
+        ctx.save();
+        
+        // 1. Intense concentric background geometry rings (rotating opposite directions)
+        ctx.save();
+        ctx.strokeStyle = "rgba(0, 255, 255, 0.22)";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(0, 0, 75, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        ctx.strokeStyle = "rgba(255, 0, 255, 0.22)";
+        ctx.beginPath();
+        ctx.arc(0, 0, 95, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+        
+        // 2. Exploded/Shattered outer shards drifting in orbit
+        ctx.save();
+        var numFragments = 10;
+        for (var f = 0; f < numFragments; f++) {
+            var fAngle = time * 0.75 + (f * Math.PI * 2 / numFragments);
+            var fDist = 70 + Math.sin(time * 2.5 + f) * 12;
+            var fx = Math.cos(fAngle) * fDist;
+            var fy = Math.sin(fAngle) * (fDist * 0.65);
+            var fColor = (f % 2 === 0) ? "#FF00FF" : "#00FFFF";
+            drawCrystalShard(ctx, fx, fy, 8 + (f % 3) * 3, fAngle * 2, fColor);
+        }
+        ctx.restore();
+        
+        // 3. Floating exploded shoulder/head fragments far away
+        ctx.save();
+        ctx.translate(Math.sin(time*3.5)*15, -80 + Math.cos(time*2.8)*10);
+        // Head segments split apart
+        drawFacet(-10, -10, -2, -22, -18, -12, "rgba(224, 255, 255, 0.4)", "#FFFFFF");
+        drawFacet(10, -10, 2, -22, 18, -12, "rgba(0, 240, 255, 0.4)", "#00FFFF");
+        ctx.restore();
+        
+        // Shoulders drifting
+        drawCrystalShard(ctx, -85 + Math.sin(time*2)*4, -25, 12, time * 0.4, "#FF00FF");
+        drawCrystalShard(ctx, 85 - Math.sin(time*2)*4, -25, 12, -time * 0.4, "#00FFFF");
+        
+        // 4. Central Spinning Octahedron Hyper Core
+        ctx.save();
+        ctx.scale(1.3, 1.3);
+        ctx.shadowBlur = 25;
+        ctx.shadowColor = (Math.floor(time * 4) % 2 === 0) ? "#00FFFF" : "#FF00FF";
+        
+        var coreRot = time * 1.6;
+        // Draw 3D octahedron sides with shifting spectrum gradients
+        // Top front
+        drawFacet(0, -28, 18, 0, 0, 0, "rgba(255, 255, 255, 0.8)", "#FFFFFF");
+        // Top left
+        drawFacet(0, -28, -18, 0, 0, 0, "rgba(0, 255, 255, 0.75)", "#00FFFF");
+        // Bottom front
+        drawFacet(0, 28, 18, 0, 0, 0, "rgba(255, 0, 255, 0.75)", "#FF00FF");
+        // Bottom left
+        drawFacet(0, 28, -18, 0, 0, 0, "rgba(0, 0, 255, 0.75)", "#0000FF");
+        
+        // Inner glowing core
+        var corePulse = 8 + Math.sin(time * 12) * 2;
+        drawCrystalShard(ctx, 0, 0, corePulse, -coreRot, "#FFFFFF");
+        ctx.restore();
+        
+        // 5. Light beam tracers scanning the screen
+        ctx.save();
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+        ctx.lineWidth = 1.0;
+        ctx.beginPath();
+        ctx.moveTo(0, 0); ctx.lineTo(Math.cos(time*2.5)*220, Math.sin(time*2.5)*220);
+        ctx.moveTo(0, 0); ctx.lineTo(Math.cos(time*2.5 + Math.PI)*220, Math.sin(time*2.5 + Math.PI)*220);
+        ctx.stroke();
+        ctx.restore();
+        
+        ctx.restore();
+    }
+    
     ctx.restore();
 };
 
