@@ -33,6 +33,7 @@ var Combat = (function() {
         Sound.pauseSoundHard("bgm_evangelion");
         Sound.pauseSoundHard("bgm_paradox");
         Sound.pauseSoundHard("bgm_godzilla");
+        Sound.pauseSoundHard("bgm_prism");
 
         if (bossId === "ramiel" || bossId === "sachiel") {
             Sound.playSound("bgm_evangelion", true);
@@ -40,6 +41,8 @@ var Combat = (function() {
             Sound.playSound("bgm_paradox", true);
         } else if (bossId === "godzilla") {
             Sound.playSound("bgm_godzilla", true);
+        } else if (bossId === "prism") {
+            Sound.playSound("bgm_prism", true);
         } else if (bossId === "singularity" || bossId === "vader") {
             Sound.playSound("bgm_singularity", true);
         } else {

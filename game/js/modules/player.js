@@ -226,13 +226,24 @@ var Player = (function() {
         return false;
     }
 
-    function checkPhoenixRevive() {
+    function checkRevive() {
         if (phoenixEggActive) {
             phoenixEggActive = false;
             hpMax = Math.floor(hpMax / 2);
             if (hpMax < 20) hpMax = 20; // Asegurar vida jugable mínima
             hpCur = hpMax;
             Sound.playSound("heal", true);
+            console.log("PHOENIX EGG: Revived!");
+            return true; // ¡Resucitado!
+        }
+        
+        // Subaru Return by Death revival (once per combat)
+        if (soulClass === 15 && subaruRevives > 0) {
+            subaruRevives--;
+            hpCur = 1;
+            invulnerableTurns = 2; // Invulnerable for 2 turns
+            Sound.playSound("heal", true);
+            console.log("SUBARU REVIVED: Return by Death!");
             return true; // ¡Resucitado!
         }
         return false;
@@ -302,20 +313,9 @@ var Player = (function() {
         Sound.playSound("damage", true);
         hpCur -= dmg;
         if (hpCur <= 0) {
-            if (checkPhoenixRevive()) {
+            if (checkRevive()) {
                 return false; // Revived!
             }
-            
-            // Subaru Return by Death revival (once per combat)
-            if (soulClass === 15 && subaruRevives > 0) {
-                subaruRevives--;
-                hpCur = 1;
-                invulnerableTurns = 2; // Invulnerable for 2 turns
-                Sound.playSound("heal", true);
-                console.log("SUBARU REVIVED: Return by Death!");
-                return false;
-            }
-            
             hpCur = 0;
             return true; // Dead
         }
@@ -339,7 +339,7 @@ var Player = (function() {
             hpCur -= drain;
             karmaBuffer -= drain;
             if (hpCur <= 0) {
-                if (checkPhoenixRevive()) return false;
+                if (checkRevive()) return false;
                 hpCur = 0;
                 return true;
             }
@@ -350,7 +350,7 @@ var Player = (function() {
             // Drain 1 HP per second
             hpCur -= (1.0 * dt);
             if (hpCur <= 0) {
-                if (checkPhoenixRevive()) return false;
+                if (checkRevive()) return false;
                 hpCur = 0;
                 return true;
             }
@@ -359,7 +359,7 @@ var Player = (function() {
         if (selfPoison > 0) {
             hpCur -= (selfPoison * dt);
             if (hpCur <= 0) {
-                if (checkPhoenixRevive()) return false;
+                if (checkRevive()) return false;
                 hpCur = 0;
                 return true;
             }

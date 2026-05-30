@@ -251,6 +251,7 @@ var Overworld = (function() {
         Sound.pauseSoundHard("bgm_evangelion");
         Sound.pauseSoundHard("bgm_paradox");
         Sound.pauseSoundHard("bgm_godzilla");
+        Sound.pauseSoundHard("bgm_prism");
         Sound.playSound("bgm_overworld", true);
     }
 
