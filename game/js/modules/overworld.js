@@ -24,13 +24,9 @@ var Overworld = (function() {
         { name: "Corazón Cristalino", desc: "Cristalino. HP:100, Refleja 30% del daño recibido al jefe." },
         { name: "Corazón de Vampiro", desc: "Vampiro. HP:90, Lifesteal (cura 10% del daño infligido al jefe)." },
         { name: "Corazón Caótico", desc: "Caótico. HP:100, Cada turno cambia de alma y stats. Arcoíris." },
-        { name: "Divergent zilla", desc: "Adaptación. HP:120. Se adapta al daño ganando permanentemente +20% DEF por golpe recibido (hasta +100%)." },
-        { name: "Eva 01", desc: "Berserk. HP:110. Si tu HP baja del 30%, entras en furia (+80% ATK, +50% VEL, regenera 2 HP/seg, no puedes usar ítems)." },
-        { name: "Gojo", desc: "Infinito. HP:90, VEL:+20%. Satoru Gojo. Tu barrera de Infinito bloquea un golpe de forma absoluta cada 4 turnos." },
-        { name: "Subaru", desc: "Retorno por Muerte. HP:70. Revive una vez por combate con 1 HP y 2 segundos de invulnerabilidad absoluta." },
-        { name: "Yuji Itadori", desc: "Destello Negro. HP:120, ATK:+20%. 20% probabilidad de asestar un Destello Negro (Black Flash) infligiendo 2.5x daño." },
-        { name: "All Might", desc: "One For All. HP:150. Símbolo de la Paz (+60% ATK, +40% DEF), pero tu HP Máximo decae en 5 por turno por fatiga." },
-        { name: "Saitama", desc: "One Punch. HP:50, VEL:+20%, ATK:+200%. Poder absoluto, pero tu HP Máximo está limitado a 50 y no puedes curarte con ítems." }
+        { name: "Divergent zilla", desc: "Adaptación. HP:120. Se adapta al daño ganando permanentemente +30% DEF por golpe recibido (hasta +150%)." },
+        { name: "Eva 01", desc: "Berserk. HP:110. Si tu HP baja del 30%, entras en furia (+100% ATK, +50% VEL, regenera 4 HP/seg, no puedes usar ítems)." },
+        { name: "Gojo", desc: "Infinito. HP:90, VEL:+20%. Satoru Gojo. Tu barrera de Infinito bloquea un golpe de forma absoluta cada 4 turnos." }
     ];
 
     var bgImage = new Image();

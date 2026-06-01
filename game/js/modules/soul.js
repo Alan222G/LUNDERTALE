@@ -6,6 +6,7 @@ var Soul = (function() {
     var sprite, spriteDmg, spriteOver;
     var speed;
     var colData;
+    var floatingTexts = []; // List of active floating text animations
 
     // Soul mode system
     var soulMode;
@@ -53,6 +54,7 @@ var Soul = (function() {
         speed = 150;
         soulMode = SOUL_MODE.RED;
         blueVelY = 0;
+        floatingTexts = [];
         Sound.playSound("flash", true);
         Sound.playSound("bgm", true);
     }
@@ -60,6 +62,7 @@ var Soul = (function() {
     function reset() {
         pos = new Vect(310, 309, 0);
         state = STATE.OKAY;
+        floatingTexts = [];
     }
 
     function setSoulMode(mode) {
@@ -73,6 +76,15 @@ var Soul = (function() {
     function getSoulMode() { return soulMode; }
 
     function update(dt) {
+        // Update floating texts
+        for (var i = floatingTexts.length - 1; i >= 0; i--) {
+            floatingTexts[i].y -= 45 * dt; // Rise
+            floatingTexts[i].age += dt;
+            if (floatingTexts[i].age >= floatingTexts[i].maxAge) {
+                floatingTexts.splice(i, 1);
+            }
+        }
+
         switch (state) {
             case STATE.DAMAGED:
                 durationCounter += dt;
@@ -138,25 +150,6 @@ var Soul = (function() {
         else if (sClass === 12) ctx.filter = "grayscale(100%) brightness(2.0)"; // Divergent zilla (Mahoraga White)
         else if (sClass === 13) ctx.filter = "hue-rotate(290deg) saturate(2.2) brightness(1.2)"; // Eva 01 Purple/Green
         else if (sClass === 14) ctx.filter = "hue-rotate(190deg) saturate(3) brightness(1.6)"; // Gojo Celestial Blue
-        else if (sClass === 15) ctx.filter = "hue-rotate(260deg) saturate(0.6) brightness(0.7)"; // Subaru Dark Cursed
-        else if (sClass === 16) ctx.filter = "hue-rotate(355deg) saturate(2.5) brightness(1.2)"; // Yuji Crimson
-        else if (sClass === 17) ctx.filter = "hue-rotate(55deg) saturate(2.5) brightness(1.8) contrast(1.2)"; // All Might Gold
-        else if (sClass === 18) ctx.filter = "hue-rotate(45deg) saturate(2) brightness(1.3)"; // Saitama Yellow
-        else if (sClass === 19) ctx.filter = "hue-rotate(35deg) saturate(1.8) brightness(1.2)"; // Luffy Straw-Hat
-        else if (sClass === 20) ctx.filter = "hue-rotate(25deg) saturate(3.5) brightness(1.4)"; // Naruto Orange
-        else if (sClass === 21) ctx.filter = "hue-rotate(130deg) saturate(1.2) brightness(0.8) contrast(1.4)"; // Tanjiro Dark Checkered
-        else if (sClass === 22) ctx.filter = "hue-rotate(145deg) saturate(2.5) brightness(1.3)"; // Deku Emerald
-        else if (sClass === 23) ctx.filter = "hue-rotate(110deg) saturate(2.2) brightness(0.8)"; // Zoro Moss
-        else if (sClass === 24) ctx.filter = "hue-rotate(195deg) saturate(2.0) brightness(1.5)"; // Rimuru Slime
-        else if (sClass === 25) {
-            // Sans flashing glowing eye
-            if (Math.floor(Date.now() / 150) % 2 === 0) {
-                ctx.filter = "hue-rotate(190deg) saturate(3.5) brightness(1.8)";
-            } else {
-                ctx.filter = "hue-rotate(55deg) saturate(2.5) brightness(1.6)";
-            }
-        }
-        else if (sClass === 26) ctx.filter = "hue-rotate(15deg) saturate(2.8) brightness(1.1)"; // Denji Chainsaw Orange
     }
 
     function drawDecorations(ctx, drawPos, sw, sh, sClass) {
@@ -165,7 +158,7 @@ var Soul = (function() {
             ctx.translate(drawPos.x + sw/2, drawPos.y - 8);
             
             var isSpinning = (typeof Player !== "undefined" && Player.getMahoragaWheelSpinTimer && Player.getMahoragaWheelSpinTimer() > 0);
-            var spinSpeed = isSpinning ? 70 : 600;
+            var spinSpeed = isSpinning ? 40 : 600; // Super fast spin on adaptation hit!
             ctx.rotate((Date.now() / spinSpeed) % (Math.PI * 2));
             
             if (isSpinning) {
@@ -217,7 +210,7 @@ var Soul = (function() {
         } else if (sClass === 14) { // Gojo (Limitless Ring + Six Eyes)
             // 1. Limitless barrier ring (pulses and glows extra thick if charged/active)
             ctx.save();
-            var infCharged = (typeof Player !== "undefined" && Player.getGojoTurns && Player.getGojoTurns() >= 3);
+            var infCharged = (typeof Player !== "undefined" && Player.getGojoTurns && Player.getGojoTurns() >= 4);
             ctx.strokeStyle = infCharged ? "rgba(0, 229, 255, 0.95)" : "rgba(0, 229, 255, 0.45)";
             ctx.lineWidth = infCharged ? 3.0 : 1.5;
             ctx.shadowBlur = infCharged ? 18 : 8;
@@ -252,140 +245,6 @@ var Soul = (function() {
                 }
                 ctx.restore();
             }
-        } else if (sClass === 15) { // Subaru (Shadow Hands)
-            ctx.save();
-            ctx.strokeStyle = "rgba(75, 0, 130, 0.8)";
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(drawPos.x - 4, drawPos.y + sh - 2);
-            ctx.bezierCurveTo(drawPos.x - 8, drawPos.y + sh/2, drawPos.x - 2, drawPos.y + 2, drawPos.x + 3, drawPos.y - 2);
-            ctx.moveTo(drawPos.x + sw + 4, drawPos.y + sh - 2);
-            ctx.bezierCurveTo(drawPos.x + sw + 8, drawPos.y + sh/2, drawPos.x + sw + 2, drawPos.y + 2, drawPos.x + sw - 3, drawPos.y - 2);
-            ctx.stroke();
-            ctx.restore();
-        } else if (sClass === 16) { // Yuji Itadori (Crimson / Cursed Sparks)
-            ctx.save();
-            ctx.strokeStyle = Math.random() < 0.15 ? "#000000" : "#FF0055";
-            ctx.shadowBlur = 6;
-            ctx.shadowColor = "#FF0055";
-            ctx.lineWidth = 1.5;
-            for (var sp = 0; sp < 2; sp++) {
-                ctx.beginPath();
-                var sx = drawPos.x + Math.random() * sw;
-                var sy = drawPos.y + Math.random() * sh;
-                ctx.moveTo(sx, sy);
-                ctx.lineTo(sx + (Math.random()-0.5)*12, sy + (Math.random()-0.5)*12);
-                ctx.stroke();
-            }
-            ctx.restore();
-        } else if (sClass === 17) { // All Might Gold Sparkles
-            ctx.save();
-            ctx.strokeStyle = "#FFD700";
-            ctx.lineWidth = 1.5;
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = "#FFD700";
-            for (var sp = 0; sp < 3; sp++) {
-                var sa = (Date.now() / 200) + sp * Math.PI / 1.5;
-                var sx = drawPos.x + sw/2 + Math.cos(sa) * 12;
-                var sy = drawPos.y + sh/2 + Math.sin(sa) * 12;
-                ctx.strokeRect(sx - 1, sy - 1, 2, 2);
-            }
-            ctx.restore();
-        } else if (sClass === 18) { // Saitama (Red Cape trails)
-            ctx.save();
-            ctx.strokeStyle = "#FF1744";
-            ctx.lineWidth = 2.0;
-            ctx.beginPath();
-            ctx.moveTo(drawPos.x, drawPos.y + 4);
-            ctx.lineTo(drawPos.x - 6, drawPos.y + sh/2);
-            ctx.moveTo(drawPos.x + sw, drawPos.y + 4);
-            ctx.lineTo(drawPos.x + sw + 6, drawPos.y + sh/2);
-            ctx.stroke();
-            ctx.restore();
-        } else if (sClass === 19) { // Luffy (Gear 5 Clouds)
-            ctx.save();
-            ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
-            ctx.beginPath();
-            ctx.arc(drawPos.x - 3, drawPos.y + sh/2, 3, 0, Math.PI*2);
-            ctx.arc(drawPos.x + sw + 3, drawPos.y + sh/2, 3, 0, Math.PI*2);
-            ctx.arc(drawPos.x + sw/2, drawPos.y - 3, 2, 0, Math.PI*2);
-            ctx.fill();
-            ctx.restore();
-        } else if (sClass === 20) { // Naruto Orange Chakra
-            ctx.save();
-            ctx.strokeStyle = "#FF9100";
-            ctx.shadowBlur = 12;
-            ctx.shadowColor = "#FF9100";
-            ctx.lineWidth = 2.0;
-            ctx.beginPath();
-            ctx.ellipse(drawPos.x + sw/2, drawPos.y + sh/2, sw * 0.9, sh * 0.9, Math.sin(Date.now()/150)*0.2, 0, Math.PI*2);
-            ctx.stroke();
-            ctx.restore();
-        } else if (sClass === 21) { // Tanjiro Water Trail
-            ctx.save();
-            ctx.strokeStyle = "#00FFFF";
-            ctx.lineWidth = 1.5;
-            ctx.beginPath();
-            var ts = (Date.now() / 300) % (Math.PI * 2);
-            ctx.arc(drawPos.x + sw/2, drawPos.y + sh/2, sw * 1.0, ts, ts + Math.PI);
-            ctx.stroke();
-            ctx.restore();
-        } else if (sClass === 22) { // Deku Emerald sparks
-            ctx.save();
-            ctx.strokeStyle = "#00FF66";
-            ctx.shadowBlur = 8;
-            ctx.shadowColor = "#00FF66";
-            ctx.lineWidth = 1.2;
-            for (var sp = 0; sp < 4; sp++) {
-                ctx.beginPath();
-                var sx = drawPos.x + Math.random() * sw;
-                var sy = drawPos.y + Math.random() * sh;
-                ctx.moveTo(sx, sy);
-                ctx.lineTo(sx + (Math.random()-0.5)*14, sy + (Math.random()-0.5)*14);
-                ctx.stroke();
-            }
-            ctx.restore();
-        } else if (sClass === 23) { // Zoro slashes
-            ctx.save();
-            ctx.strokeStyle = "#2E7D32";
-            ctx.lineWidth = 1.0;
-            ctx.beginPath();
-            ctx.moveTo(drawPos.x - 4, drawPos.y - 2); ctx.lineTo(drawPos.x + sw + 4, drawPos.y + sh + 2);
-            ctx.moveTo(drawPos.x - 4, drawPos.y + sh/2 - 2); ctx.lineTo(drawPos.x + sw + 4, drawPos.y + sh/2 + 2);
-            ctx.moveTo(drawPos.x - 4, drawPos.y + sh + 2); ctx.lineTo(drawPos.x + sw + 4, drawPos.y - 2);
-            ctx.stroke();
-            ctx.restore();
-        } else if (sClass === 24) { // Rimuru core
-            ctx.save();
-            ctx.fillStyle = "rgba(0, 229, 255, 0.4)";
-            ctx.beginPath();
-            ctx.arc(drawPos.x + sw/2, drawPos.y + sh/2 + 2, 4, 0, Math.PI*2);
-            ctx.fill();
-            ctx.restore();
-        } else if (sClass === 25) { // Sans Glowing Left Eye
-            ctx.save();
-            ctx.fillStyle = (Math.floor(Date.now() / 100) % 2 === 0) ? "#00FFFF" : "#FFFF00";
-            ctx.shadowBlur = 8;
-            ctx.shadowColor = ctx.fillStyle;
-            ctx.beginPath();
-            ctx.arc(drawPos.x + sw/3, drawPos.y + sh/3, 2, 0, Math.PI*2);
-            ctx.fill();
-            ctx.restore();
-        } else if (sClass === 26) { // Denji Chainsaw Spikes
-            ctx.save();
-            ctx.translate(drawPos.x + sw/2, drawPos.y + sh/2);
-            ctx.rotate((Date.now() / 150) % (Math.PI * 2));
-            ctx.fillStyle = "#A0A0A0";
-            for (var t = 0; t < 8; t++) {
-                var tAngle = (t * Math.PI / 4);
-                ctx.beginPath();
-                ctx.moveTo(Math.cos(tAngle)*9, Math.sin(tAngle)*9);
-                ctx.lineTo(Math.cos(tAngle + 0.1)*12, Math.sin(tAngle + 0.1)*12);
-                ctx.lineTo(Math.cos(tAngle + 0.2)*9, Math.sin(tAngle + 0.2)*9);
-                ctx.closePath();
-                ctx.fill();
-            }
-            ctx.restore();
         }
     }
 
@@ -433,11 +292,26 @@ var Soul = (function() {
         var sClass = Player.getSoulClass();
         drawDecorations(ctx, pos, sw, sh, sClass);
         ctx.restore();
+
+        // Draw floating texts (independent of filter/decorations)
+        for (var i = 0; i < floatingTexts.length; i++) {
+            var ft = floatingTexts[i];
+            var alpha = 1.0 - (ft.age / ft.maxAge);
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            ctx.fillStyle = ft.color || "#FFD700"; // Default gold
+            ctx.shadowBlur = 6;
+            ctx.shadowColor = "#000000";
+            ctx.font = "14pt 'Determination Mono', monospace";
+            ctx.textAlign = "center";
+            ctx.fillText(ft.text, ft.x, ft.y);
+            ctx.restore();
+        }
     }
 
-    function drawAt(ctx, posForced) {
+    function drawAt(ctx, posForced, opacity) {
         ctx.save();
-        ctx.globalAlpha = 1;
+        ctx.globalAlpha = (opacity !== undefined) ? opacity : 1.0;
         applySoulFilter(ctx);
         var sw = getWidth();
         var sh = getHeight();
@@ -448,8 +322,7 @@ var Soul = (function() {
     }
 
     function getCollision(ctx) {
-        // Disabled: getImageData crashes on file:// protocol in Chrome.
-        // New engine uses AABB collision in BossController.
+        // Disabled: replaced by BossController.update() collision checks.
     }
 
     function takeDamage() {
@@ -546,8 +419,6 @@ var Soul = (function() {
             baseW = soulWidth * 0.5;
         } else if (typeof Player !== "undefined" && Player.isGiant && Player.isGiant()) {
             baseW = soulWidth * 1.8;
-        } else if (typeof Player !== "undefined" && Player.getSoulClass && Player.getSoulClass() === 23) {
-            baseW = soulWidth * 1.25; // Zoro larger hitbox
         }
         var scale = (typeof Player !== "undefined" && Player.getHitboxScaleMultiplier) ? Player.getHitboxScaleMultiplier() : 1.0;
         return baseW * scale;
@@ -558,8 +429,6 @@ var Soul = (function() {
             baseH = soulHeight * 0.5;
         } else if (typeof Player !== "undefined" && Player.isGiant && Player.isGiant()) {
             baseH = soulHeight * 1.8;
-        } else if (typeof Player !== "undefined" && Player.getSoulClass && Player.getSoulClass() === 23) {
-            baseH = soulHeight * 1.25; // Zoro larger hitbox
         }
         var scale = (typeof Player !== "undefined" && Player.getHitboxScaleMultiplier) ? Player.getHitboxScaleMultiplier() : 1.0;
         return baseH * scale;
@@ -578,6 +447,17 @@ var Soul = (function() {
     function getState() { return state; }
     function isOkay() { return state === STATE.OKAY; }
 
+    function addFloatingText(text, x, y, color) {
+        floatingTexts.push({
+            text: text,
+            x: x,
+            y: y,
+            age: 0,
+            maxAge: 1.2,
+            color: color
+        });
+    }
+
     return {
         init: init, setup: setup, reset: reset,
         setSoulMode: setSoulMode, getSoulMode: getSoulMode,
@@ -589,5 +469,7 @@ var Soul = (function() {
         getPos: getPos, setPos: setPos, getWidth: getWidth, getHeight: getHeight,
         getState: getState, isOkay: isOkay, takeDamage: takeDamage,
         dualActive: false, getMirrorPos: getMirrorPos,
+        addFloatingText: addFloatingText
     };
 }());
+

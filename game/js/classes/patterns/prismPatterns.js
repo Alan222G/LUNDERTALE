@@ -768,16 +768,18 @@ RefractionCascadePattern.prototype.update = function(dt) {
     var bb = Cbbox.getBound();
     var cx = (bb[0] + bb[2]) / 2;
     
-    // Spawn cascading colored bullets flowing in sine waves
-    if (this.streamTimer >= 0.15 && this.elapsed < this.duration - 0.8) {
+    // Spawn cascading colored bullets flowing in sine waves (Tuned down to 3 streams every 0.26s)
+    if (this.streamTimer >= 0.26 && this.elapsed < this.duration - 0.8) {
         this.streamTimer = 0;
         Sound.playSound("ting", true);
         
-        for (var c = 0; c < this.colors.length; c++) {
+        var activeIndices = [0, 2, 4];
+        for (var idx = 0; idx < activeIndices.length; idx++) {
+            var c = activeIndices[idx];
             var col = this.colors[c];
-            // Split out at different angles from the center prism (cx, bb[1]+40)
+            // Split out at different angles from the center prism (cx, bb[1]+45)
             var angle = Math.PI / 4 + (c * Math.PI / 10); // fan down
-            var bulletSpeed = 160 + c * 10;
+            var bulletSpeed = 140 + c * 10;
             this.bullets.push(new Bullet({
                 x: cx,
                 y: bb[1] + 45,

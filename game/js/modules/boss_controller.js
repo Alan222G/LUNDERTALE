@@ -413,6 +413,16 @@ var BossController = (function() {
             try {
                 dmg = currentPattern.checkCollision(
                     soulPos.x, soulPos.y, Soul.getWidth(), Soul.getHeight());
+                
+                // Mirror reflection soul collision check for Coloso de Espejos!
+                if (dmg <= 0 && enemy && enemy.name === "Coloso de Espejos") {
+                    var mPos = Soul.getMirrorPos();
+                    dmg = currentPattern.checkCollision(
+                        mPos.x, mPos.y, Soul.getWidth(), Soul.getHeight());
+                    if (dmg > 0) {
+                        console.log("[Mirror Passive] Hit mirror reflection soul!");
+                    }
+                }
             } catch (e) {
                 console.error("[BossController] Pattern collision error:", e);
                 dmg = 0;

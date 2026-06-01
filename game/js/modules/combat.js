@@ -135,10 +135,19 @@ var Combat = (function() {
 
             case COMBAT_STATE.ITEM:
                 if (myKeys.isConfirm()) {
-                    Writer.setupText(Inventory.getText(selectStateOther));
-                    Inventory.activate(selectStateOther);
-                    Inventory.removeItem(selectStateOther);
-                    combatState = COMBAT_STATE.EFFECT;
+                    myKeys.keydown[myKeys.KEYBOARD.KEY_Z] = false;
+                    myKeys.keydown[myKeys.KEYBOARD.KEY_ENTER] = false;
+                    
+                    // Eva 01 Berserk Mode check
+                    if (Player.getSoulClass() === 13 && Player.getHPCur() < Player.getHPMax() * 0.3) {
+                        Writer.setupText("* ¡Eva 01 esta en modo BERSERK!\n* ¡Imposible usar objetos!");
+                        combatState = COMBAT_STATE.EFFECT;
+                    } else {
+                        Writer.setupText(Inventory.getText(selectStateOther));
+                        Inventory.activate(selectStateOther);
+                        Inventory.removeItem(selectStateOther);
+                        combatState = COMBAT_STATE.EFFECT;
+                    }
                 }
                 if (myKeys.isCancel()) {
                     combatState = COMBAT_STATE.MAIN;
@@ -249,14 +258,6 @@ var Combat = (function() {
                     Soul.setSoulMode(Soul.SOUL_MODE.RED);
                     Cbbox.setSize(574, 140, false);
                     Player.resetBuffs();
-                    
-                    // Sachiel Turn-End passive: core regeneration (3% of Max HP)
-                    var currentBoss = Cgroup.getEnemy(selectStateEnemy);
-                    if (currentBoss && currentBoss.name === "Sachiel") {
-                        var regen = Math.ceil(currentBoss.maxHP * 0.03);
-                        currentBoss.curHP = Math.min(currentBoss.maxHP, currentBoss.curHP + regen);
-                        console.log("Sachiel core regenerated " + regen + " HP.");
-                    }
 
                     if (typeof Player !== 'undefined' && Player.isPoisonEnemy && Player.isPoisonEnemy()) {
                         var _enemy = Cgroup.getEnemy(selectStateEnemy);
@@ -493,6 +494,12 @@ var Combat = (function() {
                 }
                 BossController.draw(ctx);
                 Soul.draw(ctx);
+                
+                // Draw Mirror reflection soul if Coloso de Espejos (prism) is active!
+                if (Cgroup.getBossId() === "prism") {
+                    var mPos = Soul.getMirrorPos();
+                    Soul.drawAt(ctx, mPos, 0.5); // semi-translucent mirror reflection!
+                }
                 break;
 
             case COMBAT_STATE.DEATH:

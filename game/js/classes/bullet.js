@@ -50,6 +50,13 @@ Bullet.prototype.progressMovement = function(dt) {
         var soulRad = Soul.getWidth() / 2;
         var bulletRad = this.width / 2;
         
+        // Gojo Infinity bullet slowdown (slows bullets within 40px to 10% speed)
+        if (Player.getSoulClass && Player.getSoulClass() === 14) {
+            if (dist < 40) {
+                dt *= 0.10;
+            }
+        }
+        
         // 1. Pull bullet if Magnet is active
         if (Player.isMagnetActive && Player.isMagnetActive() && dist > 1) {
             var pullX = (dx / dist) * 45 * dt;

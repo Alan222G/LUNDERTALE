@@ -96,18 +96,6 @@ var Player = (function() {
             case 12: hpMax = 120; baseSpd = 1.0; baseAtk = 1.0; baseDef = 1.0; break; // Divergent zilla
             case 13: hpMax = 110; baseSpd = 1.0; baseAtk = 1.0; baseDef = 1.0; break; // Eva 01
             case 14: hpMax = 90;  baseSpd = 1.2; baseAtk = 1.0; baseDef = 1.0; break; // Gojo
-            case 15: hpMax = 70;  baseSpd = 1.0; baseAtk = 1.0; baseDef = 1.0; break; // Subaru
-            case 16: hpMax = 120; baseSpd = 1.0; baseAtk = 1.2; baseDef = 1.0; break; // Yuji Itadori
-            case 17: hpMax = 150; baseSpd = 1.0; baseAtk = 1.6; baseDef = 1.4; break; // All Might
-            case 18: hpMax = 50;  baseSpd = 1.2; baseAtk = 3.0; baseDef = 1.0; break; // Saitama
-            case 19: hpMax = 100; baseSpd = 1.3; baseAtk = 1.0; baseDef = 1.0; break; // Luffy
-            case 20: hpMax = 110; baseSpd = 1.0; baseAtk = 1.0; baseDef = 1.0; break; // Naruto
-            case 21: hpMax = 100; baseSpd = 1.0; baseAtk = 1.0; baseDef = 1.0; break; // Tanjiro
-            case 22: hpMax = 90;  baseSpd = 2.0; baseAtk = 1.0; baseDef = 1.0; break; // Deku
-            case 23: hpMax = 115; baseSpd = 1.0; baseAtk = 1.5; baseDef = 1.0; break; // Zoro
-            case 24: hpMax = 100; baseSpd = 1.0; baseAtk = 1.0; baseDef = 1.0; break; // Rimuru
-            case 25: hpMax = 1;   baseSpd = 1.5; baseAtk = 1.0; baseDef = 1.0; break; // Sans
-            case 26: hpMax = 105; baseSpd = 1.0; baseAtk = 1.0; baseDef = 0.5; break; // Denji
         }
         hpCur = hpMax;
         recalculateBuffs();
@@ -125,8 +113,8 @@ var Player = (function() {
 
         // Eva 01 Berserk Mode (under 30% HP)
         if (soulClass === 13 && hpCur < hpMax * 0.3) {
-            buffAtk += 0.8;
-            buffSpd += 0.5;
+            buffAtk += 1.0; // +100% ATK in Berserk
+            buffSpd += 0.5; // +50% SPD in Berserk
         }
     }
 
@@ -164,11 +152,6 @@ var Player = (function() {
         // Gojo Infinity charging
         if (soulClass === 14) {
             gojoTurns++;
-        }
-        
-        // All Might fatigue decay
-        if (soulClass === 17) {
-            reduceMaxHP(5);
         }
 
         if (soulClass === 11) { // Chaos Heart (Rainbow)
@@ -240,16 +223,6 @@ var Player = (function() {
             console.log("PHOENIX EGG: Revived!");
             return true; // ¡Resucitado!
         }
-        
-        // Subaru Return by Death revival (once per combat)
-        if (soulClass === 15 && subaruRevives > 0) {
-            subaruRevives--;
-            hpCur = 1;
-            invulnerableTurns = 2; // Invulnerable for 2 turns
-            Sound.playSound("heal", true);
-            console.log("SUBARU REVIVED: Return by Death!");
-            return true; // ¡Resucitado!
-        }
         return false;
     }
 
@@ -272,63 +245,35 @@ var Player = (function() {
             return false; // Blocked by thorn shield
         }
 
-        // Gojo Infinity passive (blocks 1 hit every 3 turns)
-        if (soulClass === 14 && gojoTurns >= 3) {
+        // Gojo Infinity passive (blocks 1 hit every 4 turns)
+        if (soulClass === 14 && gojoTurns >= 4) {
             gojoTurns = 0;
             Sound.playSound("ting", true);
+            if (typeof Soul !== "undefined" && Soul.addFloatingText) {
+                var sPos = Soul.getPos();
+                Soul.addFloatingText("INFINITY", sPos.x + Soul.getWidth() / 2, sPos.y - 12, "#00FFFF");
+            }
             console.log("INFINITY: Gojo blocked the hit!");
             return false;
         }
 
-        // Sans Judgement passive (auto-dodge first 4 hits)
-        if (soulClass === 25 && sansDodgeCount > 0) {
-            sansDodgeCount--;
-            Sound.playSound("ting", true);
-            console.log("SANS AUTO-DODGE: Slashes left: " + sansDodgeCount);
-            return false;
-        }
-
-        // Luffy Gear 5 passive (20% dodge chance)
-        if (soulClass === 19 && Math.random() < 0.20) {
-            Sound.playSound("ting", true);
-            console.log("LUFFY DODGE: Gear 5 cartoon dodge!");
-            return false;
-        }
-
-        // Mahoraga Adaptation (soulClass 12)
-        if (soulClass === 12 && attackName) {
-            if (!mahoragaAdaptations[attackName]) {
-                mahoragaAdaptations[attackName] = 0;
+        // Divergent zilla adaptation (stack +30% DEF on hit, up to +150%)
+        if (soulClass === 12) {
+            if (mahoragaDefStack < 5) {
+                mahoragaDefStack++;
+                baseDef += 0.30;
+                recalculateBuffs();
+                console.log("MAHORAGA ADAPTED: Stack " + mahoragaDefStack + " (+ " + (mahoragaDefStack * 30) + "% DEF)");
             }
-            if (mahoragaAdaptations[attackName] >= 3) {
-                mahoragaWheelSpinTimer = 2.5;
-                Sound.playSound("ting", true);
-                console.log("MAHORAGA 100% ADAPTED: No damage from: " + attackName);
-                return false;
+            mahoragaWheelSpinTimer = 2.0; // spin fast
+            if (typeof Soul !== "undefined" && Soul.addFloatingText) {
+                var sPos = Soul.getPos();
+                Soul.addFloatingText("ADAPTED", sPos.x + Soul.getWidth() / 2, sPos.y - 12, "#FFD700");
             }
-            mahoragaAdaptations[attackName]++;
-            if (mahoragaAdaptations[attackName] === 3) {
-                mahoragaWheelSpinTimer = 2.5;
-                Sound.playSound("heal", true);
-                console.log("MAHORAGA 100% ADAPTATION ACHIEVED FOR: " + attackName);
-            }
-        }
-
-        // Divergent zilla adaptation (stack +20% DEF on hit, up to +100%)
-        if (soulClass === 12 && mahoragaDefStack < 5) {
-            mahoragaDefStack++;
-            baseDef += 0.20;
-            recalculateBuffs();
-            console.log("MAHORAGA ADAPTED: Stack " + mahoragaDefStack);
         }
 
         var dmg = value;
         if (permanentGravityDust) dmg *= 1.2;
-        
-        // Deku Recoil: 20% extra damage taken
-        if (soulClass === 22) {
-            dmg *= 1.20;
-        }
         
         // Apply defense reduction
         dmg = Math.ceil(dmg / buffDef);
@@ -388,14 +333,9 @@ var Player = (function() {
             }
         }
         
-        // Naruto Kurama Mode regeneration (3 HP/sec)
-        if (soulClass === 20) {
-            hpCur = Math.min(hpMax, hpCur + 3.0 * dt);
-        }
-        
-        // Eva 01 Berserk regeneration (2 HP/sec under 30% HP)
+        // Eva 01 Berserk regeneration (4 HP/sec under 30% HP)
         if (soulClass === 13 && hpCur < hpMax * 0.3) {
-            hpCur = Math.min(hpMax, hpCur + 2.0 * dt);
+            hpCur = Math.min(hpMax, hpCur + 4.0 * dt);
         }
         
         // Decrement Mahoraga wheel spin timer
@@ -464,7 +404,6 @@ var Player = (function() {
         isNoHorizontalMovement: function() { return noHorizontalMovement; },
         reduceMaxHP: function(amount) { hpMax = Math.max(20, hpMax - amount); hpCur = Math.min(hpCur, hpMax); },
         getBulletSpeedMultiplier: function() {
-            if (soulClass === 21 && typeof myKeys !== "undefined" && myKeys.isCancel()) return 0.7; // Tanjiro slows bullets by 30%
             if (soulClass === 14) { // Gojo Six Eyes
                 if (typeof myKeys !== "undefined" && myKeys.isCancel()) {
                     return 0.60;

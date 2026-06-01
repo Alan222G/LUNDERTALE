@@ -1018,55 +1018,16 @@ Enemy.prototype.onHitPlayer = function(damageDealt) {
         }
     }
     
-    // 2. Anti-gravity passive: slow player speed by 15% on hit
-    if (this.name === "Anti-gravity") {
+    // 2. Anti-gravity passive: slow player speed by 15% on hit (case-insensitive)
+    if (this.name && this.name.toUpperCase() === "ANTI-GRAVITY") {
         if (Player.addBuffSpd) {
             Player.addBuffSpd(-0.15, 1);
             console.log("Anti-gravity pull slowed your speed by 15%!");
         }
     }
     
-    // 3. Ramiel passive: AT Field reflect (heals 30% of damage dealt)
-    if (this.name === "RAMIEL") {
-        var reflectHeal = Math.ceil(damageDealt * 0.3);
-        this.curHP = Math.min(this.maxHP, this.curHP + reflectHeal);
-        console.log("Ramiel AT Field reflected heal: +" + reflectHeal);
-    }
-    
-    // 4. Paradox passive: time dilation (slows player speed by 40% for 2 turns)
-    if (this.name === "Paradoja") {
-        if (Player.addBuffSpd) {
-            Player.addBuffSpd(-0.40, 2);
-            console.log("Paradoja dilated time! Speed -40%.");
-        }
-    }
-    
-    // 5. Godzilla passive: radiation burn (bleed drain for 6 seconds)
-    if (this.name === "Godzilla") {
-        if (Player.addBleed) {
-            Player.addBleed(6.0);
-            console.log("Godzilla irradiated you! Draining 1 HP/sec.");
-        }
-    }
-    
-    // 6. Darth Vader passive: force choke (speed -60% for 1 turn)
-    if (this.name === "Darth Vader") {
-        if (Player.addBuffSpd) {
-            Player.addBuffSpd(-0.60, 1);
-            console.log("Darth Vader choked you! Speed -60%.");
-        }
-    }
-    
-    // 7. Coloso de Espejos passive: refraction distortion (hitbox size +20% for 3 turns)
-    if (this.name === "Coloso de Espejos") {
-        if (Player.setHitboxScaleMultiplier) {
-            Player.setHitboxScaleMultiplier(1.2, 3);
-            console.log("Coloso de Espejos distorted reflection! Hitbox +20%.");
-        }
-    }
-    
-    // 8. Error 404 (Glitch) passive: controls inversion
-    if (this.name === "Error 404") {
+    // 3. Error 404 (Glitch) passive: controls inversion (case-insensitive)
+    if (this.name && (this.name.toUpperCase() === "ERROR 404" || this.name.toUpperCase() === "GLITCH")) {
         this.corruption = (this.corruption || 0) + 1;
         if (this.corruption >= 3) {
             this.corruption = 0;
@@ -4611,7 +4572,7 @@ Enemy.prototype.drawPrism = function(ctx) {
     var floatY = Math.sin(time * 1.8) * 6.0;
     
     ctx.save();
-    ctx.translate(370, 200 + floatY);
+    ctx.translate(370, 245 + floatY);
     ctx.scale(breathe, breathe);
     
     // Local helper for drawing crystal facets
