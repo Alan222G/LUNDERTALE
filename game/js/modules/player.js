@@ -34,9 +34,9 @@ var Player = (function() {
     var gojoRctActive = false;
     var gojoRctTimer = 0;
     var subaruRevives = 3;
-    var nanamiBonusApplied = false;
+    var gokuForm = 0; // 0=Base,1=SSJ,2=SSJ2,3=SSJ3,4=SSG,5=SSB,6=UISign,7=MUI
     var combatTurnCount = 0;
-    var sansAutoDodges = 15;
+    var sansAutoDodges = 10;
     var hitboxScaleOverride = 1.0;
     var hitboxScaleTurns = 0;
     
@@ -71,9 +71,9 @@ var Player = (function() {
         gojoRctActive = false;
         gojoRctTimer = 0;
         subaruRevives = 3;
-        nanamiBonusApplied = false;
+        gokuForm = 0;
         combatTurnCount = 0;
-        sansAutoDodges = 15;
+        sansAutoDodges = 10;
         hitboxScaleOverride = 1.0;
         hitboxScaleTurns = 0;
         
@@ -107,7 +107,7 @@ var Player = (function() {
             case 15: hpMax = 70;  baseSpd = 1.0; baseAtk = 1.0; baseDef = 1.0; break; // Subaru (Retorno por Muerte)
             case 16: hpMax = 150; baseSpd = 1.0; baseAtk = 1.6; baseDef = 1.4; break; // All Might (One For All)
             case 17: hpMax = 100; baseSpd = 1.1; baseAtk = 1.3; baseDef = 0.9; break; // Itadori (Jujutsu)
-            case 18: hpMax = 110; baseSpd = 1.0; baseAtk = 1.2; baseDef = 1.1; break; // Nanami (7:3 Ratio)
+            case 18: hpMax = 20;  baseSpd = 1.0; baseAtk = 1.0; baseDef = 1.0; break; // Goku (Base Form)
             case 19: hpMax = 50;  baseSpd = 1.0; baseAtk = 1.0; baseDef = 1.0; break; // Sans (Bad Time)
         }
         hpCur = hpMax;
@@ -210,23 +210,39 @@ var Player = (function() {
             console.log("ITADORI RCT ACTIVATED: Progressive healing until full HP!");
         }
         
-        // Nanami Overtime: after 12 total combat turns, +15% all stats permanently
-        if (soulClass === 18 && !nanamiBonusApplied && combatTurnCount >= 12) {
-            nanamiBonusApplied = true;
-            baseSpd *= 1.15;
-            baseAtk *= 1.15;
-            baseDef *= 1.15;
+        // Goku Transformation: auto-transform each turn
+        if (soulClass === 18 && gokuForm < 7) {
+            gokuForm++;
+            var formNames = ["SSJ", "SSJ2", "SSJ3", "SSG", "SSB", "UI Sign", "MUI"];
+            var formColors = ["#FFD700", "#FFE066", "#FFAA00", "#FF4444", "#00BFFF", "#C0C0C0", "#E0E0FF"];
+            // Apply form stats progressively
+            switch (gokuForm) {
+                case 1: baseSpd = 1.2; baseAtk = 1.5; baseDef = 1.2; break; // SSJ
+                case 2: baseSpd = 1.4; baseAtk = 2.0; baseDef = 1.4; break; // SSJ2
+                case 3: baseSpd = 1.6; baseAtk = 2.5; baseDef = 1.6; break; // SSJ3
+                case 4: baseSpd = 1.8; baseAtk = 3.0; baseDef = 1.8; break; // SSG
+                case 5: baseSpd = 2.0; baseAtk = 3.5; baseDef = 2.0; break; // SSB
+                case 6: baseSpd = 2.5; baseAtk = 4.0; baseDef = 2.5; break; // UI Sign
+                case 7: baseSpd = 3.0; baseAtk = 5.0; baseDef = 3.0; break; // MUI
+            }
             recalculateBuffs();
             if (typeof Soul !== "undefined" && Soul.addFloatingText) {
                 var sPos = Soul.getPos();
-                Soul.addFloatingText("OVERTIME", sPos.x + Soul.getWidth() / 2, sPos.y - 12, "#FFD700");
+                Soul.addFloatingText(formNames[gokuForm - 1], sPos.x + Soul.getWidth() / 2, sPos.y - 12, formColors[gokuForm - 1]);
+                if (Soul.triggerGokuTransformBurst) {
+                    Soul.triggerGokuTransformBurst(formColors[gokuForm - 1]);
+                }
             }
-            console.log("NANAMI: Overtime activated! +15% all stats!");
+            console.log("GOKU: Transformed to " + formNames[gokuForm - 1] + "!");
+        }
+        // Goku MUI: grant 10 auto-dodges per turn (like Sans)
+        if (soulClass === 18 && gokuForm >= 7) {
+            sansAutoDodges = 10;
         }
         
-        // Sans: refresh 15 auto-dodges per turn
+        // Sans: refresh 10 auto-dodges per turn
         if (soulClass === 19) {
-            sansAutoDodges = 15;
+            sansAutoDodges = 10;
         }
         
         // Decrement buff arrays
@@ -288,7 +304,7 @@ var Player = (function() {
         // Subaru — Retorno por Muerte (up to 3 revives per combat, preserves base stats)
         if (soulClass === 15 && subaruRevives > 0) {
             subaruRevives--;
-            hpCur = Math.max(1, Math.floor(hpMax * 0.15)); // Revive at 15% HP
+            hpCur = Math.max(1, Math.floor(hpMax * 0.50)); // Revive at 50% HP
             invulnerableTurns = 2; // 2 seconds of invulnerability
             Sound.playSound("heal", true);
             if (typeof Soul !== "undefined" && Soul.addFloatingText) {
@@ -304,11 +320,12 @@ var Player = (function() {
     function damage(value, attackName) {
         if (invulnerableTurns > 0) return false; // Immune
         
-        // Sans auto-dodge (15 per turn, instant teleport)
-        if (soulClass === 19 && sansAutoDodges > 0) {
+        // Sans auto-dodge (10 per turn, instant teleport, NO immunity frames)
+        // Also Goku MUI (form 7) gets the same dodges
+        if ((soulClass === 19 || (soulClass === 18 && gokuForm >= 7)) && sansAutoDodges > 0) {
             sansAutoDodges--;
             Sound.playSound("ting", true);
-            // Teleport to random position in combat box
+            // Teleport to random position in combat box (no invulnerability!)
             if (typeof Soul !== "undefined" && Soul.getPos && typeof Cbbox !== "undefined") {
                 var bb = Cbbox.getBound();
                 var sw = Soul.getWidth();
@@ -319,9 +336,10 @@ var Player = (function() {
             }
             if (typeof Soul !== "undefined" && Soul.addFloatingText) {
                 var sPos = Soul.getPos();
-                Soul.addFloatingText("DODGE", sPos.x + Soul.getWidth() / 2, sPos.y - 12, "#FFFFFF");
+                var dodgeColor = soulClass === 18 ? "#E0E0FF" : "#FFFFFF";
+                Soul.addFloatingText("DODGE", sPos.x + Soul.getWidth() / 2, sPos.y - 12, dodgeColor);
             }
-            return false; // Dodged!
+            return false; // Dodged! (no invulnerability set)
         }
         
         if (shieldCharges > 0) {
@@ -352,17 +370,20 @@ var Player = (function() {
             return false;
         }
 
-        // Divergent zilla adaptation (stack DEF on hit, unlimited stacking, can reach 0 dmg)
+        // Mahoraga adaptation (stack DEF on hit, capped at 5 stacks = +150%)
         if (soulClass === 12) {
-            mahoragaDefStack++;
-            baseDef += 0.30;
-            recalculateBuffs();
-            mahoragaWheelSpinTimer = 2.0; // spin fast
+            if (mahoragaDefStack < 5) {
+                mahoragaDefStack++;
+                baseDef += 0.30;
+                recalculateBuffs();
+            }
+            mahoragaWheelSpinTimer = 2.0;
             if (typeof Soul !== "undefined" && Soul.addFloatingText) {
                 var sPos = Soul.getPos();
-                Soul.addFloatingText("ADAPTED +" + (mahoragaDefStack * 30) + "%", sPos.x + Soul.getWidth() / 2, sPos.y - 12, "#FFD700");
+                var displayPct = Math.min(mahoragaDefStack * 30, 150);
+                Soul.addFloatingText("ADAPTED +" + displayPct + "%", sPos.x + Soul.getWidth() / 2, sPos.y - 12, "#FFD700");
             }
-            console.log("MAHORAGA ADAPTED: Stack " + mahoragaDefStack + " (+ " + (mahoragaDefStack * 30) + "% DEF)");
+            console.log("MAHORAGA ADAPTED: Stack " + mahoragaDefStack + " (+" + Math.min(mahoragaDefStack * 30, 150) + "% DEF)");
         }
 
         var dmg = value;
@@ -371,8 +392,10 @@ var Player = (function() {
         // Apply defense reduction
         dmg = Math.ceil(dmg / buffDef);
         
-        // Mahoraga can reduce damage to 0
-        if (soulClass === 12 && dmg < 1) dmg = 0;
+        // Mahoraga at max adaptation (5 stacks): minimum 1 HP damage
+        if (soulClass === 12 && mahoragaDefStack >= 5) {
+            dmg = Math.max(1, dmg);
+        }
         
         if (dmg <= 0) return false; // No damage dealt
 
@@ -393,14 +416,12 @@ var Player = (function() {
     var bleedTimer = 0;
 
     function addKarma(amount) {
-        // Nanami is immune to all karma/poison effects
-        if (soulClass === 18) return;
         karmaBuffer += amount;
     }
     
     function addBleed(seconds) {
-        // Nanami and Mahoraga are immune to bleed
-        if (soulClass === 18 || soulClass === 12) return;
+        // Mahoraga is immune to bleed
+        if (soulClass === 12) return;
         bleedTimer = seconds; // Overwrite so it doesn't stack infinitely
     }
     function getBleedTimer() { return bleedTimer; }
@@ -418,8 +439,8 @@ var Player = (function() {
         }
         
         if (bleedTimer > 0) {
-            // Nanami and Mahoraga immune to bleed
-            if (soulClass === 18 || soulClass === 12) {
+            // Mahoraga immune to bleed
+            if (soulClass === 12) {
                 bleedTimer = 0;
             } else {
                 bleedTimer -= dt;
@@ -434,8 +455,8 @@ var Player = (function() {
         }
         
         if (selfPoison > 0) {
-            // Mahoraga and Nanami are immune to poison
-            if (soulClass === 12 || soulClass === 18) {
+            // Mahoraga is immune to poison
+            if (soulClass === 12) {
                 selfPoison = 0;
             } else {
                 hpCur -= (selfPoison * dt);
@@ -544,8 +565,21 @@ var Player = (function() {
         getMahoragaDefStack: function() { return mahoragaDefStack; },
         getSubaruRevives: function() { return subaruRevives; },
         getSansAutoDodges: function() { return sansAutoDodges; },
-        isNanamiOvertime: function() { return nanamiBonusApplied; },
+        getGokuForm: function() { return gokuForm; },
         getCombatTurnCount: function() { return combatTurnCount; },
+        // Mahoraga: reset adaptation on boss phase change
+        resetMahoragaAdaptation: function() {
+            if (soulClass === 12) {
+                baseDef -= (mahoragaDefStack * 0.30);
+                mahoragaDefStack = 0;
+                recalculateBuffs();
+                if (typeof Soul !== "undefined" && Soul.addFloatingText) {
+                    var sPos = Soul.getPos();
+                    Soul.addFloatingText("RESET", sPos.x + Soul.getWidth() / 2, sPos.y - 12, "#FF4444");
+                }
+                console.log("MAHORAGA: Adaptation reset due to boss phase change!");
+            }
+        },
         // Eva 01 gets +20% stats vs angel enemies
         applyAngelBonus: function() {
             if (soulClass === 13) {

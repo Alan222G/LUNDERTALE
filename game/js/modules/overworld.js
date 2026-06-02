@@ -24,14 +24,14 @@ var Overworld = (function() {
         { name: "Corazón Cristalino", desc: "Cristalino. HP:100, Refleja 30% del daño recibido al jefe." },
         { name: "Corazón de Vampiro", desc: "Vampiro. HP:90, Lifesteal (cura 10% del daño infligido al jefe)." },
         { name: "Corazón Caótico", desc: "Caótico. HP:100, Cada turno cambia de alma y stats. Arcoíris." },
-        { name: "Divergent zilla", desc: "Adaptación. HP:120. Se adapta al daño ganando permanentemente +30% DEF por golpe recibido (hasta +150%)." },
-        { name: "Eva 01", desc: "Berserk. HP:110. Si tu HP baja del 30%, entras en furia (+100% ATK, +50% VEL, regenera 4 HP/seg, no puedes usar ítems)." },
+        { name: "Divergent zilla", desc: "Adaptación. HP:120. Se adapta ganando +30% DEF por golpe (máx +150%, recibe 1 HP mín). Se reinicia al cambiar fase del boss." },
+        { name: "Eva 01", desc: "Berserk. HP:110. Si tu HP baja del 30%: +110% ATK, +55% VEL, regenera 4.4 HP/seg. +20% stats vs Ángeles." },
         { name: "Gojo", desc: "Infinito. HP:90, VEL:+20%. Satoru Gojo. Tu barrera de Infinito bloquea un golpe de forma absoluta cada 4 turnos." },
-        { name: "Subaru", desc: "Retorno por Muerte. HP:70. Si mueres, revives con 15% HP y 2 seg de invulnerabilidad (hasta 3 veces por combate)." },
+        { name: "Subaru", desc: "Retorno por Muerte. HP:70. Si mueres, revives con 50% HP y 2 seg de invulnerabilidad (hasta 3 veces por combate)." },
         { name: "All Might", desc: "One For All. HP:150, ATK:+60%, DEF:+40%. Símbolo de la Paz. Tu HP Máximo decae -3/turno (mín 60)." },
         { name: "Itadori", desc: "Jujutsu. HP:100, VEL:+10%, ATK:+30%. Black Flash (20% crit 2.5x), Sangre Perforante (sangrado al enemigo), RCT cada 8 turnos." },
-        { name: "Nanami", desc: "Ratio 7:3. HP:110, ATK:+20%, DEF:+10%. Crítico 50% más fácil (2.5x). Inmune a veneno/sangrado. Overtime (+15% todo) tras 12 turnos." },
-        { name: "Sans", desc: "Mal Tiempo. HP:50. 15 esquives automáticos por turno. Cada golpe aplica veneno de 10seg (20 dmg/seg) al enemigo." }
+        { name: "Goku", desc: "Saiyan. HP:20. Cada turno te transformas: Base→SSJ→SSJ2→SSJ3→SSG→SSB→UI Sign→MUI. Cada forma mejora stats. MUI obtiene 10 esquives automáticos." },
+        { name: "Sans", desc: "Mal Tiempo. HP:50. 10 esquives automáticos por turno (sin inmunidad). Cada golpe aplica veneno de 10seg (20 dmg/seg) al enemigo." }
     ];
 
     var bgImage = new Image();

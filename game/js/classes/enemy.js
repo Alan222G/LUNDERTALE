@@ -639,19 +639,6 @@ Enemy.prototype.dealDamage = function(damage) {
         console.log("ITADORI BLACK FLASH! 2.5x damage dealt!");
     }
     
-    // Nanami 7:3 Ratio enhanced crit (50% chance, 2.5x damage with Black Flash visual)
-    if (sClass === 18 && Math.random() < 0.50) {
-        finalDmg *= 2.5;
-        Sound.playSound("hit_2_crit", true);
-        if (typeof triggerBlackFlash === "function") {
-            triggerBlackFlash();
-        }
-        if (typeof Soul !== "undefined" && Soul.addFloatingText) {
-            var sPos = Soul.getPos();
-            Soul.addFloatingText("7:3 RATIO", sPos.x + Soul.getWidth() / 2, sPos.y - 18, "#FFD700");
-        }
-        console.log("NANAMI 7:3 RATIO! 2.5x damage dealt!");
-    }
     
     this.curHP -= finalDmg / this.defense;
     
@@ -678,6 +665,10 @@ Enemy.prototype.dealDamage = function(damage) {
     if (this.curHP <= 0) {
         if (this.phases && this.currentPhase < this.phases.length - 1) {
             this.currentPhase++;
+            // Reset Mahoraga adaptation on boss phase change!
+            if (typeof Player !== "undefined" && Player.resetMahoragaAdaptation) {
+                Player.resetMahoragaAdaptation();
+            }
             // Use phaseHP array if available, otherwise use maxHP
             if (this.phaseHP && this.phaseHP[this.currentPhase]) {
                 this.maxHP = this.phaseHP[this.currentPhase];
@@ -3971,6 +3962,86 @@ Enemy.prototype.drawVader = function(ctx) {
         ctx.restore();
     }
 
+    // ====================================================
+    // PHASE-SPECIFIC VISUAL OVERLAYS
+    // ====================================================
+    
+    // Force Phase: Purple Force energy orbs orbiting
+    if (isForce) {
+        ctx.save();
+        ctx.globalCompositeOperation = "screen";
+        for (var fo = 0; fo < 4; fo++) {
+            var foAngle = (fo * Math.PI / 2) + time * 1.8;
+            var foDist = 55 + Math.sin(time * 3 + fo) * 8;
+            var foX = Math.cos(foAngle) * foDist;
+            var foY = Math.sin(foAngle) * foDist * 0.6;
+            var foGrad = ctx.createRadialGradient(foX, foY, 0, foX, foY, 8);
+            foGrad.addColorStop(0, "rgba(138, 43, 226, 0.6)");
+            foGrad.addColorStop(0.5, "rgba(75, 0, 130, 0.3)");
+            foGrad.addColorStop(1, "rgba(75, 0, 130, 0)");
+            ctx.fillStyle = foGrad;
+            ctx.beginPath();
+            ctx.arc(foX, foY, 8, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        // Electric arcs between orbs
+        ctx.strokeStyle = "rgba(180, 100, 255, 0.4)";
+        ctx.lineWidth = 0.8;
+        for (var ea = 0; ea < 3; ea++) {
+            var a1 = (ea * Math.PI / 2) + time * 1.8;
+            var a2 = ((ea + 1) * Math.PI / 2) + time * 1.8;
+            ctx.beginPath();
+            ctx.moveTo(Math.cos(a1) * 55, Math.sin(a1) * 33);
+            ctx.quadraticCurveTo(
+                (Math.cos(a1) + Math.cos(a2)) * 25 + Math.sin(time * 6) * 8,
+                (Math.sin(a1) + Math.sin(a2)) * 15,
+                Math.cos(a2) * 55, Math.sin(a2) * 33
+            );
+            ctx.stroke();
+        }
+        ctx.restore();
+    }
+    
+    // Rage Phase: Force lightning + dark energy vortex + intense red eyes
+    if (isRage) {
+        // Force Lightning (red-purple bolts crackling outward)
+        ctx.save();
+        ctx.globalCompositeOperation = "screen";
+        ctx.strokeStyle = "rgba(255, 50, 50, 0.7)";
+        ctx.lineWidth = 1.5;
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = "#FF0000";
+        for (var fl = 0; fl < 5; fl++) {
+            var flAngle = (fl * Math.PI * 2 / 5) + time * 2.5;
+            ctx.beginPath();
+            var flX = 0, flY = 0;
+            ctx.moveTo(flX, flY);
+            for (var seg = 0; seg < 4; seg++) {
+                flX += Math.cos(flAngle) * 18 + (Math.random() - 0.5) * 12;
+                flY += Math.sin(flAngle) * 18 + (Math.random() - 0.5) * 12;
+                ctx.lineTo(flX, flY);
+            }
+            ctx.stroke();
+        }
+        ctx.restore();
+        
+        // Dark energy particle vortex
+        ctx.save();
+        ctx.globalCompositeOperation = "screen";
+        for (var dp = 0; dp < 8; dp++) {
+            var dpAngle = (dp * Math.PI / 4) + time * 3;
+            var dpDist = 70 + Math.sin(time * 5 + dp * 1.2) * 15;
+            var dpX = Math.cos(dpAngle) * dpDist;
+            var dpY = Math.sin(dpAngle) * dpDist * 0.5;
+            var dpAlpha = 0.3 + Math.sin(time * 8 + dp) * 0.2;
+            ctx.fillStyle = "rgba(180, 0, 0, " + dpAlpha + ")";
+            ctx.beginPath();
+            ctx.arc(dpX, dpY, 2 + Math.sin(time * 4 + dp) * 1, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.restore();
+    }
+
     ctx.restore();
 };
 
@@ -4598,6 +4669,67 @@ Enemy.prototype.drawGlitch = function(ctx) {
             ctx.fillRect(-155, -110, 310, 220); // full space flash glitch
         }
         
+        ctx.restore();
+    }
+
+    // ====================================================
+    // PHASE-SPECIFIC VISUAL OVERLAYS
+    // ====================================================
+    
+    // Core Phase: Matrix rain columns + error text
+    if (type === "glitch_core" || type === "glitch_fatal") {
+        ctx.save();
+        ctx.globalCompositeOperation = "screen";
+        ctx.font = "8px monospace";
+        var matrixChars = "01アイウエオカキクケコ∀∃∈∉⊂⊃";
+        for (var mc = 0; mc < 6; mc++) {
+            var mcX = -50 + mc * 20 + Math.sin(time + mc) * 5;
+            var mcBaseY = ((time * 80 + mc * 37) % 120) - 60;
+            for (var mr = 0; mr < 4; mr++) {
+                var mcAlpha = 0.4 - mr * 0.1;
+                ctx.fillStyle = "rgba(0, 255, 0, " + mcAlpha + ")";
+                var ch = matrixChars[Math.floor((time * 8 + mc * 3 + mr) % matrixChars.length)];
+                ctx.fillText(ch, mcX, mcBaseY + mr * 10);
+            }
+        }
+        ctx.restore();
+    }
+    
+    // Fatal Phase: BSOD flicker + kernel panic text + pixel storm
+    if (type === "glitch_fatal") {
+        // Random BSOD flash
+        if (Math.random() < 0.03) {
+            ctx.save();
+            ctx.fillStyle = "rgba(0, 0, 180, 0.15)";
+            ctx.fillRect(-120, -100, 240, 200);
+            ctx.restore();
+        }
+        
+        // Kernel panic error text fragments
+        ctx.save();
+        ctx.globalCompositeOperation = "screen";
+        ctx.font = "6px monospace";
+        var errTexts = ["SEGFAULT", "0xDEAD", "PANIC", "ERR:404", "NULL_PTR", "OVERFLOW", "CORRUPT"];
+        for (var et = 0; et < 3; et++) {
+            var etIdx = Math.floor(time * 2 + et * 3) % errTexts.length;
+            var etX = -60 + Math.sin(time * 4 + et * 2) * 50;
+            var etY = -40 + Math.cos(time * 3 + et * 1.5) * 40;
+            ctx.fillStyle = "rgba(255, 0, 0, " + (0.3 + Math.sin(time * 6 + et) * 0.2) + ")";
+            ctx.fillText(errTexts[etIdx], etX, etY);
+        }
+        ctx.restore();
+        
+        // RGB pixel storm
+        ctx.save();
+        for (var ps = 0; ps < 10; ps++) {
+            var psX = (Math.sin(time * 7 + ps * 1.1) * 80);
+            var psY = (Math.cos(time * 5 + ps * 0.8) * 50);
+            var psColors = ["#FF0000", "#00FF00", "#0000FF", "#FF00FF", "#00FFFF"];
+            ctx.fillStyle = psColors[ps % 5];
+            ctx.globalAlpha = 0.3 + Math.sin(time * 10 + ps) * 0.2;
+            ctx.fillRect(psX - 2, psY - 2, 4, 4);
+        }
+        ctx.globalAlpha = 1.0;
         ctx.restore();
     }
 

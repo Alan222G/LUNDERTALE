@@ -148,23 +148,43 @@ VaderForcePushPattern.prototype.draw = function(ctx) {
                 ctx.fillRect(bb[2] - 40, bb[1], 40, bbH);
             }
         } else if (w.phase === 'active') {
-            // Translucent glowing force blast expanding across screen
             var progress = w.activeTimer / w.maxActive;
-            ctx.save();
-            ctx.globalAlpha = 0.35 * (1.0 - progress);
             
-            var grad = ctx.createLinearGradient(bb[0], 0, bb[2], 0);
-            if (w.side === 'left') {
-                grad.addColorStop(0, "rgba(186, 85, 211, 0.9)");
-                grad.addColorStop(Math.min(1.0, progress * 1.3), "rgba(138, 43, 226, 0.4)");
-                grad.addColorStop(1, "rgba(75, 0, 130, 0)");
-            } else {
-                grad.addColorStop(1, "rgba(186, 85, 211, 0.9)");
-                grad.addColorStop(Math.max(0.0, 1.0 - progress * 1.3), "rgba(138, 43, 226, 0.4)");
-                grad.addColorStop(0, "rgba(75, 0, 130, 0)");
+            // Draw expanding concentric Force shockwaves
+            ctx.save();
+            ctx.globalCompositeOperation = "screen";
+            ctx.strokeStyle = "rgba(186, 85, 211, " + (0.95 * (1.0 - progress)) + ")";
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = "#BA55D3";
+            
+            var waveX = (w.side === 'left') ? bb[0] + progress * bbW : bb[2] - progress * bbW;
+            
+            // Draw 3 nested curved ripple lines
+            for (var r = 0; r < 3; r++) {
+                var offset = r * 30;
+                var rX = (w.side === 'left') ? waveX - offset : waveX + offset;
+                ctx.lineWidth = 3.0 - r * 0.8;
+                
+                ctx.beginPath();
+                if (w.side === 'left') {
+                    var radius = Math.max(5, rX - bb[0]);
+                    ctx.arc(bb[0], bb[1] + bbH / 2, radius, -Math.PI / 2.5, Math.PI / 2.5);
+                } else {
+                    var radius = Math.max(5, bb[2] - rX);
+                    ctx.arc(bb[2], bb[1] + bbH / 2, radius, Math.PI * 0.6, Math.PI * 1.4);
+                }
+                ctx.stroke();
             }
-            ctx.fillStyle = grad;
-            ctx.fillRect(bb[0], bb[1], bbW, bbH);
+            
+            // Draw a soft ambient force blast glow
+            ctx.fillStyle = (w.side === 'left') 
+                ? "rgba(138, 43, 226, " + (0.15 * (1.0 - progress)) + ")" 
+                : "rgba(138, 43, 226, " + (0.15 * (1.0 - progress)) + ")";
+            if (w.side === 'left') {
+                ctx.fillRect(bb[0], bb[1], waveX - bb[0], bbH);
+            } else {
+                ctx.fillRect(waveX, bb[1], bb[2] - waveX, bbH);
+            }
             ctx.restore();
         }
         ctx.restore();

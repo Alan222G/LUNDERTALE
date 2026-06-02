@@ -243,10 +243,60 @@ GlitchErrorWindowsPattern.prototype.checkCollision = function(sx, sy, sw, sh) {
 };
 GlitchErrorWindowsPattern.prototype.draw = function(ctx) {
     ctx.save();
+    var t = Date.now() / 1000;
+    
+    // Scanline overlay across entire battle area
+    var bb = Cbbox.getBound();
+    ctx.fillStyle = "rgba(0, 0, 0, 0.03)";
+    for (var sl = bb[1]; sl < bb[3]; sl += 3) {
+        ctx.fillRect(bb[0], sl, bb[2] - bb[0], 1);
+    }
+    
     for (var i = 0; i < this.windows.length; i++) {
         var w = this.windows[i];
+        
+        // RGB chromatic aberration ghost behind each window
+        ctx.globalAlpha = 0.15;
+        ctx.fillStyle = "#FF0000";
+        ctx.fillRect(w.x - 4, w.y - 1, w.w, w.h);
+        ctx.fillStyle = "#0000FF";
+        ctx.fillRect(w.x + 4, w.y + 1, w.w, w.h);
+        ctx.globalAlpha = 1.0;
+        
+        // Main error box
         drawErrorBox(ctx, w.x, w.y, w.w, w.h, "Critical Error", w.message);
+        
+        // Glitch corruption pixels around each window
+        for (var p = 0; p < 6; p++) {
+            var px = w.x + Math.random() * w.w;
+            var py = w.y + Math.random() * w.h;
+            ctx.fillStyle = Math.random() < 0.5 ? "#FF00FF" : "#00FFFF";
+            ctx.fillRect(px, py, Math.random() * 8 + 2, 2);
+        }
+        
+        // Neon shadow glow under window
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = "#FF0055";
+        ctx.strokeStyle = "rgba(255, 0, 85, " + (0.3 + Math.sin(t * 8 + i) * 0.2).toFixed(2) + ")";
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(w.x - 1, w.y - 1, w.w + 2, w.h + 2);
+        ctx.shadowBlur = 0;
     }
+    
+    // Floating error text fragments
+    if (this.windows.length > 0) {
+        ctx.font = "7px 'Determination Mono'";
+        ctx.globalAlpha = 0.25;
+        var errTexts = ["FATAL", "0xDEAD", "SEGFAULT", "ERR_404", "CRITICAL"];
+        for (var e = 0; e < 4; e++) {
+            var ex = bb[0] + Math.sin(t * 2 + e * 1.7) * (bb[2] - bb[0]) * 0.4 + (bb[2] - bb[0]) * 0.5;
+            var ey = bb[1] + ((t * 30 + e * 40) % (bb[3] - bb[1]));
+            ctx.fillStyle = "#00FF00";
+            ctx.fillText(errTexts[e % errTexts.length], ex, ey);
+        }
+        ctx.globalAlpha = 1.0;
+    }
+    
     ctx.restore();
 };
 GlitchErrorWindowsPattern.prototype.isOver = function() {
@@ -325,9 +375,19 @@ GlitchMissingTexturePattern.prototype.checkCollision = function(sx, sy, sw, sh) 
 GlitchMissingTexturePattern.prototype.draw = function(ctx) {
     ctx.save();
     var bb = Cbbox.getBound();
+    var t = Date.now() / 1000;
+    
     for (var i = 0; i < this.blocks.length; i++) {
         var b = this.blocks[i];
         if (b.warning > 0) {
+            // RGB split aberration on the checker box
+            ctx.globalAlpha = 0.2;
+            ctx.fillStyle = "#FF0000";
+            ctx.fillRect(b.x - 3, b.y, b.size, b.size);
+            ctx.fillStyle = "#00FFFF";
+            ctx.fillRect(b.x + 3, b.y, b.size, b.size);
+            ctx.globalAlpha = 1.0;
+            
             // Renders checkered black and magenta ("Missing Texture") box
             for (var dx = 0; dx < b.size; dx += 8) {
                 for (var dy = 0; dy < b.size; dy += 8) {
@@ -335,17 +395,54 @@ GlitchMissingTexturePattern.prototype.draw = function(ctx) {
                     ctx.fillRect(b.x + dx, b.y + dy, 8, 8);
                 }
             }
-            // Warning border outline
-            ctx.strokeStyle = "rgba(255, 0, 255, " + (Math.sin(Date.now() / 50) * 0.4 + 0.6).toFixed(2) + ")";
-            ctx.lineWidth = 1.5;
+            
+            // "MISSING" text label
+            ctx.font = "bold 6px Courier";
+            ctx.fillStyle = "#FFFF00";
+            ctx.shadowBlur = 4;
+            ctx.shadowColor = "#FFFF00";
+            ctx.fillText("MISSING", b.x + 2, b.y - 4);
+            ctx.shadowBlur = 0;
+            
+            // Warning border outline with enhanced glow
+            ctx.strokeStyle = "rgba(255, 0, 255, " + (Math.sin(t * 12) * 0.4 + 0.6).toFixed(2) + ")";
+            ctx.lineWidth = 2;
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = "#FF00FF";
             ctx.strokeRect(b.x - 2, b.y - 2, b.size + 4, b.size + 4);
+            ctx.shadowBlur = 0;
+            
+            // Diagonal scanlines across checker
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+            ctx.lineWidth = 1;
+            for (var sl = 0; sl < b.size * 2; sl += 4) {
+                ctx.beginPath();
+                ctx.moveTo(b.x + sl, b.y);
+                ctx.lineTo(b.x, b.y + sl);
+                ctx.stroke();
+            }
         } else if (b.active > 0) {
-            // Renders a massive static glitch column or bar!
+            // Enhanced beam with glow
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = "#FF00FF";
+            
             if (b.type === 'H') {
                 drawGlitchStatic(ctx, bb[0], b.y, bb[2] - bb[0], b.size, 0.4);
+                // Neon edge lines
+                ctx.fillStyle = "rgba(0, 255, 255, 0.6)";
+                ctx.fillRect(bb[0], b.y, bb[2] - bb[0], 1);
+                ctx.fillRect(bb[0], b.y + b.size - 1, bb[2] - bb[0], 1);
+                // Error text on beam
+                ctx.font = "bold 7px Courier";
+                ctx.fillStyle = "#FFFFFF";
+                ctx.fillText("ERR_TEXTURE_NULL", bb[0] + 10 + Math.sin(t * 6) * 20, b.y + b.size / 2 + 3);
             } else {
                 drawGlitchStatic(ctx, b.x, bb[1], b.size, bb[3] - bb[1], 0.4);
+                ctx.fillStyle = "rgba(0, 255, 255, 0.6)";
+                ctx.fillRect(b.x, bb[1], 1, bb[3] - bb[1]);
+                ctx.fillRect(b.x + b.size - 1, bb[1], 1, bb[3] - bb[1]);
             }
+            ctx.shadowBlur = 0;
         }
     }
     ctx.restore();
@@ -427,6 +524,25 @@ GlitchCodeRainPattern.prototype.checkCollision = function(sx, sy, sw, sh) {
 };
 GlitchCodeRainPattern.prototype.draw = function(ctx) {
     ctx.save();
+    var t = Date.now() / 1000;
+    var bb = Cbbox.getBound();
+    
+    // Background matrix effect — faint column lines
+    ctx.strokeStyle = "rgba(0, 255, 102, 0.04)";
+    ctx.lineWidth = 1;
+    for (var mx = bb[0] + 8; mx < bb[2]; mx += 16) {
+        ctx.beginPath();
+        ctx.moveTo(mx, bb[1]);
+        ctx.lineTo(mx, bb[3]);
+        ctx.stroke();
+    }
+    
+    // Scanlines
+    ctx.fillStyle = "rgba(0, 0, 0, 0.04)";
+    for (var sl = bb[1]; sl < bb[3]; sl += 2) {
+        ctx.fillRect(bb[0], sl, bb[2] - bb[0], 1);
+    }
+    
     ctx.font = "12px 'Determination Mono'";
     ctx.textAlign = "center";
     
@@ -435,18 +551,46 @@ GlitchCodeRainPattern.prototype.draw = function(ctx) {
         for (var c = 0; c < col.chars.length; c++) {
             var cy = col.y - c * 15;
             var charObj = col.chars[c];
+            
+            // Fade older characters (trail effect)
+            var fadeAlpha = Math.max(0.2, 1.0 - c * 0.1);
+            
             if (charObj.isRed) {
-                ctx.fillStyle = "#FF0055"; // Bright glitch red
-                ctx.shadowBlur = 6;
+                // Dangerous red chars with strong glow
+                ctx.fillStyle = "rgba(255, 0, 85, " + fadeAlpha.toFixed(2) + ")";
+                ctx.shadowBlur = 12;
                 ctx.shadowColor = "#FF0055";
+                
+                // RGB split on red chars
+                ctx.globalAlpha = 0.3;
+                ctx.fillStyle = "#FF0000";
+                ctx.fillText(charObj.char, col.x - 2, cy);
+                ctx.fillStyle = "#0000FF";
+                ctx.fillText(charObj.char, col.x + 2, cy);
+                ctx.globalAlpha = fadeAlpha;
+                ctx.fillStyle = "#FF0055";
             } else {
-                ctx.fillStyle = "#00FF66"; // Standard green binary
-                ctx.shadowBlur = 2;
+                ctx.fillStyle = "rgba(0, 255, 102, " + fadeAlpha.toFixed(2) + ")";
+                ctx.shadowBlur = 4;
                 ctx.shadowColor = "#00FF66";
+                ctx.globalAlpha = fadeAlpha;
             }
             ctx.fillText(charObj.char, col.x, cy);
+            ctx.globalAlpha = 1.0;
+        }
+        
+        // Bright head character glow
+        if (col.chars.length > 0) {
+            ctx.fillStyle = "#FFFFFF";
+            ctx.shadowBlur = 16;
+            ctx.shadowColor = "#00FF66";
+            ctx.globalAlpha = 0.9;
+            ctx.fillText(col.chars[0].char, col.x, col.y);
+            ctx.globalAlpha = 1.0;
         }
     }
+    
+    ctx.shadowBlur = 0;
     ctx.restore();
 };
 GlitchCodeRainPattern.prototype.isOver = function() {
@@ -524,11 +668,30 @@ GlitchCoordinateWarpPattern.prototype.checkCollision = function(sx, sy, sw, sh) 
 GlitchCoordinateWarpPattern.prototype.draw = function(ctx) {
     ctx.save();
     var bb = Cbbox.getBound();
+    var t = Date.now() / 1000;
     
-    // Draw shearing digital coordinates
-    ctx.strokeStyle = "rgba(0, 255, 255, 0.18)";
-    ctx.lineWidth = 1.0;
+    // Distortion grid with color shifts
     var shear = Math.sin(this.elapsed * 4.0) * 22;
+    
+    // Red channel grid offset
+    ctx.strokeStyle = "rgba(255, 0, 0, 0.08)";
+    ctx.lineWidth = 1.0;
+    for (var x = bb[0] + 15; x < bb[2]; x += 30) {
+        ctx.beginPath();
+        ctx.moveTo(x - shear - 2, bb[1]);
+        ctx.lineTo(x + shear - 2, bb[3]);
+        ctx.stroke();
+    }
+    // Cyan channel grid
+    ctx.strokeStyle = "rgba(0, 255, 255, 0.12)";
+    for (var x = bb[0] + 15; x < bb[2]; x += 30) {
+        ctx.beginPath();
+        ctx.moveTo(x - shear + 2, bb[1]);
+        ctx.lineTo(x + shear + 2, bb[3]);
+        ctx.stroke();
+    }
+    // Main green grid
+    ctx.strokeStyle = "rgba(0, 255, 255, 0.18)";
     for (var x = bb[0] + 15; x < bb[2]; x += 30) {
         ctx.beginPath();
         ctx.moveTo(x - shear, bb[1]);
@@ -542,21 +705,56 @@ GlitchCoordinateWarpPattern.prototype.draw = function(ctx) {
         ctx.stroke();
     }
     
-    // Draw coordinate label tag bullets
+    // Coordinate numbers along edges
+    ctx.font = "6px Courier";
+    ctx.fillStyle = "rgba(0, 255, 255, 0.3)";
+    for (var x = bb[0] + 15; x < bb[2]; x += 30) {
+        ctx.fillText(Math.floor(x).toString(), x - 8, bb[1] + 8);
+    }
+    for (var y = bb[1] + 15; y < bb[3]; y += 30) {
+        ctx.fillText(Math.floor(y).toString(), bb[0] + 3, y + 3);
+    }
+    
+    // Draw coordinate label tag bullets with enhanced effects
     ctx.font = "bold 9pt Courier";
     ctx.textAlign = "center";
     for (var i = 0; i < this.bullets.length; i++) {
         var b = this.bullets[i];
+        
+        // Motion trail
+        ctx.globalAlpha = 0.15;
+        ctx.fillStyle = "#FF00FF";
+        var trailDir = b.vx > 0 ? -1 : 1;
+        for (var tr = 1; tr <= 3; tr++) {
+            ctx.fillRect(b.x + trailDir * tr * 6, b.y, b.width, b.height);
+        }
+        ctx.globalAlpha = 1.0;
+        
+        // Glow
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = "#FF00FF";
         ctx.fillStyle = "#FF00FF";
         ctx.fillRect(b.x, b.y, b.width, b.height);
         
         ctx.strokeStyle = "#00FFFF";
         ctx.lineWidth = 1.5;
         ctx.strokeRect(b.x, b.y, b.width, b.height);
+        ctx.shadowBlur = 0;
         
         ctx.fillStyle = "#FFFFFF";
         ctx.fillText(b.text || "X", b.x + 8, b.y + 12);
     }
+    
+    // Warp distortion label
+    if (this.bullets.length > 0) {
+        ctx.font = "bold 7px Courier";
+        ctx.fillStyle = "rgba(255, 0, 255, " + (0.3 + Math.sin(t * 6) * 0.2).toFixed(2) + ")";
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = "#FF00FF";
+        drawGlitchText(ctx, "COORDINATE_WARP", bb[0] + (bb[2] - bb[0]) / 2 - 40, bb[1] + 12, "bold 7px Courier", "#FF00FF", 2);
+        ctx.shadowBlur = 0;
+    }
+    
     ctx.restore();
 };
 GlitchCoordinateWarpPattern.prototype.isOver = function() {
@@ -640,13 +838,58 @@ GlitchFlickerShardsPattern.prototype.checkCollision = function(sx, sy, sw, sh) {
 };
 GlitchFlickerShardsPattern.prototype.draw = function(ctx) {
     ctx.save();
+    var t = Date.now() / 1000;
+    var bb = Cbbox.getBound();
+    var cX = bb[0] + (bb[2] - bb[0]) / 2;
+    var cY = bb[1] + (bb[3] - bb[1]) / 2;
+    
+    // Convergence indicator — pulsing rings at center
+    if (this.bullets.length > 0) {
+        ctx.strokeStyle = "rgba(255, 0, 255, " + (0.08 + Math.sin(t * 4) * 0.05).toFixed(2) + ")";
+        ctx.lineWidth = 1;
+        for (var r = 20; r < 180; r += 30) {
+            ctx.beginPath();
+            ctx.arc(cX, cY, r + Math.sin(t * 3) * 5, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+    }
+    
     for (var i = 0; i < this.bullets.length; i++) {
         var b = this.bullets[i];
         if (b.visible) {
+            // Directional trail
+            var dirX = b.vx !== undefined ? -Math.sign(b.vx) : 0;
+            var dirY = b.vy !== undefined ? -Math.sign(b.vy) : 0;
+            ctx.globalAlpha = 0.12;
             ctx.fillStyle = "#FF00FF";
-            ctx.shadowBlur = 6;
+            for (var tr = 1; tr <= 4; tr++) {
+                ctx.fillRect(b.x + dirX * tr * 5, b.y + dirY * tr * 5, b.width, b.height);
+            }
+            ctx.globalAlpha = 1.0;
+            
+            // Main shard with intense glow
+            ctx.fillStyle = "#FF00FF";
+            ctx.shadowBlur = 14;
             ctx.shadowColor = "#FF00FF";
             ctx.fillRect(b.x, b.y, b.width, b.height);
+            
+            // Inner bright core
+            ctx.fillStyle = "#FFFFFF";
+            ctx.shadowBlur = 0;
+            ctx.fillRect(b.x + 2, b.y + 2, b.width - 4, b.height - 4);
+            
+            // RGB aberration on shard
+            ctx.globalAlpha = 0.25;
+            ctx.fillStyle = "#FF0000";
+            ctx.fillRect(b.x - 2, b.y, b.width, b.height);
+            ctx.fillStyle = "#0000FF";
+            ctx.fillRect(b.x + 2, b.y, b.width, b.height);
+            ctx.globalAlpha = 1.0;
+        } else {
+            // Ghost outline when invisible (flickering)
+            ctx.strokeStyle = "rgba(255, 0, 255, 0.1)";
+            ctx.lineWidth = 1;
+            ctx.strokeRect(b.x, b.y, b.width, b.height);
         }
     }
     ctx.restore();
@@ -769,47 +1012,107 @@ GlitchStaticBarrierPattern.prototype.checkCollision = function(sx, sy, sw, sh) {
 GlitchStaticBarrierPattern.prototype.draw = function(ctx) {
     ctx.save();
     var bb = Cbbox.getBound();
+    var t = Date.now() / 1000;
     var widthScale = Math.min(80, this.elapsed * 12);
     
     if (widthScale > 4) {
-        // Draw left static wall
+        // Draw left static wall with gradient edge
         drawGlitchStatic(ctx, bb[0], bb[1], widthScale, bb[3] - bb[1], 0.35);
-        // Draw right static wall
         drawGlitchStatic(ctx, bb[2] - widthScale, bb[1], widthScale, bb[3] - bb[1], 0.35);
         
+        // Gradient fading edge on inner boundary
+        var leftGrad = ctx.createLinearGradient(bb[0] + widthScale - 15, 0, bb[0] + widthScale + 5, 0);
+        leftGrad.addColorStop(0, "rgba(0, 255, 255, 0.3)");
+        leftGrad.addColorStop(1, "rgba(0, 255, 255, 0)");
+        ctx.fillStyle = leftGrad;
+        ctx.fillRect(bb[0] + widthScale - 15, bb[1], 20, bb[3] - bb[1]);
+        
+        var rightGrad = ctx.createLinearGradient(bb[2] - widthScale + 15, 0, bb[2] - widthScale - 5, 0);
+        rightGrad.addColorStop(0, "rgba(0, 255, 255, 0.3)");
+        rightGrad.addColorStop(1, "rgba(0, 255, 255, 0)");
+        ctx.fillStyle = rightGrad;
+        ctx.fillRect(bb[2] - widthScale - 5, bb[1], 20, bb[3] - bb[1]);
+        
+        // Neon edge lines with glow
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = "#00FFFF";
         ctx.strokeStyle = "#00FFFF";
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(bb[0] + widthScale, bb[1]); ctx.lineTo(bb[0] + widthScale, bb[3]);
         ctx.moveTo(bb[2] - widthScale, bb[1]); ctx.lineTo(bb[2] - widthScale, bb[3]);
         ctx.stroke();
+        ctx.shadowBlur = 0;
+        
+        // "BARRIER" text on walls
+        ctx.save();
+        ctx.font = "bold 7px Courier";
+        ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+        ctx.translate(bb[0] + widthScale / 2, bb[1] + (bb[3] - bb[1]) / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText("STATIC_WALL", -30, 3);
+        ctx.restore();
+        
+        ctx.save();
+        ctx.font = "bold 7px Courier";
+        ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+        ctx.translate(bb[2] - widthScale / 2, bb[1] + (bb[3] - bb[1]) / 2);
+        ctx.rotate(Math.PI / 2);
+        ctx.fillText("STATIC_WALL", -30, 3);
+        ctx.restore();
     }
     
-    // Draw lasers
+    // Draw lasers with enhanced effects
     for (var i = 0; i < this.lasers.length; i++) {
         var l = this.lasers[i];
         if (l.warning > 0) {
-            ctx.strokeStyle = "rgba(255, 0, 255, 0.4)";
+            // Pulsing warning line
+            ctx.strokeStyle = "rgba(255, 0, 255, " + (0.2 + Math.sin(t * 15) * 0.25).toFixed(2) + ")";
             ctx.lineWidth = 1.5;
             ctx.setLineDash([4, 4]);
             ctx.beginPath();
             ctx.moveTo(bb[0], l.y); ctx.lineTo(bb[2], l.y);
             ctx.stroke();
             ctx.setLineDash([]);
+            
+            // Warning triangles
+            ctx.fillStyle = "rgba(255, 204, 0, 0.6)";
+            ctx.font = "bold 8px Courier";
+            ctx.fillText("⚠", bb[0] + 5, l.y + 3);
+            ctx.fillText("⚠", bb[2] - 15, l.y + 3);
         } else if (l.active > 0) {
+            // Outer glow
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = "#FF00FF";
             ctx.fillStyle = "rgba(255, 0, 255, 0.85)";
             ctx.fillRect(bb[0], l.y - 4, bb[2] - bb[0], 8);
+            // Inner bright core
             ctx.fillStyle = "#FFFFFF";
             ctx.fillRect(bb[0], l.y - 1, bb[2] - bb[0], 2);
+            ctx.shadowBlur = 0;
+            
+            // RGB split on laser
+            ctx.globalAlpha = 0.2;
+            ctx.fillStyle = "#FF0000";
+            ctx.fillRect(bb[0], l.y - 6, bb[2] - bb[0], 3);
+            ctx.fillStyle = "#0000FF";
+            ctx.fillRect(bb[0], l.y + 3, bb[2] - bb[0], 3);
+            ctx.globalAlpha = 1.0;
         }
     }
     
-    // Draw bullets
+    // Draw bullets with glow
     for (var i = 0; i < this.bullets.length; i++) {
         var b = this.bullets[i];
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = b.color;
         ctx.fillStyle = b.color;
         ctx.fillRect(b.x, b.y, b.width, b.height);
+        // Bright core
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillRect(b.x + 2, b.y + 2, b.width - 4, b.height - 4);
     }
+    ctx.shadowBlur = 0;
     
     ctx.restore();
 };
