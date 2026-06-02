@@ -495,8 +495,8 @@ var Combat = (function() {
                 BossController.draw(ctx);
                 Soul.draw(ctx);
                 
-                // Draw Mirror reflection soul if Coloso de Espejos (prism) is active!
-                if (Cgroup.getBossId() === "prism") {
+                // Draw Mirror reflection soul if Coloso de Espejos (prism) is active and mirror is enabled!
+                if (Cgroup.getBossId() === "prism" && typeof BossController !== "undefined" && BossController.isMirrorActive && BossController.isMirrorActive()) {
                     var mPos = Soul.getMirrorPos();
                     Soul.drawAt(ctx, mPos, 0.5); // semi-translucent mirror reflection!
                 }

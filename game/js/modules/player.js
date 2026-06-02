@@ -31,8 +31,7 @@ var Player = (function() {
     var mahoragaAdaptations = {};
     var mahoragaWheelSpinTimer = 0;
     var gojoTurns = 0;
-    var subaruRevives = 1;
-    var sansDodgeCount = 4;
+    var subaruRevives = 3;
     var hitboxScaleOverride = 1.0;
     var hitboxScaleTurns = 0;
     
@@ -64,8 +63,7 @@ var Player = (function() {
         mahoragaAdaptations = {};
         mahoragaWheelSpinTimer = 0;
         gojoTurns = 3; // Gojo starts with Infinity charged!
-        subaruRevives = 1;
-        sansDodgeCount = 4;
+        subaruRevives = 3;
         hitboxScaleOverride = 1.0;
         hitboxScaleTurns = 0;
         
@@ -96,6 +94,8 @@ var Player = (function() {
             case 12: hpMax = 120; baseSpd = 1.0; baseAtk = 1.0; baseDef = 1.0; break; // Divergent zilla
             case 13: hpMax = 110; baseSpd = 1.0; baseAtk = 1.0; baseDef = 1.0; break; // Eva 01
             case 14: hpMax = 90;  baseSpd = 1.2; baseAtk = 1.0; baseDef = 1.0; break; // Gojo
+            case 15: hpMax = 70;  baseSpd = 1.0; baseAtk = 1.0; baseDef = 1.0; break; // Subaru (Retorno por Muerte)
+            case 16: hpMax = 150; baseSpd = 1.0; baseAtk = 1.6; baseDef = 1.4; break; // All Might (One For All)
         }
         hpCur = hpMax;
         recalculateBuffs();
@@ -166,6 +166,12 @@ var Player = (function() {
             baseAtk = 0.5 + Math.random() * 1.5;
             baseDef = 0.5 + Math.random() * 1.5;
         }
+
+        // All Might fatigue: HP max decays 3 per turn (minimum 60)
+        if (soulClass === 16) {
+            hpMax = Math.max(60, hpMax - 3);
+            hpCur = Math.min(hpCur, hpMax);
+        }
         
         // Decrement buff arrays
         for (var i = activeSpdBuffs.length - 1; i >= 0; i--) {
@@ -221,6 +227,19 @@ var Player = (function() {
             hpCur = hpMax;
             Sound.playSound("heal", true);
             console.log("PHOENIX EGG: Revived!");
+            return true; // ¡Resucitado!
+        }
+        // Subaru — Retorno por Muerte (up to 3 revives per combat, preserves base stats)
+        if (soulClass === 15 && subaruRevives > 0) {
+            subaruRevives--;
+            hpCur = Math.max(1, Math.floor(hpMax * 0.15)); // Revive at 15% HP
+            invulnerableTurns = 2; // 2 seconds of invulnerability
+            Sound.playSound("heal", true);
+            if (typeof Soul !== "undefined" && Soul.addFloatingText) {
+                var sPos = Soul.getPos();
+                Soul.addFloatingText("RETURN BY DEATH", sPos.x + Soul.getWidth() / 2, sPos.y - 12, "#00BFFF");
+            }
+            console.log("SUBARU: Return by Death! Revives left: " + subaruRevives);
             return true; // ¡Resucitado!
         }
         return false;
@@ -415,6 +434,7 @@ var Player = (function() {
         getHitboxScaleMultiplier: function() { return hitboxScaleOverride; },
         setHitboxScaleMultiplier: function(val, turns) { hitboxScaleOverride = val; hitboxScaleTurns = turns; },
         getGojoTurns: function() { return gojoTurns; },
-        getMahoragaWheelSpinTimer: function() { return mahoragaWheelSpinTimer; }
+        getMahoragaWheelSpinTimer: function() { return mahoragaWheelSpinTimer; },
+        getSubaruRevives: function() { return subaruRevives; }
     };
 }());

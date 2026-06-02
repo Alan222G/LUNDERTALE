@@ -7,6 +7,7 @@ var Soul = (function() {
     var speed;
     var colData;
     var floatingTexts = []; // List of active floating text animations
+    var shieldParticles = []; // Particles spawned on shield break
 
     // Soul mode system
     var soulMode;
@@ -85,6 +86,17 @@ var Soul = (function() {
             }
         }
 
+        // Update shield particles
+        for (var i = shieldParticles.length - 1; i >= 0; i--) {
+            var p = shieldParticles[i];
+            p.x += p.vx * dt;
+            p.y += p.vy * dt;
+            p.age += dt;
+            if (p.age >= p.maxAge) {
+                shieldParticles.splice(i, 1);
+            }
+        }
+
         switch (state) {
             case STATE.DAMAGED:
                 durationCounter += dt;
@@ -150,6 +162,8 @@ var Soul = (function() {
         else if (sClass === 12) ctx.filter = "grayscale(100%) brightness(2.0)"; // Divergent zilla (Mahoraga White)
         else if (sClass === 13) ctx.filter = "hue-rotate(290deg) saturate(2.2) brightness(1.2)"; // Eva 01 Purple/Green
         else if (sClass === 14) ctx.filter = "hue-rotate(190deg) saturate(3) brightness(1.6)"; // Gojo Celestial Blue
+        else if (sClass === 15) ctx.filter = "hue-rotate(200deg) saturate(1.8) brightness(1.1)"; // Subaru Dark Teal
+        else if (sClass === 16) ctx.filter = "hue-rotate(50deg) saturate(2.5) brightness(1.4)"; // All Might Gold
     }
 
     function drawDecorations(ctx, drawPos, sw, sh, sClass) {
@@ -208,42 +222,209 @@ var Soul = (function() {
             }
             ctx.restore();
         } else if (sClass === 14) { // Gojo (Limitless Ring + Six Eyes)
-            // 1. Limitless barrier ring (pulses and glows extra thick if charged/active)
+            var cx = drawPos.x + sw/2;
+            var cy = drawPos.y + sh/2;
+            var time = Date.now() / 1000;
+            
+            // 1. Draw Six Eyes Perception Zone (80px radius glowing sphere)
             ctx.save();
-            var infCharged = (typeof Player !== "undefined" && Player.getGojoTurns && Player.getGojoTurns() >= 4);
-            ctx.strokeStyle = infCharged ? "rgba(0, 229, 255, 0.95)" : "rgba(0, 229, 255, 0.45)";
-            ctx.lineWidth = infCharged ? 3.0 : 1.5;
-            ctx.shadowBlur = infCharged ? 18 : 8;
-            ctx.shadowColor = "#00E5FF";
+            ctx.strokeStyle = "rgba(0, 229, 255, 0.2)";
+            ctx.lineWidth = 1.0;
+            
+            // Draw outer dotted circle boundary
             ctx.beginPath();
-            ctx.arc(drawPos.x + sw/2, drawPos.y + sh/2, sw * 1.1 + Math.sin(Date.now()/250)*2, 0, Math.PI*2);
+            ctx.setLineDash([4, 4]);
+            ctx.arc(cx, cy, 80, 0, Math.PI * 2);
             ctx.stroke();
             ctx.restore();
             
-            // 2. Six Eyes pupil/radial lines (active when Cancel / X is held down)
-            if (typeof myKeys !== "undefined" && myKeys.isCancel()) {
-                ctx.save();
-                ctx.translate(drawPos.x + sw/2, drawPos.y + sh/2);
-                ctx.rotate((Date.now() / 400) % (Math.PI * 2));
-                ctx.strokeStyle = "rgba(0, 255, 255, 0.85)";
-                ctx.lineWidth = 1.0;
-                ctx.shadowBlur = 6;
-                ctx.shadowColor = "#00FFFF";
-                
-                // Iris ring
+            ctx.save();
+            // Draw filled gradient area within 80px
+            var radGrad = ctx.createRadialGradient(cx, cy, 5, cx, cy, 80);
+            radGrad.addColorStop(0, "rgba(0, 229, 255, 0.08)");
+            radGrad.addColorStop(0.5, "rgba(0, 229, 255, 0.03)");
+            radGrad.addColorStop(1, "rgba(0, 229, 255, 0)");
+            ctx.fillStyle = radGrad;
+            ctx.beginPath();
+            ctx.arc(cx, cy, 80, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Draw rotating thin sweep lines inside the zone
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(time * 0.15);
+            ctx.strokeStyle = "rgba(0, 229, 255, 0.1)";
+            ctx.lineWidth = 0.5;
+            for (var r = 0; r < 4; r++) {
+                var ra = r * Math.PI / 2;
                 ctx.beginPath();
-                ctx.arc(0, 0, sw * 0.45, 0, Math.PI * 2);
+                ctx.moveTo(-75, 0);
+                ctx.lineTo(75, 0);
                 ctx.stroke();
+            }
+            ctx.restore();
+            ctx.restore();
+
+            // 2. Limitless Infinity Shield (Active when charged: Player.getGojoTurns() >= 3)
+            var infCharged = (typeof Player !== "undefined" && Player.getGojoTurns && Player.getGojoTurns() >= 3);
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(-time * 0.6);
+            
+            if (infCharged) {
+                // Charged shield: Hexagonal glowing rotating shield
+                ctx.strokeStyle = "rgba(0, 240, 255, 0.9)";
+                ctx.fillStyle = "rgba(0, 240, 255, 0.08)";
+                ctx.lineWidth = 2.0;
+                ctx.shadowBlur = 12;
+                ctx.shadowColor = "#00F0FF";
                 
-                // 6 spokes
-                for (var sp = 0; sp < 6; sp++) {
-                    var sAngle = (sp * Math.PI / 3);
+                ctx.beginPath();
+                var shieldRadius = sw * 1.35 + Math.sin(time * 5.0) * 1.5;
+                for (var h = 0; h < 6; h++) {
+                    var hAngle = (h * Math.PI / 3);
+                    var hx = Math.cos(hAngle) * shieldRadius;
+                    var hy = Math.sin(hAngle) * shieldRadius;
+                    if (h === 0) ctx.moveTo(hx, hy);
+                    else ctx.lineTo(hx, hy);
+                }
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+            } else {
+                // Uncharged/recharging ring: faint dashed circular boundary
+                ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
+                ctx.lineWidth = 1.0;
+                ctx.setLineDash([3, 2]);
+                ctx.beginPath();
+                ctx.arc(0, 0, sw * 1.2, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            ctx.restore();
+
+            // 3. Six Eyes Iris/Pupil overlay (always active in center of soul, rotates)
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(time * 0.8);
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
+            ctx.shadowBlur = 4;
+            ctx.shadowColor = "#00FFFF";
+            ctx.lineWidth = 1.0;
+            
+            // Faint pupil core
+            ctx.beginPath();
+            ctx.arc(0, 0, 3, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // Six radiating points (representing the Six Eyes sight rays)
+            ctx.strokeStyle = "rgba(0, 255, 255, 0.85)";
+            for (var sp = 0; sp < 6; sp++) {
+                var sAngle = (sp * Math.PI / 3);
+                ctx.beginPath();
+                ctx.moveTo(Math.cos(sAngle) * 2.5, Math.sin(sAngle) * 2.5);
+                ctx.lineTo(Math.cos(sAngle) * 7.0, Math.sin(sAngle) * 7.0);
+                ctx.stroke();
+            }
+            ctx.restore();
+        } else if (sClass === 15) { // Subaru — Return By Death (shadow tendrils + revival dots)
+            var cx = drawPos.x + sw/2;
+            var cy = drawPos.y + sh/2;
+            var time = Date.now() / 1000;
+            
+            // Dark shadow tendrils emanating from the soul
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(time * 0.3);
+            ctx.strokeStyle = "rgba(0, 0, 0, 0.5)";
+            ctx.lineWidth = 1.5;
+            ctx.shadowBlur = 6;
+            ctx.shadowColor = "rgba(0, 100, 200, 0.6)";
+            for (var t = 0; t < 5; t++) {
+                var tAngle = (t * Math.PI * 2 / 5);
+                var tLen = 10 + Math.sin(time * 2.5 + t) * 4;
+                ctx.beginPath();
+                ctx.moveTo(Math.cos(tAngle) * 6, Math.sin(tAngle) * 6);
+                ctx.quadraticCurveTo(
+                    Math.cos(tAngle + 0.3) * (tLen * 0.6),
+                    Math.sin(tAngle + 0.3) * (tLen * 0.6),
+                    Math.cos(tAngle) * tLen,
+                    Math.sin(tAngle) * tLen
+                );
+                ctx.stroke();
+            }
+            ctx.restore();
+            
+            // Revival counter dots below the soul
+            if (typeof Player !== "undefined" && Player.getSubaruRevives) {
+                var revives = Player.getSubaruRevives();
+                var dotY = drawPos.y + sh + 6;
+                var dotStartX = cx - (revives - 1) * 4;
+                ctx.save();
+                for (var d = 0; d < revives; d++) {
+                    ctx.fillStyle = "rgba(0, 180, 255, 0.9)";
+                    ctx.shadowBlur = 4;
+                    ctx.shadowColor = "#00B4FF";
                     ctx.beginPath();
-                    ctx.moveTo(Math.cos(sAngle) * (sw * 0.2), Math.sin(sAngle) * (sw * 0.2));
-                    ctx.lineTo(Math.cos(sAngle) * (sw * 0.75), Math.sin(sAngle) * (sw * 0.75));
-                    ctx.stroke();
+                    ctx.arc(dotStartX + d * 8, dotY, 2.5, 0, Math.PI * 2);
+                    ctx.fill();
                 }
                 ctx.restore();
+            }
+        } else if (sClass === 16) { // All Might — One For All (power aura + lightning)
+            var cx = drawPos.x + sw/2;
+            var cy = drawPos.y + sh/2;
+            var time = Date.now() / 1000;
+            
+            // Power aura glow
+            ctx.save();
+            var auraGrad = ctx.createRadialGradient(cx, cy, 3, cx, cy, sw * 1.8);
+            auraGrad.addColorStop(0, "rgba(255, 220, 50, 0.25)");
+            auraGrad.addColorStop(0.5, "rgba(255, 180, 0, 0.1)");
+            auraGrad.addColorStop(1, "rgba(255, 180, 0, 0)");
+            ctx.fillStyle = auraGrad;
+            ctx.beginPath();
+            ctx.arc(cx, cy, sw * 1.8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+            
+            // Lightning bolts (random flickers)
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.strokeStyle = "rgba(255, 255, 100, 0.9)";
+            ctx.lineWidth = 1.2;
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = "#FFE600";
+            for (var b = 0; b < 3; b++) {
+                var bAngle = (b * Math.PI * 2 / 3) + Math.sin(time * 4.0 + b) * 0.5;
+                var bLen = 12 + Math.sin(time * 6.0 + b * 2) * 5;
+                ctx.beginPath();
+                var bx1 = Math.cos(bAngle) * 5;
+                var by1 = Math.sin(bAngle) * 5;
+                var bx2 = Math.cos(bAngle + 0.15) * (bLen * 0.5);
+                var by2 = Math.sin(bAngle + 0.15) * (bLen * 0.5);
+                var bx3 = Math.cos(bAngle - 0.1) * bLen;
+                var by3 = Math.sin(bAngle - 0.1) * bLen;
+                ctx.moveTo(bx1, by1);
+                ctx.lineTo(bx2, by2);
+                ctx.lineTo(bx3, by3);
+                ctx.stroke();
+            }
+            ctx.restore();
+            
+            // HP decay warning glow (redder as HP gets lower)
+            if (typeof Player !== "undefined" && Player.getHPCur && Player.getHPMax) {
+                var hpRatio = Player.getHPCur() / Player.getHPMax();
+                if (hpRatio < 0.5) {
+                    ctx.save();
+                    var warnAlpha = (1 - hpRatio * 2) * 0.3;
+                    ctx.strokeStyle = "rgba(255, 50, 50, " + warnAlpha + ")";
+                    ctx.lineWidth = 1.5;
+                    ctx.setLineDash([2, 3]);
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, sw * 1.3, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.restore();
+                }
             }
         }
     }
@@ -439,10 +620,9 @@ var Soul = (function() {
         var sw = getWidth();
         var sh = getHeight();
         var mainCenterX = pos.x + sw / 2;
-        var mainCenterY = pos.y + sh / 2;
         var boxCenterX = (bb[0] + bb[2]) / 2;
         var mirrorCenterX = 2 * boxCenterX - mainCenterX;
-        return { x: mirrorCenterX, y: mainCenterY };
+        return { x: mirrorCenterX - sw / 2, y: pos.y };
     }
     function getState() { return state; }
     function isOkay() { return state === STATE.OKAY; }

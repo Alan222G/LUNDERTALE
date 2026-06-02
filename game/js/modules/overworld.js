@@ -26,7 +26,9 @@ var Overworld = (function() {
         { name: "Corazón Caótico", desc: "Caótico. HP:100, Cada turno cambia de alma y stats. Arcoíris." },
         { name: "Divergent zilla", desc: "Adaptación. HP:120. Se adapta al daño ganando permanentemente +30% DEF por golpe recibido (hasta +150%)." },
         { name: "Eva 01", desc: "Berserk. HP:110. Si tu HP baja del 30%, entras en furia (+100% ATK, +50% VEL, regenera 4 HP/seg, no puedes usar ítems)." },
-        { name: "Gojo", desc: "Infinito. HP:90, VEL:+20%. Satoru Gojo. Tu barrera de Infinito bloquea un golpe de forma absoluta cada 4 turnos." }
+        { name: "Gojo", desc: "Infinito. HP:90, VEL:+20%. Satoru Gojo. Tu barrera de Infinito bloquea un golpe de forma absoluta cada 4 turnos." },
+        { name: "Subaru", desc: "Retorno por Muerte. HP:70. Si mueres, revives con 15% HP y 2 seg de invulnerabilidad (hasta 3 veces por combate)." },
+        { name: "All Might", desc: "One For All. HP:150, ATK:+60%, DEF:+40%. Símbolo de la Paz. Tu HP Máximo decae -3/turno (mín 60)." }
     ];
 
     var bgImage = new Image();

@@ -611,26 +611,12 @@ Enemy.prototype.dealDamage = function(damage) {
     var finalDmg = damage;
     var sClass = (typeof Player !== "undefined") ? Player.getSoulClass() : 0;
     
-    // Yuji Itadori Black Flash (20% chance, 2.5x damage)
-    if (sClass === 16 && Math.random() < 0.20) {
-        finalDmg *= 2.5;
-        Sound.playSound("hit_2_crit", true);
-        if (typeof triggerBlackFlash === "function") {
-            triggerBlackFlash();
-        } else if (typeof Camera !== "undefined" && Camera.shake) {
-            Camera.shake(8.0);
-        }
-        console.log("BLACK FLASH! 2.5x damage dealt!");
-    }
-    
     this.curHP -= finalDmg / this.defense;
     
     // Lifesteal Passives
     if (typeof Player !== "undefined") {
         if (sClass === 10) { // Vampire: 10% lifesteal
             Player.heal(Math.ceil(finalDmg * 0.10));
-        } else if (sClass === 26) { // Denji Chainsaw: 25% lifesteal
-            Player.heal(Math.ceil(finalDmg * 0.25));
         }
     }
     
@@ -4572,7 +4558,7 @@ Enemy.prototype.drawPrism = function(ctx) {
     var floatY = Math.sin(time * 1.8) * 6.0;
     
     ctx.save();
-    ctx.translate(370, 245 + floatY);
+    ctx.translate(370, 200 + floatY);
     ctx.scale(breathe, breathe);
     
     // Local helper for drawing crystal facets

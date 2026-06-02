@@ -415,12 +415,23 @@ var BossController = (function() {
                     soulPos.x, soulPos.y, Soul.getWidth(), Soul.getHeight());
                 
                 // Mirror reflection soul collision check for Coloso de Espejos!
-                if (dmg <= 0 && enemy && enemy.name === "Coloso de Espejos") {
-                    var mPos = Soul.getMirrorPos();
-                    dmg = currentPattern.checkCollision(
-                        mPos.x, mPos.y, Soul.getWidth(), Soul.getHeight());
-                    if (dmg > 0) {
-                        console.log("[Mirror Passive] Hit mirror reflection soul!");
+                if (dmg <= 0 && enemy && enemy.name === "Coloso de Espejos" && currentPattern) {
+                    var activeMirror = false;
+                    var mPos = null;
+                    if (currentPattern.name === "mirrorReflect" || currentPattern.name === "mirrorMaze") {
+                        activeMirror = true;
+                        mPos = Soul.getMirrorPos();
+                    } else if (currentPattern.name === "mirrorDimension" && currentPattern.mirrorPos) {
+                        activeMirror = true;
+                        mPos = currentPattern.mirrorPos;
+                    }
+                    
+                    if (activeMirror && mPos) {
+                        dmg = currentPattern.checkCollision(
+                            mPos.x, mPos.y, Soul.getWidth(), Soul.getHeight());
+                        if (dmg > 0) {
+                            console.log("[Mirror Passive] Hit mirror reflection soul!");
+                        }
                     }
                 }
             } catch (e) {
@@ -494,10 +505,16 @@ var BossController = (function() {
     function getTurnCount() { return turnCount; }
     function isActive() { return isAttacking; }
     function reset() { turnCount = 0; currentPattern = null; isAttacking = false; }
+    function isMirrorActive() {
+        return isAttacking && currentPattern && 
+            (currentPattern.name === "mirrorReflect" || 
+             currentPattern.name === "mirrorMaze");
+    }
 
     return {
         init: init, startAttack: startAttack, getAttackDetails: getAttackDetails,
         update: update, draw: draw,
         getTurnCount: getTurnCount, isActive: isActive, reset: reset,
+        isMirrorActive: isMirrorActive,
     };
 }());
