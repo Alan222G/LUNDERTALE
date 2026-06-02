@@ -28,7 +28,10 @@ var Overworld = (function() {
         { name: "Eva 01", desc: "Berserk. HP:110. Si tu HP baja del 30%, entras en furia (+100% ATK, +50% VEL, regenera 4 HP/seg, no puedes usar ítems)." },
         { name: "Gojo", desc: "Infinito. HP:90, VEL:+20%. Satoru Gojo. Tu barrera de Infinito bloquea un golpe de forma absoluta cada 4 turnos." },
         { name: "Subaru", desc: "Retorno por Muerte. HP:70. Si mueres, revives con 15% HP y 2 seg de invulnerabilidad (hasta 3 veces por combate)." },
-        { name: "All Might", desc: "One For All. HP:150, ATK:+60%, DEF:+40%. Símbolo de la Paz. Tu HP Máximo decae -3/turno (mín 60)." }
+        { name: "All Might", desc: "One For All. HP:150, ATK:+60%, DEF:+40%. Símbolo de la Paz. Tu HP Máximo decae -3/turno (mín 60)." },
+        { name: "Itadori", desc: "Jujutsu. HP:100, VEL:+10%, ATK:+30%. Black Flash (20% crit 2.5x), Sangre Perforante (sangrado al enemigo), RCT cada 8 turnos." },
+        { name: "Nanami", desc: "Ratio 7:3. HP:110, ATK:+20%, DEF:+10%. Crítico 50% más fácil (2.5x). Inmune a veneno/sangrado. Overtime (+15% todo) tras 12 turnos." },
+        { name: "Sans", desc: "Mal Tiempo. HP:50. 15 esquives automáticos por turno. Cada golpe aplica veneno de 10seg (20 dmg/seg) al enemigo." }
     ];
 
     var bgImage = new Image();
@@ -37,7 +40,7 @@ var Overworld = (function() {
     var animTimer = 0;
     var singFrames = [];
     var seraFrames = [];
-    
+    var activeBossTriggerIndex = -1; // Track which boss trigger is in combat    
     function loadImg(src) { var i = new Image(); i.src = src; return i; }
 
     function init() {
@@ -306,7 +309,8 @@ var Overworld = (function() {
         for (var i = 0; i < triggerList.length; i++) {
             var t = triggerList[i];
             if (!t.triggered && rectsOverlap(pbox.x, pbox.y, pbox.w, pbox.h, t.x, t.y, t.w, t.h)) {
-                t.triggered = true;
+                // Don't mark as triggered yet — only after winning!
+                activeBossTriggerIndex = i;
                 t.action();
             }
         }
@@ -1852,5 +1856,13 @@ var Overworld = (function() {
         ctx.restore();
     }
 
-    return { init: init, setup: setup, update: update, draw: draw };
+    function markBossDefeated() {
+        if (activeBossTriggerIndex >= 0 && activeBossTriggerIndex < triggerList.length) {
+            triggerList[activeBossTriggerIndex].triggered = true;
+            console.log("Boss defeated! Trigger " + activeBossTriggerIndex + " marked as triggered.");
+        }
+        activeBossTriggerIndex = -1;
+    }
+
+    return { init: init, setup: setup, update: update, draw: draw, markBossDefeated: markBossDefeated };
 }());

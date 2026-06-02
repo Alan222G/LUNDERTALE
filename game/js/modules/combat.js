@@ -48,6 +48,19 @@ var Combat = (function() {
         } else {
             Sound.playSound("bgm_seraphina", true);
         }
+        
+        // Eva 01 Anti-Angel Protocol: +20% all stats vs angel bosses
+        if (typeof Player !== "undefined" && Player.getSoulClass() === 13) {
+            if (bossId === "seraphina" || bossId === "ramiel" || bossId === "sachiel") {
+                Player.applyAngelBonus();
+                if (typeof Soul !== "undefined" && Soul.addFloatingText) {
+                    setTimeout(function() {
+                        var sPos = Soul.getPos();
+                        Soul.addFloatingText("ANTI-ANGEL", sPos.x + Soul.getWidth() / 2, sPos.y - 12, "#9900FF");
+                    }, 500);
+                }
+            }
+        }
     }
 
     function setup(ctx) {
@@ -311,6 +324,10 @@ var Combat = (function() {
                 break;
 
             case COMBAT_STATE.WIN:
+                // Mark boss as defeated in overworld ONLY on victory!
+                if (typeof Overworld !== "undefined" && Overworld.markBossDefeated) {
+                    Overworld.markBossDefeated();
+                }
                 Transition.start(function() {
                     main.gameState = main.GAME_STATE.OVERWORLD;
                     Overworld.setup(main.ctx);

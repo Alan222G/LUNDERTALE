@@ -164,6 +164,9 @@ var Soul = (function() {
         else if (sClass === 14) ctx.filter = "hue-rotate(190deg) saturate(3) brightness(1.6)"; // Gojo Celestial Blue
         else if (sClass === 15) ctx.filter = "hue-rotate(200deg) saturate(1.8) brightness(1.1)"; // Subaru Dark Teal
         else if (sClass === 16) ctx.filter = "hue-rotate(50deg) saturate(2.5) brightness(1.4)"; // All Might Gold
+        else if (sClass === 17) ctx.filter = "hue-rotate(330deg) saturate(2.5) brightness(1.3)"; // Itadori Cursed Pink
+        else if (sClass === 18) ctx.filter = "hue-rotate(45deg) saturate(1.8) brightness(1.5)"; // Nanami Professional Gold
+        else if (sClass === 19) ctx.filter = "grayscale(100%) brightness(2.5) contrast(1.5)"; // Sans Bone White
     }
 
     function drawDecorations(ctx, drawPos, sw, sh, sClass) {
@@ -326,6 +329,20 @@ var Soul = (function() {
                 ctx.stroke();
             }
             ctx.restore();
+            
+            // RCT active healing indicator (pulsing green glow)
+            if (typeof Player !== "undefined" && Player.isGojoRctActive && Player.isGojoRctActive()) {
+                ctx.save();
+                var rctAlpha = 0.2 + Math.sin(time * 6) * 0.15;
+                var rctGrad = ctx.createRadialGradient(cx, cy, 2, cx, cy, sw * 1.5);
+                rctGrad.addColorStop(0, "rgba(0, 255, 136, " + rctAlpha + ")");
+                rctGrad.addColorStop(1, "rgba(0, 255, 136, 0)");
+                ctx.fillStyle = rctGrad;
+                ctx.beginPath();
+                ctx.arc(cx, cy, sw * 1.5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
         } else if (sClass === 15) { // Subaru — Return By Death (shadow tendrils + revival dots)
             var cx = drawPos.x + sw/2;
             var cy = drawPos.y + sh/2;
@@ -425,6 +442,199 @@ var Soul = (function() {
                     ctx.stroke();
                     ctx.restore();
                 }
+            }
+        } else if (sClass === 17) { // Itadori — Cursed Energy Vortex + Blood Piercing
+            var cx = drawPos.x + sw/2;
+            var cy = drawPos.y + sh/2;
+            var time = Date.now() / 1000;
+            
+            // Cursed energy vortex (rotating pink/black spiral)
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(time * 1.5);
+            for (var v = 0; v < 6; v++) {
+                var vAngle = (v * Math.PI / 3) + time * 0.8;
+                var vLen = 12 + Math.sin(time * 3.0 + v * 1.5) * 5;
+                ctx.strokeStyle = v % 2 === 0 ? "rgba(255, 20, 147, 0.8)" : "rgba(30, 0, 50, 0.7)";
+                ctx.lineWidth = 1.5;
+                ctx.shadowBlur = 6;
+                ctx.shadowColor = "#FF1493";
+                ctx.beginPath();
+                ctx.moveTo(Math.cos(vAngle) * 4, Math.sin(vAngle) * 4);
+                ctx.quadraticCurveTo(
+                    Math.cos(vAngle + 0.4) * (vLen * 0.6),
+                    Math.sin(vAngle + 0.4) * (vLen * 0.6),
+                    Math.cos(vAngle) * vLen,
+                    Math.sin(vAngle) * vLen
+                );
+                ctx.stroke();
+            }
+            ctx.restore();
+            
+            // Blood piercing veins (pulsing red lines from center)
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.strokeStyle = "rgba(180, 0, 0, 0.6)";
+            ctx.lineWidth = 0.8;
+            for (var bv = 0; bv < 4; bv++) {
+                var bvAngle = (bv * Math.PI / 2) + Math.sin(time * 2) * 0.2;
+                var bvLen = 8 + Math.sin(time * 4 + bv) * 3;
+                ctx.beginPath();
+                ctx.moveTo(Math.cos(bvAngle) * 5, Math.sin(bvAngle) * 5);
+                ctx.lineTo(Math.cos(bvAngle) * bvLen, Math.sin(bvAngle) * bvLen);
+                ctx.stroke();
+            }
+            ctx.restore();
+            
+            // RCT active healing indicator (pulsing green-pink glow)
+            if (typeof Player !== "undefined" && Player.isGojoRctActive && Player.isGojoRctActive()) {
+                ctx.save();
+                var rctAlpha = 0.2 + Math.sin(time * 6) * 0.15;
+                var rctGrad = ctx.createRadialGradient(cx, cy, 2, cx, cy, sw * 1.5);
+                rctGrad.addColorStop(0, "rgba(0, 255, 136, " + rctAlpha + ")");
+                rctGrad.addColorStop(1, "rgba(255, 105, 180, 0)");
+                ctx.fillStyle = rctGrad;
+                ctx.beginPath();
+                ctx.arc(cx, cy, sw * 1.5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+            
+        } else if (sClass === 18) { // Nanami — 7:3 Ratio Grid + Overtime
+            var cx = drawPos.x + sw/2;
+            var cy = drawPos.y + sh/2;
+            var time = Date.now() / 1000;
+            var isOvertime = (typeof Player !== "undefined" && Player.isNanamiOvertime && Player.isNanamiOvertime());
+            
+            // 7:3 ratio grid overlay (thin golden crosshair showing weak point detection)
+            ctx.save();
+            ctx.strokeStyle = isOvertime ? "rgba(255, 200, 50, 0.9)" : "rgba(200, 170, 80, 0.5)";
+            ctx.lineWidth = isOvertime ? 1.5 : 0.8;
+            ctx.shadowBlur = isOvertime ? 8 : 3;
+            ctx.shadowColor = "#FFD700";
+            
+            // Horizontal ratio line (7:3 split)
+            var lineW = 20;
+            ctx.beginPath();
+            ctx.moveTo(cx - lineW, cy);
+            ctx.lineTo(cx + lineW, cy);
+            ctx.stroke();
+            // Vertical crosshair
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - lineW);
+            ctx.lineTo(cx, cy + lineW);
+            ctx.stroke();
+            // 7:3 ratio mark (dot at 70% position)
+            ctx.fillStyle = "rgba(255, 215, 0, 0.9)";
+            ctx.beginPath();
+            ctx.arc(cx + lineW * 0.4, cy, 1.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+            
+            // Tie/collar accent (small tie shape below soul)
+            ctx.save();
+            ctx.fillStyle = isOvertime ? "rgba(255, 50, 50, 0.9)" : "rgba(100, 100, 120, 0.7)";
+            ctx.beginPath();
+            ctx.moveTo(cx, drawPos.y + sh + 2);
+            ctx.lineTo(cx - 3, drawPos.y + sh + 5);
+            ctx.lineTo(cx, drawPos.y + sh + 10);
+            ctx.lineTo(cx + 3, drawPos.y + sh + 5);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+            
+            // Overtime countdown/status
+            if (typeof Player !== "undefined" && Player.getCombatTurnCount) {
+                var turns = Player.getCombatTurnCount();
+                if (!isOvertime && turns < 12) {
+                    ctx.save();
+                    ctx.font = "7px monospace";
+                    ctx.fillStyle = "rgba(200, 170, 80, 0.6)";
+                    ctx.textAlign = "center";
+                    ctx.fillText((12 - turns) + "T", cx, drawPos.y - 4);
+                    ctx.restore();
+                } else if (isOvertime) {
+                    // Golden pulsing aura when overtime active
+                    ctx.save();
+                    var otAlpha = 0.15 + Math.sin(time * 4) * 0.1;
+                    var otGrad = ctx.createRadialGradient(cx, cy, 2, cx, cy, sw * 2);
+                    otGrad.addColorStop(0, "rgba(255, 215, 0, " + otAlpha + ")");
+                    otGrad.addColorStop(1, "rgba(255, 215, 0, 0)");
+                    ctx.fillStyle = otGrad;
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, sw * 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                }
+            }
+            
+        } else if (sClass === 19) { // Sans — Bone Orbit + Blue Eye Flame + Dodge Counter
+            var cx = drawPos.x + sw/2;
+            var cy = drawPos.y + sh/2;
+            var time = Date.now() / 1000;
+            
+            // Orbiting bone fragments
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
+            ctx.lineWidth = 2.0;
+            for (var bn = 0; bn < 4; bn++) {
+                var bnAngle = (bn * Math.PI / 2) + time * 1.2;
+                var bnDist = 14 + Math.sin(time * 2 + bn) * 2;
+                var bnX = Math.cos(bnAngle) * bnDist;
+                var bnY = Math.sin(bnAngle) * bnDist;
+                ctx.beginPath();
+                ctx.moveTo(bnX - 2, bnY);
+                ctx.lineTo(bnX + 2, bnY);
+                ctx.stroke();
+                // Bone end caps
+                ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+                ctx.beginPath();
+                ctx.arc(bnX - 2, bnY, 1.2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(bnX + 2, bnY, 1.2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+            
+            // Blue eye flame (left eye position, flickers)
+            ctx.save();
+            var eyeX = cx - 3;
+            var eyeY = cy - 2;
+            var eyeFlicker = Math.sin(time * 8) * 0.3 + 0.7;
+            var eyeGrad = ctx.createRadialGradient(eyeX, eyeY, 0, eyeX, eyeY, 6);
+            eyeGrad.addColorStop(0, "rgba(0, 200, 255, " + eyeFlicker + ")");
+            eyeGrad.addColorStop(0.5, "rgba(0, 100, 255, " + (eyeFlicker * 0.5) + ")");
+            eyeGrad.addColorStop(1, "rgba(0, 50, 255, 0)");
+            ctx.fillStyle = eyeGrad;
+            ctx.beginPath();
+            ctx.arc(eyeX, eyeY, 6, 0, Math.PI * 2);
+            ctx.fill();
+            // Flame trail upward
+            ctx.strokeStyle = "rgba(0, 180, 255, " + (eyeFlicker * 0.6) + ")";
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.moveTo(eyeX, eyeY - 2);
+            ctx.quadraticCurveTo(eyeX - 2 + Math.sin(time * 6) * 2, eyeY - 8, eyeX + Math.sin(time * 4) * 3, eyeY - 12);
+            ctx.stroke();
+            ctx.restore();
+            
+            // Dodge counter (remaining auto-dodges as small white dots)
+            if (typeof Player !== "undefined" && Player.getSansAutoDodges) {
+                var dodges = Player.getSansAutoDodges();
+                var dotY = drawPos.y + sh + 5;
+                var maxDots = Math.min(dodges, 15);
+                var totalW = maxDots * 3;
+                var startX = cx - totalW / 2;
+                ctx.save();
+                for (var d = 0; d < maxDots; d++) {
+                    ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+                    ctx.beginPath();
+                    ctx.arc(startX + d * 3, dotY, 1, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.restore();
             }
         }
     }

@@ -132,6 +132,20 @@ Enemy.prototype.update = function(dt) {
     if (this.phases && this.phases[this.currentPhase]) {
         this.renderType = this.phases[this.currentPhase].renderType || "sprite";
     }
+    
+    // Itadori Blood Piercing: enemy bleed DOT
+    if (this.bleedTimer && this.bleedTimer > 0) {
+        this.bleedTimer -= dt;
+        this.curHP -= (this.bleedDmg || 5) * dt;
+        if (this.curHP < 0) this.curHP = 0;
+    }
+    
+    // Sans poison: enemy poison DOT (20 dmg/sec for 10 sec)
+    if (this.sansPoisonTimer && this.sansPoisonTimer > 0) {
+        this.sansPoisonTimer -= dt;
+        this.curHP -= (this.sansPoisonDmg || 20) * dt;
+        if (this.curHP < 0) this.curHP = 0;
+    }
 };
 
 // Draw
@@ -611,6 +625,34 @@ Enemy.prototype.dealDamage = function(damage) {
     var finalDmg = damage;
     var sClass = (typeof Player !== "undefined") ? Player.getSoulClass() : 0;
     
+    // Itadori Black Flash (20% chance, 2.5x damage)
+    if (sClass === 17 && Math.random() < 0.20) {
+        finalDmg *= 2.5;
+        Sound.playSound("hit_2_crit", true);
+        if (typeof triggerBlackFlash === "function") {
+            triggerBlackFlash();
+        }
+        if (typeof Soul !== "undefined" && Soul.addFloatingText) {
+            var sPos = Soul.getPos();
+            Soul.addFloatingText("BLACK FLASH", sPos.x + Soul.getWidth() / 2, sPos.y - 18, "#FF1493");
+        }
+        console.log("ITADORI BLACK FLASH! 2.5x damage dealt!");
+    }
+    
+    // Nanami 7:3 Ratio enhanced crit (50% chance, 2.5x damage with Black Flash visual)
+    if (sClass === 18 && Math.random() < 0.50) {
+        finalDmg *= 2.5;
+        Sound.playSound("hit_2_crit", true);
+        if (typeof triggerBlackFlash === "function") {
+            triggerBlackFlash();
+        }
+        if (typeof Soul !== "undefined" && Soul.addFloatingText) {
+            var sPos = Soul.getPos();
+            Soul.addFloatingText("7:3 RATIO", sPos.x + Soul.getWidth() / 2, sPos.y - 18, "#FFD700");
+        }
+        console.log("NANAMI 7:3 RATIO! 2.5x damage dealt!");
+    }
+    
     this.curHP -= finalDmg / this.defense;
     
     // Lifesteal Passives
@@ -618,6 +660,19 @@ Enemy.prototype.dealDamage = function(damage) {
         if (sClass === 10) { // Vampire: 10% lifesteal
             Player.heal(Math.ceil(finalDmg * 0.10));
         }
+    }
+    
+    // Itadori Blood Piercing: apply 3 second bleed to enemy
+    if (sClass === 17 && typeof Player !== "undefined") {
+        this.bleedTimer = (this.bleedTimer || 0);
+        this.bleedTimer = 3.0; // 3 seconds of bleed (resets, doesn't stack)
+        this.bleedDmg = 5; // 5 HP/sec enemy bleed
+    }
+    
+    // Sans: each hit applies 10 second poison (non-stackable, resets on each hit)
+    if (sClass === 19) {
+        this.sansPoisonTimer = 10.0; // 10 seconds
+        this.sansPoisonDmg = 20; // 20 damage per tick (per second)
     }
     
     if (this.curHP <= 0) {

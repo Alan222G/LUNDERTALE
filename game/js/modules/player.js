@@ -31,7 +31,12 @@ var Player = (function() {
     var mahoragaAdaptations = {};
     var mahoragaWheelSpinTimer = 0;
     var gojoTurns = 0;
+    var gojoRctActive = false;
+    var gojoRctTimer = 0;
     var subaruRevives = 3;
+    var nanamiBonusApplied = false;
+    var combatTurnCount = 0;
+    var sansAutoDodges = 15;
     var hitboxScaleOverride = 1.0;
     var hitboxScaleTurns = 0;
     
@@ -63,7 +68,12 @@ var Player = (function() {
         mahoragaAdaptations = {};
         mahoragaWheelSpinTimer = 0;
         gojoTurns = 3; // Gojo starts with Infinity charged!
+        gojoRctActive = false;
+        gojoRctTimer = 0;
         subaruRevives = 3;
+        nanamiBonusApplied = false;
+        combatTurnCount = 0;
+        sansAutoDodges = 15;
         hitboxScaleOverride = 1.0;
         hitboxScaleTurns = 0;
         
@@ -96,6 +106,9 @@ var Player = (function() {
             case 14: hpMax = 90;  baseSpd = 1.2; baseAtk = 1.0; baseDef = 1.0; break; // Gojo
             case 15: hpMax = 70;  baseSpd = 1.0; baseAtk = 1.0; baseDef = 1.0; break; // Subaru (Retorno por Muerte)
             case 16: hpMax = 150; baseSpd = 1.0; baseAtk = 1.6; baseDef = 1.4; break; // All Might (One For All)
+            case 17: hpMax = 100; baseSpd = 1.1; baseAtk = 1.3; baseDef = 0.9; break; // Itadori (Jujutsu)
+            case 18: hpMax = 110; baseSpd = 1.0; baseAtk = 1.2; baseDef = 1.1; break; // Nanami (7:3 Ratio)
+            case 19: hpMax = 50;  baseSpd = 1.0; baseAtk = 1.0; baseDef = 1.0; break; // Sans (Bad Time)
         }
         hpCur = hpMax;
         recalculateBuffs();
@@ -149,9 +162,22 @@ var Player = (function() {
         if (soulClass === 7) { selfPoison = 1.0; } // Caffeine Heart poison
         if (soulClass === 8) { magnetActive = true; } // Magnetic Heart pull
         
-        // Gojo Infinity charging
+        // Increment combat turn counter
+        combatTurnCount++;
+        
+        // Gojo Infinity charging + RCT (Reverse Cursed Technique)
         if (soulClass === 14) {
             gojoTurns++;
+            // RCT: every 8 turns, if below 20% HP, activate progressive healing
+            if (gojoTurns % 8 === 0 && hpCur < hpMax * 0.20) {
+                gojoRctActive = true;
+                gojoRctTimer = 0;
+                if (typeof Soul !== "undefined" && Soul.addFloatingText) {
+                    var sPos = Soul.getPos();
+                    Soul.addFloatingText("RCT", sPos.x + Soul.getWidth() / 2, sPos.y - 12, "#00FF88");
+                }
+                console.log("GOJO RCT ACTIVATED: Progressive healing until full HP!");
+            }
         }
 
         if (soulClass === 11) { // Chaos Heart (Rainbow)
@@ -171,6 +197,36 @@ var Player = (function() {
         if (soulClass === 16) {
             hpMax = Math.max(60, hpMax - 3);
             hpCur = Math.min(hpCur, hpMax);
+        }
+        
+        // Itadori RCT (Reverse Cursed Technique): every 8 turns, heal if below 20% HP
+        if (soulClass === 17 && combatTurnCount % 8 === 0 && combatTurnCount > 0 && hpCur < hpMax * 0.20) {
+            gojoRctActive = true; // Reuse RCT flag (shared Jujutsu technique)
+            gojoRctTimer = 0;
+            if (typeof Soul !== "undefined" && Soul.addFloatingText) {
+                var sPos = Soul.getPos();
+                Soul.addFloatingText("RCT", sPos.x + Soul.getWidth() / 2, sPos.y - 12, "#FF69B4");
+            }
+            console.log("ITADORI RCT ACTIVATED: Progressive healing until full HP!");
+        }
+        
+        // Nanami Overtime: after 12 total combat turns, +15% all stats permanently
+        if (soulClass === 18 && !nanamiBonusApplied && combatTurnCount >= 12) {
+            nanamiBonusApplied = true;
+            baseSpd *= 1.15;
+            baseAtk *= 1.15;
+            baseDef *= 1.15;
+            recalculateBuffs();
+            if (typeof Soul !== "undefined" && Soul.addFloatingText) {
+                var sPos = Soul.getPos();
+                Soul.addFloatingText("OVERTIME", sPos.x + Soul.getWidth() / 2, sPos.y - 12, "#FFD700");
+            }
+            console.log("NANAMI: Overtime activated! +15% all stats!");
+        }
+        
+        // Sans: refresh 15 auto-dodges per turn
+        if (soulClass === 19) {
+            sansAutoDodges = 15;
         }
         
         // Decrement buff arrays
@@ -248,6 +304,26 @@ var Player = (function() {
     function damage(value, attackName) {
         if (invulnerableTurns > 0) return false; // Immune
         
+        // Sans auto-dodge (15 per turn, instant teleport)
+        if (soulClass === 19 && sansAutoDodges > 0) {
+            sansAutoDodges--;
+            Sound.playSound("ting", true);
+            // Teleport to random position in combat box
+            if (typeof Soul !== "undefined" && Soul.getPos && typeof Cbbox !== "undefined") {
+                var bb = Cbbox.getBounds();
+                var sw = Soul.getWidth();
+                var sh = Soul.getHeight();
+                var newX = bb[0] + Math.random() * (bb[2] - bb[0] - sw);
+                var newY = bb[1] + Math.random() * (bb[3] - bb[1] - sh);
+                Soul.setPos(newX, newY);
+            }
+            if (typeof Soul !== "undefined" && Soul.addFloatingText) {
+                var sPos = Soul.getPos();
+                Soul.addFloatingText("DODGE", sPos.x + Soul.getWidth() / 2, sPos.y - 12, "#FFFFFF");
+            }
+            return false; // Dodged!
+        }
+        
         if (shieldCharges > 0) {
             shieldCharges--;
             Sound.playSound("ting", true);
@@ -276,19 +352,17 @@ var Player = (function() {
             return false;
         }
 
-        // Divergent zilla adaptation (stack +30% DEF on hit, up to +150%)
+        // Divergent zilla adaptation (stack DEF on hit, unlimited stacking, can reach 0 dmg)
         if (soulClass === 12) {
-            if (mahoragaDefStack < 5) {
-                mahoragaDefStack++;
-                baseDef += 0.30;
-                recalculateBuffs();
-                console.log("MAHORAGA ADAPTED: Stack " + mahoragaDefStack + " (+ " + (mahoragaDefStack * 30) + "% DEF)");
-            }
+            mahoragaDefStack++;
+            baseDef += 0.30;
+            recalculateBuffs();
             mahoragaWheelSpinTimer = 2.0; // spin fast
             if (typeof Soul !== "undefined" && Soul.addFloatingText) {
                 var sPos = Soul.getPos();
-                Soul.addFloatingText("ADAPTED", sPos.x + Soul.getWidth() / 2, sPos.y - 12, "#FFD700");
+                Soul.addFloatingText("ADAPTED +" + (mahoragaDefStack * 30) + "%", sPos.x + Soul.getWidth() / 2, sPos.y - 12, "#FFD700");
             }
+            console.log("MAHORAGA ADAPTED: Stack " + mahoragaDefStack + " (+ " + (mahoragaDefStack * 30) + "% DEF)");
         }
 
         var dmg = value;
@@ -296,6 +370,11 @@ var Player = (function() {
         
         // Apply defense reduction
         dmg = Math.ceil(dmg / buffDef);
+        
+        // Mahoraga can reduce damage to 0
+        if (soulClass === 12 && dmg < 1) dmg = 0;
+        
+        if (dmg <= 0) return false; // No damage dealt
 
         Sound.playSound("damage", true);
         hpCur -= dmg;
@@ -313,9 +392,15 @@ var Player = (function() {
     var karmaBuffer = 0;
     var bleedTimer = 0;
 
-    function addKarma(amount) { karmaBuffer += amount; }
+    function addKarma(amount) {
+        // Nanami is immune to all karma/poison effects
+        if (soulClass === 18) return;
+        karmaBuffer += amount;
+    }
     
     function addBleed(seconds) {
+        // Nanami and Mahoraga are immune to bleed
+        if (soulClass === 18 || soulClass === 12) return;
         bleedTimer = seconds; // Overwrite so it doesn't stack infinitely
     }
     function getBleedTimer() { return bleedTimer; }
@@ -333,28 +418,48 @@ var Player = (function() {
         }
         
         if (bleedTimer > 0) {
-            bleedTimer -= dt;
-            // Drain 1 HP per second
-            hpCur -= (1.0 * dt);
-            if (hpCur <= 0) {
-                if (checkRevive()) return false;
-                hpCur = 0;
-                return true;
+            // Nanami and Mahoraga immune to bleed
+            if (soulClass === 18 || soulClass === 12) {
+                bleedTimer = 0;
+            } else {
+                bleedTimer -= dt;
+                // Drain 1 HP per second
+                hpCur -= (1.0 * dt);
+                if (hpCur <= 0) {
+                    if (checkRevive()) return false;
+                    hpCur = 0;
+                    return true;
+                }
             }
         }
         
         if (selfPoison > 0) {
-            hpCur -= (selfPoison * dt);
-            if (hpCur <= 0) {
-                if (checkRevive()) return false;
-                hpCur = 0;
-                return true;
+            // Mahoraga and Nanami are immune to poison
+            if (soulClass === 12 || soulClass === 18) {
+                selfPoison = 0;
+            } else {
+                hpCur -= (selfPoison * dt);
+                if (hpCur <= 0) {
+                    if (checkRevive()) return false;
+                    hpCur = 0;
+                    return true;
+                }
             }
         }
         
-        // Eva 01 Berserk regeneration (4 HP/sec under 30% HP)
+        // Eva 01 Berserk regeneration (4.4 HP/sec under 30% HP, +10% from original)
         if (soulClass === 13 && hpCur < hpMax * 0.3) {
-            hpCur = Math.min(hpMax, hpCur + 4.0 * dt);
+            hpCur = Math.min(hpMax, hpCur + 4.4 * dt);
+        }
+        
+        // RCT (Reverse Cursed Technique): progressive healing 2 HP/sec until full HP
+        // Shared by Gojo (14) and Itadori (17) — both Jujutsu sorcerers
+        if ((soulClass === 14 || soulClass === 17) && gojoRctActive) {
+            hpCur = Math.min(hpMax, hpCur + 2.0 * dt);
+            if (hpCur >= hpMax) {
+                gojoRctActive = false;
+                console.log("RCT: Fully healed!");
+            }
         }
         
         // Decrement Mahoraga wheel spin timer
@@ -434,7 +539,22 @@ var Player = (function() {
         getHitboxScaleMultiplier: function() { return hitboxScaleOverride; },
         setHitboxScaleMultiplier: function(val, turns) { hitboxScaleOverride = val; hitboxScaleTurns = turns; },
         getGojoTurns: function() { return gojoTurns; },
+        isGojoRctActive: function() { return gojoRctActive; },
         getMahoragaWheelSpinTimer: function() { return mahoragaWheelSpinTimer; },
-        getSubaruRevives: function() { return subaruRevives; }
+        getMahoragaDefStack: function() { return mahoragaDefStack; },
+        getSubaruRevives: function() { return subaruRevives; },
+        getSansAutoDodges: function() { return sansAutoDodges; },
+        isNanamiOvertime: function() { return nanamiBonusApplied; },
+        getCombatTurnCount: function() { return combatTurnCount; },
+        // Eva 01 gets +20% stats vs angel enemies
+        applyAngelBonus: function() {
+            if (soulClass === 13) {
+                baseSpd *= 1.20;
+                baseAtk *= 1.20;
+                baseDef *= 1.20;
+                recalculateBuffs();
+                console.log("EVA 01: Anti-Angel Protocol! +20% all stats!");
+            }
+        }
     };
 }());
