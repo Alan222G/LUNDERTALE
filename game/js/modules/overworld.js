@@ -308,8 +308,15 @@ var Overworld = (function() {
         var pbox = player.getHitbox();
         for (var i = 0; i < triggerList.length; i++) {
             var t = triggerList[i];
-            if (!t.triggered && rectsOverlap(pbox.x, pbox.y, pbox.w, pbox.h, t.x, t.y, t.w, t.h)) {
-                // Don't mark as triggered yet — only after winning!
+            var overlapping = rectsOverlap(pbox.x, pbox.y, pbox.w, pbox.h, t.x, t.y, t.w, t.h);
+            
+            // Reset needsExit once player walks away from the trigger zone
+            if (t.needsExit && !overlapping) {
+                t.needsExit = false;
+            }
+            
+            if (!t.triggered && !t.needsExit && overlapping) {
+                t.triggered = true; // Lock trigger during combat
                 activeBossTriggerIndex = i;
                 t.action();
             }
@@ -1863,6 +1870,16 @@ var Overworld = (function() {
         }
         activeBossTriggerIndex = -1;
     }
+    
+    function resetBossTrigger() {
+        // Called when player LOSES — un-trigger the boss but require walking away first
+        if (activeBossTriggerIndex >= 0 && activeBossTriggerIndex < triggerList.length) {
+            triggerList[activeBossTriggerIndex].triggered = false;
+            triggerList[activeBossTriggerIndex].needsExit = true; // Must walk away before re-triggering
+            console.log("Boss NOT defeated. Trigger " + activeBossTriggerIndex + " reset (needs exit).");
+        }
+        activeBossTriggerIndex = -1;
+    }
 
-    return { init: init, setup: setup, update: update, draw: draw, markBossDefeated: markBossDefeated };
+    return { init: init, setup: setup, update: update, draw: draw, markBossDefeated: markBossDefeated, resetBossTrigger: resetBossTrigger };
 }());

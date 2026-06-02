@@ -124,10 +124,10 @@ var Player = (function() {
             buffSpd += 0.3;
         }
 
-        // Eva 01 Berserk Mode (under 30% HP)
+        // Eva 01 Berserk Mode (under 30% HP) — improved +10% over original
         if (soulClass === 13 && hpCur < hpMax * 0.3) {
-            buffAtk += 1.0; // +100% ATK in Berserk
-            buffSpd += 0.5; // +50% SPD in Berserk
+            buffAtk += 1.1; // +110% ATK in Berserk (+10% improvement)
+            buffSpd += 0.55; // +55% SPD in Berserk (+10% improvement)
         }
     }
 
@@ -310,7 +310,7 @@ var Player = (function() {
             Sound.playSound("ting", true);
             // Teleport to random position in combat box
             if (typeof Soul !== "undefined" && Soul.getPos && typeof Cbbox !== "undefined") {
-                var bb = Cbbox.getBounds();
+                var bb = Cbbox.getBound();
                 var sw = Soul.getWidth();
                 var sh = Soul.getHeight();
                 var newX = bb[0] + Math.random() * (bb[2] - bb[0] - sw);

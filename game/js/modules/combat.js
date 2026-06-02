@@ -309,7 +309,10 @@ var Combat = (function() {
                             init(Cgroup.getBossId());
                             setup(main.ctx);
                         } else {
-                            // Return to overworld
+                            // Return to overworld — boss stays on map!
+                            if (typeof Overworld !== "undefined" && Overworld.resetBossTrigger) {
+                                Overworld.resetBossTrigger();
+                            }
                             Player.init();
                             Inventory.init();
                             BossController.reset();

@@ -170,58 +170,162 @@ var Soul = (function() {
     }
 
     function drawDecorations(ctx, drawPos, sw, sh, sClass) {
-        if (sClass === 12) { // Divergent zilla (Mahoraga wheel)
-            ctx.save();
-            ctx.translate(drawPos.x + sw/2, drawPos.y - 8);
-            
+        if (sClass === 12) { // Mahoraga — Divine Dharma Wheel + Adaptation Stacks
+            var cx = drawPos.x + sw/2;
+            var cy = drawPos.y - 8;
+            var time = Date.now() / 1000;
             var isSpinning = (typeof Player !== "undefined" && Player.getMahoragaWheelSpinTimer && Player.getMahoragaWheelSpinTimer() > 0);
-            var spinSpeed = isSpinning ? 40 : 600; // Super fast spin on adaptation hit!
+            var stacks = (typeof Player !== "undefined" && Player.getMahoragaDefStack) ? Player.getMahoragaDefStack() : 0;
+            var spinSpeed = isSpinning ? 40 : 600;
+            
+            ctx.save();
+            ctx.translate(cx, cy);
             ctx.rotate((Date.now() / spinSpeed) % (Math.PI * 2));
             
+            // Divine glow at high stacks (5+)
+            if (stacks >= 5) {
+                ctx.save();
+                var divAlpha = 0.15 + Math.sin(time * 4) * 0.1;
+                var divGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, 18);
+                divGrad.addColorStop(0, "rgba(255, 215, 0, " + divAlpha + ")");
+                divGrad.addColorStop(1, "rgba(255, 215, 0, 0)");
+                ctx.fillStyle = divGrad;
+                ctx.beginPath();
+                ctx.arc(0, 0, 18, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+            
+            // Spinning glow when adapting
             if (isSpinning) {
-                ctx.shadowBlur = 12;
+                ctx.shadowBlur = 14;
                 ctx.shadowColor = "#FFD700";
             }
             
-            ctx.strokeStyle = "#DAA520"; // Golden wheel
-            ctx.lineWidth = 1.5;
+            // Outer ring
+            ctx.strokeStyle = stacks >= 5 ? "#FFE066" : "#DAA520";
+            ctx.lineWidth = stacks >= 5 ? 2.0 : 1.5;
             ctx.beginPath();
-            ctx.arc(0, 0, 7, 0, Math.PI * 2);
+            ctx.arc(0, 0, 9, 0, Math.PI * 2);
             ctx.stroke();
+            
+            // Inner ring
+            ctx.lineWidth = 1.0;
             ctx.beginPath();
-            ctx.arc(0, 0, 2, 0, Math.PI * 2);
+            ctx.arc(0, 0, 3, 0, Math.PI * 2);
             ctx.stroke();
+            
+            // 8 spokes with diamond knobs
             for (var sp = 0; sp < 8; sp++) {
                 var sAngle = (sp * Math.PI / 4);
+                ctx.strokeStyle = "#DAA520";
+                ctx.lineWidth = 1.2;
                 ctx.beginPath();
-                ctx.moveTo(0, 0);
-                ctx.lineTo(Math.cos(sAngle)*9, Math.sin(sAngle)*9);
+                ctx.moveTo(Math.cos(sAngle) * 3, Math.sin(sAngle) * 3);
+                ctx.lineTo(Math.cos(sAngle) * 9, Math.sin(sAngle) * 9);
                 ctx.stroke();
-                ctx.fillStyle = "#FFD700"; // Gold spokes/knobs
-                ctx.fillRect(Math.cos(sAngle)*9 - 1, Math.sin(sAngle)*9 - 1, 2.5, 2.5);
+                // Diamond knobs at spoke ends
+                ctx.save();
+                ctx.translate(Math.cos(sAngle) * 10, Math.sin(sAngle) * 10);
+                ctx.rotate(sAngle + Math.PI / 4);
+                ctx.fillStyle = isSpinning ? "#FFFFFF" : "#FFD700";
+                ctx.fillRect(-1.5, -1.5, 3, 3);
+                ctx.restore();
             }
             ctx.restore();
-        } else if (sClass === 13) { // Eva 01 Aura
+            
+            // Adaptation stack counter (below soul)
+            if (stacks > 0) {
+                ctx.save();
+                ctx.font = "bold 7px monospace";
+                ctx.textAlign = "center";
+                ctx.fillStyle = stacks >= 5 ? "#FFE066" : "#DAA520";
+                ctx.shadowBlur = stacks >= 5 ? 6 : 0;
+                ctx.shadowColor = "#FFD700";
+                ctx.fillText("+" + (stacks * 30) + "%", cx, drawPos.y + sh + 8);
+                ctx.restore();
+            }
+        } else if (sClass === 13) { // Eva 01 — AT Field + Green Energy Core + Berserk
+            var cx = drawPos.x + sw/2;
+            var cy = drawPos.y + sh/2;
+            var time = Date.now() / 1000;
+            var isBerserk = (typeof Player !== "undefined" && Player.getHPCur() < Player.getHPMax() * 0.3);
+            
+            // 1. AT Field hexagonal barrier (rotating orange outlines)
             ctx.save();
-            ctx.strokeStyle = "rgba(0, 255, 100, 0.6)";
-            ctx.lineWidth = 1.5;
-            ctx.shadowBlur = 8;
-            ctx.shadowColor = "#00FF66";
+            ctx.translate(cx, cy);
+            ctx.rotate(time * 0.3);
+            ctx.strokeStyle = isBerserk ? "rgba(255, 0, 0, 0.7)" : "rgba(255, 165, 0, 0.4)";
+            ctx.lineWidth = isBerserk ? 1.8 : 1.0;
+            ctx.shadowBlur = isBerserk ? 10 : 4;
+            ctx.shadowColor = isBerserk ? "#FF0000" : "#FF8C00";
+            var hexR = sw * 1.4;
             ctx.beginPath();
-            ctx.ellipse(drawPos.x + sw/2, drawPos.y + sh/2, sw * 0.9, sh * 0.9, 0, 0, Math.PI * 2);
+            for (var h = 0; h < 6; h++) {
+                var hAngle = (h * Math.PI / 3) - Math.PI / 6;
+                var hx = Math.cos(hAngle) * hexR;
+                var hy = Math.sin(hAngle) * hexR;
+                if (h === 0) ctx.moveTo(hx, hy);
+                else ctx.lineTo(hx, hy);
+            }
+            ctx.closePath();
             ctx.stroke();
-            if (Player && Player.getHPCur() < Player.getHPMax() * 0.3) {
-                ctx.strokeStyle = "#FF0000";
+            ctx.restore();
+            
+            // 2. Green energy core (pulsing glow from center)
+            ctx.save();
+            var coreAlpha = 0.3 + Math.sin(time * 3) * 0.15;
+            var coreGrad = ctx.createRadialGradient(cx, cy, 1, cx, cy, sw * 0.8);
+            coreGrad.addColorStop(0, "rgba(0, 255, 100, " + (coreAlpha + 0.2) + ")");
+            coreGrad.addColorStop(0.5, "rgba(100, 0, 200, " + (coreAlpha * 0.5) + ")");
+            coreGrad.addColorStop(1, "rgba(0, 255, 100, 0)");
+            ctx.fillStyle = coreGrad;
+            ctx.beginPath();
+            ctx.arc(cx, cy, sw * 0.8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+            
+            // 3. Entry Plug cable (thin line trailing behind soul)
+            ctx.save();
+            ctx.strokeStyle = "rgba(100, 100, 120, 0.4)";
+            ctx.lineWidth = 0.8;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy + sh/2 + 2);
+            ctx.quadraticCurveTo(cx + Math.sin(time * 2) * 8, cy + sh + 8, cx + Math.sin(time) * 5, cy + sh + 15);
+            ctx.stroke();
+            ctx.restore();
+            
+            // 4. Berserk mode (red pulsing aura + blood lightning)
+            if (isBerserk) {
+                // Red pulsing aura
+                ctx.save();
+                var bAlpha = 0.15 + Math.sin(time * 6) * 0.1;
+                var bGrad = ctx.createRadialGradient(cx, cy, 2, cx, cy, sw * 2.5);
+                bGrad.addColorStop(0, "rgba(255, 0, 0, " + bAlpha + ")");
+                bGrad.addColorStop(0.6, "rgba(200, 0, 0, " + (bAlpha * 0.4) + ")");
+                bGrad.addColorStop(1, "rgba(100, 0, 0, 0)");
+                ctx.fillStyle = bGrad;
+                ctx.beginPath();
+                ctx.arc(cx, cy, sw * 2.5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+                
+                // Blood-red lightning bolts
+                ctx.save();
+                ctx.strokeStyle = "rgba(255, 0, 50, 0.8)";
+                ctx.lineWidth = 1.2;
+                ctx.shadowBlur = 6;
                 ctx.shadowColor = "#FF0000";
-                ctx.lineWidth = 1.0;
-                for (var sp = 0; sp < 3; sp++) {
+                for (var bl = 0; bl < 3; bl++) {
+                    var blAngle = (bl * Math.PI * 2 / 3) + time * 2;
+                    var blLen = 10 + Math.sin(time * 8 + bl * 2) * 5;
                     ctx.beginPath();
-                    var sx = drawPos.x + Math.random() * sw;
-                    var sy = drawPos.y + Math.random() * sh;
-                    ctx.moveTo(sx, sy);
-                    ctx.lineTo(sx + (Math.random()-0.5)*10, sy + (Math.random()-0.5)*10);
+                    ctx.moveTo(cx + Math.cos(blAngle) * 5, cy + Math.sin(blAngle) * 5);
+                    ctx.lineTo(cx + Math.cos(blAngle + 0.3) * (blLen * 0.5), cy + Math.sin(blAngle + 0.3) * (blLen * 0.5));
+                    ctx.lineTo(cx + Math.cos(blAngle) * blLen, cy + Math.sin(blAngle) * blLen);
                     ctx.stroke();
                 }
+                ctx.restore();
             }
             ctx.restore();
         } else if (sClass === 14) { // Gojo (Limitless Ring + Six Eyes)
