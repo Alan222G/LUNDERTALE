@@ -12,26 +12,25 @@ var Overworld = (function() {
     var catalogScrollOffset = 0;
     var starParticles = [];
     var catalogOptions = [
-        { name: "Corazón Rojo", desc: "Equilibrado. HP:120, VEL:Normal, ATK:Normal" },
-        { name: "Corazón Verde", desc: "Tanque. HP:180, VEL:-20%, ATK:-20%, DEF:+30%" },
-        { name: "Corazón Amarillo", desc: "Agresivo. HP:80, VEL:+30%, ATK:+40%, DEF:-30%" },
-        { name: "Corazón Morado", desc: "Ágil. HP:100, VEL:+50%, ATK:Normal, DEF:Normal" },
-        { name: "Corazón Azul", desc: "Saltador. HP:120, VEL:+20%, Gravedad activa" },
-        { name: "Corazón Naranja", desc: "Imparable. HP:110, VEL:+60%, ATK:+10%" },
-        { name: "Corazón Celeste", desc: "Paciente. HP:140, VEL:-10%, DEF:+20%" },
-        { name: "Corazón Cafeína", desc: "Cafeína. HP:110, VEL +80%, pero sufres veneno de 1 HP/seg." },
-        { name: "Corazón Magnético", desc: "Magnético. HP:90, Atrae balas, pero rozar balas cura 3 HP." },
-        { name: "Corazón Cristalino", desc: "Cristalino. HP:100, Refleja 30% del daño recibido al jefe." },
-        { name: "Corazón de Vampiro", desc: "Vampiro. HP:90, Lifesteal (cura 10% del daño infligido al jefe)." },
-        { name: "Corazón Caótico", desc: "Caótico. HP:100, Cada turno cambia de alma y stats. Arcoíris." },
-        { name: "Divergent zilla", desc: "Adaptación. HP:120. Se adapta ganando +30% DEF por golpe (máx +150%, recibe 1 HP mín). Se reinicia al cambiar fase del boss." },
-        { name: "Eva 01", desc: "Berserk. HP:110. Si tu HP baja del 30%: +110% ATK, +55% VEL, regenera 4.4 HP/seg. +20% stats vs Ángeles." },
-        { name: "Gojo", desc: "Infinito. HP:90, VEL:+20%. Satoru Gojo. Barrera de Infinito bloquea 1 golpe cada 4 turnos. RCT: cura progresivamente bajo 20% HP cada 8 turnos." },
-        { name: "Subaru", desc: "Retorno por Muerte. HP:70. Si mueres, revives con 50% HP y 2 seg de invulnerabilidad (hasta 3 veces por combate)." },
-        { name: "All Might", desc: "One For All. HP:150, ATK:+60%, DEF:+40%. Símbolo de la Paz. Tu HP Máximo decae -3/turno (mín 60)." },
-        { name: "Itadori", desc: "Jujutsu. HP:100, VEL:+10%, ATK:+30%. Black Flash (20% crit 2.5x), Sangre Perforante (sangrado al enemigo), RCT cada 8 turnos." },
-        { name: "Goku", desc: "Saiyan. HP:20. Cada turno te transformas: Base→SSJ→SSJ2→SSJ3→SSG→SSB→UI Sign→MUI. Cada forma mejora stats. MUI obtiene 10 esquives automáticos." },
-        { name: "Sans", desc: "Mal Tiempo. HP:50. 10 esquives automáticos por turno (sin inmunidad). Cada golpe aplica veneno de 10seg (20 dmg/seg) al enemigo." }
+        { id: 0, name: "Corazón Rojo", desc: "Equilibrado. HP:120, VEL:Normal, ATK:Normal" },
+        { id: 1, name: "Corazón Verde", desc: "Tanque. HP:180, VEL:-20%, ATK:-20%, DEF:+30%" },
+        { id: 2, name: "Corazón Amarillo", desc: "Agresivo. HP:80, VEL:+30%, ATK:+40%, DEF:-30%" },
+        { id: 3, name: "Corazón Morado", desc: "Ágil. HP:100, VEL:+50%, ATK:Normal, DEF:Normal" },
+        { id: 4, name: "Corazón Azul", desc: "Saltador. HP:120, VEL:+20%, Gravedad activa" },
+        { id: 5, name: "Corazón Naranja", desc: "Imparable. HP:110, VEL:+60%, ATK:+10%" },
+        { id: 6, name: "Corazón Celeste", desc: "Paciente. HP:140, VEL:-10%, DEF:+20%" },
+        { id: 7, name: "Corazón Cafeína", desc: "Cafeína. HP:110, VEL +80%, pero sufres veneno de 1 HP/seg." },
+        { id: 8, name: "Corazón Magnético", desc: "Magnético. HP:90, Atrae balas, pero rozar balas cura 3 HP." },
+        { id: 9, name: "Corazón Cristalino", desc: "Cristalino. HP:100, Refleja 30% del daño recibido al jefe." },
+        { id: 10, name: "Corazón de Vampiro", desc: "Vampiro. HP:90, Lifesteal (cura 10% del daño infligido al jefe)." },
+        { id: 11, name: "Corazón Caótico", desc: "Caótico. HP:100, Cada turno cambia de alma y stats. Arcoíris." },
+        { id: 12, name: "Divergent zilla", desc: "Adaptación. HP:120. Se adapta ganando +30% DEF por golpe (máx +150%, recibe 1 HP mín). Se reinicia al cambiar fase del boss." },
+        { id: 13, name: "Eva 01", desc: "Berserk. HP:110. Si tu HP baja del 30%: +110% ATK, +55% VEL, regenera 4.4 HP/seg. +20% stats vs Ángeles." },
+        { id: 14, name: "Gojo", desc: "Infinito. HP:90, VEL:+20%. Satoru Gojo. Barrera de Infinito bloquea 1 golpe cada 4 turnos. RCT: cura progresivamente bajo 20% HP cada 8 turnos." },
+        { id: 15, name: "Subaru", desc: "Retorno por Muerte. HP:70. Si mueres, revives con 50% HP y 2 seg de invulnerabilidad (hasta 3 veces por combate)." },
+        { id: 16, name: "All Might", desc: "One For All. HP:150, ATK:+60%, DEF:+40%. Símbolo de la Paz. Tu HP Máximo decae -3/turno (mín 60)." },
+        { id: 17, name: "Itadori", desc: "Jujutsu. HP:100, VEL:+10%, ATK:+30%. Black Flash (20% crit 2.5x), Sangre Perforante (sangrado al enemigo), RCT cada 8 turnos." },
+        { id: 19, name: "Sans", desc: "Mal Tiempo. HP:50. 10 esquives automáticos por turno (sin inmunidad). Cada golpe aplica veneno de 10seg (20 dmg/seg) al enemigo." }
     ];
 
     var bgImage = new Image();
@@ -190,7 +189,7 @@ var Overworld = (function() {
         
         // Mirror Colossus battle trigger (Anomalies Group)
         triggerList.push({
-            x: 520, y: 207, w: 26, h: 26,
+            x: 127, y: 297, w: 26, h: 26,
             triggered: false,
             bossId: "prism",
             label: "COLOSO DE ESPEJOS",
@@ -207,7 +206,7 @@ var Overworld = (function() {
         
         // El Hambre Cósmica battle trigger (Anomalies Group)
         triggerList.push({
-            x: 640, y: 207, w: 26, h: 26,
+            x: 627, y: 297, w: 26, h: 26,
             triggered: false,
             bossId: "void_maw",
             label: "EL HAMBRE CÓSMICA",
@@ -303,7 +302,7 @@ var Overworld = (function() {
                 myKeys.keydown[myKeys.KEYBOARD.KEY_Z] = false;
                 myKeys.keydown[myKeys.KEYBOARD.KEY_ENTER] = false;
                 if (catalogTab === 0) {
-                    Player.setSoulClass(catalogIndex);
+                    Player.setSoulClass(catalogOptions[catalogIndex].id);
                     catalogActive = false;
                     Sound.playSound("heal", true);
                 } else if (catalogTab === 1) {
@@ -354,7 +353,14 @@ var Overworld = (function() {
                 if (rectsOverlap(interactBox.x, interactBox.y, interactBox.w, interactBox.h, npc.x, npc.y, npc.w, npc.h)) {
                     if (npc.isCatalog) {
                         catalogActive = true;
-                        catalogIndex = Player.getSoulClass();
+                        var currentClass = Player.getSoulClass();
+                        catalogIndex = 0;
+                        for (var c = 0; c < catalogOptions.length; c++) {
+                            if (catalogOptions[c].id === currentClass) {
+                                catalogIndex = c;
+                                break;
+                            }
+                        }
                     }
                 }
             }
@@ -1114,8 +1120,9 @@ var Overworld = (function() {
                 // Draw Stats / Controls
                 ctx.font = "14pt 'Determination Mono', monospace";
                 ctx.textAlign = "left";
-                ctx.fillStyle = Player.getSoulClass() === catalogIndex ? "#FF0" : "#FFF";
-                ctx.fillText("Equipped: " + (Player.getSoulClass() === catalogIndex ? "YES" : "NO"), 40, 215);
+                var isEquipped = Player.getSoulClass() === catalogOptions[catalogIndex].id;
+                ctx.fillStyle = isEquipped ? "#FF0" : "#FFF";
+                ctx.fillText("Equipped: " + (isEquipped ? "YES" : "NO"), 40, 215);
                 ctx.fillStyle = "#888";
                 ctx.fillText("[Z] Equip", 40, 240);
                 ctx.fillText("[X] Exit", 40, 265);

@@ -856,23 +856,26 @@ var Cgroup = (function() {
                 spriteId: "asriel",
                 attacks: [
                     "voidTentacleLash", "voidBiteSlam", "voidEyeBeam", "voidGravitySingularity", 
-                    "voidInventoryDevourAttempt", "voidSpitBackBarrage"
+                    "voidInventoryDevourAttempt", "voidSpitBackBarrage", "voidMawDrip", "voidCosmicDust", 
+                    "voidGravityPlunge", "voidEldritchScream", "voidNebulaSwarm", "voidAbyssalRift", 
+                    "voidTentacleFlurry", "voidCorrosiveSpit", "voidShatteredCorePulse", "voidSingularityOrbits", 
+                    "voidCosmicCollapse", "voidEldritchCross", "voidInventoryPurge", "voidWormholeJump", "voidBlackHoleNova"
                 ],
                 phases: [
                     { 
-                        patterns: ["voidTentacleLash", "voidEyeBeam", "voidSpitBackBarrage"], 
+                        patterns: ["voidTentacleLash", "voidEyeBeam", "voidSpitBackBarrage", "voidMawDrip", "voidCosmicDust", "voidGravityPlunge", "voidEldritchScream"], 
                         soulMode: "red", 
                         renderType: "void_maw",
                         speech: ["EL VACIO\nTIENE HAMBRE.", "TU EXISTENCIA\nES MI\nALIMENTO.", "ENTREGAME\nTUS BIENES."]
                     },
                     { 
-                        patterns: ["voidBiteSlam", "voidGravitySingularity", "voidInventoryDevourAttempt", "voidSpitBackBarrage"], 
+                        patterns: ["voidBiteSlam", "voidGravitySingularity", "voidInventoryDevourAttempt", "voidNebulaSwarm", "voidAbyssalRift", "voidTentacleFlurry", "voidCorrosiveSpit"], 
                         soulMode: "red", 
                         renderType: "void_enraged",
                         speech: ["¡NADA SE\nESCAPA DEL\nABISMO!", "¡LA ANOMALIA\nSE EXPANDE!", "MÁS... ¡QUIERO\nMÁS!"]
                     },
                     { 
-                        patterns: ["voidTentacleLash", "voidBiteSlam", "voidEyeBeam", "voidGravitySingularity", "voidInventoryDevourAttempt", "voidSpitBackBarrage"], 
+                        patterns: ["voidShatteredCorePulse", "voidSingularityOrbits", "voidCosmicCollapse", "voidEldritchCross", "voidInventoryPurge", "voidWormholeJump", "voidBlackHoleNova"], 
                         soulMode: "red", 
                         renderType: "void_shattered",
                         speech: ["¡TODO SE\nCOLAPSA!", "EL FINAL\nCÓSMICO...", "¡CONSUMO\nABSOLUTO!"]

@@ -128,6 +128,21 @@ var BossController = (function() {
             "voidGravitySingularity": function(cfg) { return new VoidGravitySingularityPattern(cfg || { damVal: 8, duration: 7.5 }); },
             "voidInventoryDevourAttempt": function(cfg) { return new VoidInventoryDevourAttemptPattern(cfg || { damVal: 6, duration: 4.5 }); },
             "voidSpitBackBarrage": function(cfg) { return new VoidSpitBackBarragePattern(cfg || { damVal: 8, duration: 8.0 }); },
+            "voidMawDrip": function(cfg) { return new VoidMawDripPattern(cfg || { damVal: 8, duration: 7.5 }); },
+            "voidCosmicDust": function(cfg) { return new VoidCosmicDustPattern(cfg || { damVal: 8, duration: 7.5 }); },
+            "voidGravityPlunge": function(cfg) { return new VoidGravityPlungePattern(cfg || { damVal: 8, duration: 7.5 }); },
+            "voidEldritchScream": function(cfg) { return new VoidEldritchScreamPattern(cfg || { damVal: 8, duration: 7.5 }); },
+            "voidNebulaSwarm": function(cfg) { return new VoidNebulaSwarmPattern(cfg || { damVal: 8, duration: 7.5 }); },
+            "voidAbyssalRift": function(cfg) { return new VoidAbyssalRiftPattern(cfg || { damVal: 8, duration: 7.5 }); },
+            "voidTentacleFlurry": function(cfg) { return new VoidTentacleFlurryPattern(cfg || { damVal: 8, duration: 7.5 }); },
+            "voidCorrosiveSpit": function(cfg) { return new VoidCorrosiveSpitPattern(cfg || { damVal: 8, duration: 7.5 }); },
+            "voidShatteredCorePulse": function(cfg) { return new VoidShatteredCorePulsePattern(cfg || { damVal: 9, duration: 8.0 }); },
+            "voidSingularityOrbits": function(cfg) { return new VoidSingularityOrbitsPattern(cfg || { damVal: 8, duration: 7.5 }); },
+            "voidCosmicCollapse": function(cfg) { return new VoidCosmicCollapsePattern(cfg || { damVal: 8, duration: 7.5 }); },
+            "voidEldritchCross": function(cfg) { return new VoidEldritchCrossPattern(cfg || { damVal: 9, duration: 7.5 }); },
+            "voidInventoryPurge": function(cfg) { return new VoidInventoryPurgePattern(cfg || { damVal: 9, duration: 6.5 }); },
+            "voidWormholeJump": function(cfg) { return new VoidWormholeJumpPattern(cfg || { damVal: 8, duration: 8.0 }); },
+            "voidBlackHoleNova": function(cfg) { return new VoidBlackHoleNovaPattern(cfg || { damVal: 12, duration: 7.5 }); },
             // --- Custom Coloso de Espejos (Mirror Colossus) Attacks ---
             "prismBeamGrid": function(cfg) { return new PrismBeamGridPattern(cfg || { damVal: 8, duration: 7.0 }); },
             "shatteringSpikes": function(cfg) { return new ShatteringSpikesPattern(cfg || { damVal: 8, duration: 7.0 }); },
@@ -356,7 +371,10 @@ var BossController = (function() {
             w = 300; h = 300;
         } else if (patternName === "crystalCataclysm") {
             w = 340; h = 300;
-        } else if (patternName === "voidTentacleLash" || patternName === "voidBiteSlam" || patternName === "voidEyeBeam" || patternName === "voidGravitySingularity" || patternName === "voidInventoryDevourAttempt" || patternName === "voidSpitBackBarrage") {
+        } else if (patternName === "voidTentacleLash" || patternName === "voidBiteSlam" || patternName === "voidEyeBeam" || patternName === "voidGravitySingularity" || patternName === "voidInventoryDevourAttempt" || patternName === "voidSpitBackBarrage" ||
+                   patternName === "voidMawDrip" || patternName === "voidCosmicDust" || patternName === "voidGravityPlunge" || patternName === "voidEldritchScream" || patternName === "voidNebulaSwarm" || patternName === "voidAbyssalRift" ||
+                   patternName === "voidTentacleFlurry" || patternName === "voidCorrosiveSpit" || patternName === "voidShatteredCorePulse" || patternName === "voidSingularityOrbits" || patternName === "voidCosmicCollapse" ||
+                   patternName === "voidEldritchCross" || patternName === "voidInventoryPurge" || patternName === "voidWormholeJump" || patternName === "voidBlackHoleNova") {
             w = 320; h = 320;
         }
 
