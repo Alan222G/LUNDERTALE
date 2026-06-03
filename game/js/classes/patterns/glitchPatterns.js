@@ -1407,9 +1407,11 @@ GlitchDualSoulPattern.prototype.checkCollision = function(sx, sy, sw, sh) {
     // Check mirror soul (if it exists)
     if (typeof Soul !== "undefined" && Soul.dualActive && Soul.getMirrorPos) {
         var mPos = Soul.getMirrorPos();
+        var msw = Soul.getWidth();
+        var msh = Soul.getHeight();
         for (var i = 0; i < this.bullets.length; i++) {
             var b = this.bullets[i];
-            if (b.active && rectsOverlap(b.x, b.y, b.width, b.height, mPos.x - 8, mPos.y - 8, 16, 16)) {
+            if (b.active && rectsOverlap(b.x, b.y, b.width, b.height, mPos.x, mPos.y, msw, msh)) {
                 return this.damVal;
             }
         }
@@ -1421,16 +1423,12 @@ GlitchDualSoulPattern.prototype.draw = function(ctx) {
     // Render custom mirror soul indicator
     if (typeof Soul !== "undefined" && Soul.dualActive && Soul.getMirrorPos) {
         var mPos = Soul.getMirrorPos();
-        ctx.fillStyle = "#00FFFF"; // Mirror soul glows Cyan!
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = "#00FFFF";
-        
-        ctx.beginPath();
-        ctx.moveTo(mPos.x, mPos.y - 8);
-        ctx.bezierCurveTo(mPos.x - 9, mPos.y - 12, mPos.x - 12, mPos.y - 3, mPos.x, mPos.y + 8);
-        ctx.bezierCurveTo(mPos.x + 12, mPos.y - 3, mPos.x + 9, mPos.y - 12, mPos.x, mPos.y - 8);
-        ctx.closePath();
-        ctx.fill();
+        var msw = Soul.getWidth();
+        var msh = Soul.getHeight();
+        ctx.save();
+        ctx.filter = "hue-rotate(180deg) saturate(2.5)";
+        ctx.drawImage(document.getElementById("heart"), mPos.x, mPos.y, msw, msh);
+        ctx.restore();
     }
     
     // Draw bullets

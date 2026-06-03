@@ -1557,68 +1557,120 @@ ShatteredCorePattern.prototype.isOver = function() {
 
 
 // 12. auroraBorealis (Wavy, damaging color ribbons sweep box)
-var AuroraBorealisPattern = function(config) {
+var MirrorShardVortexPattern = function(config) {
     BulletPattern.call(this, config);
     this.duration = config.duration || 7.5;
     this.elapsed = 0;
+    this.spawnTimer = 0;
     this.damVal = config.damVal || 9;
 };
-AuroraBorealisPattern.prototype = Object.create(BulletPattern.prototype);
-AuroraBorealisPattern.prototype.generateBullets = function(battleBox) {
+MirrorShardVortexPattern.prototype = Object.create(BulletPattern.prototype);
+MirrorShardVortexPattern.prototype.generateBullets = function(battleBox) {
     BulletPattern.prototype.generateBullets.call(this, battleBox);
     this.elapsed = 0;
+    this.spawnTimer = 0;
 };
-AuroraBorealisPattern.prototype.update = function(dt) {
+MirrorShardVortexPattern.prototype.update = function(dt) {
     this.elapsed += dt;
+    this.spawnTimer += dt;
+    var bb = Cbbox.getBound();
+    var cx = (bb[0] + bb[2]) / 2;
+    var cy = (bb[1] + bb[3]) / 2;
+
+    // Spawn shards from outer radius
+    if (this.spawnTimer >= 0.20 && this.elapsed < this.duration - 1.0) {
+        this.spawnTimer = 0;
+        var numShards = 2; // Spawn 2 shards at a time on opposite sides
+        var startAngle = Math.random() * Math.PI * 2;
+        var r = Math.max(bb[2] - bb[0], bb[3] - bb[1]) * 0.7; // Spawn slightly outside
+        
+        for (var i = 0; i < numShards; i++) {
+            var angle = startAngle + (i * Math.PI);
+            var colorList = ["#E0FFFF", "#EE82EE", "#87CEFA", "#FFB6C1", "#E6E6FA"];
+            var color = colorList[Math.floor(Math.random() * colorList.length)];
+            
+            // Create a custom bullet which spirals
+            this.bullets.push({
+                x: cx + Math.cos(angle) * r,
+                y: cy + Math.sin(angle) * r,
+                radius: r,
+                angle: angle,
+                rotSpeed: 2.2 + Math.random() * 0.8, // Speed of rotation
+                radialSpeed: 95 + Math.random() * 30, // Speed of inward drift
+                width: 10,
+                height: 10,
+                color: color,
+                active: true
+            });
+        }
+        Sound.playSound("laser", true);
+    }
+
+    // Update bullets (spiral logic)
+    for (var i = this.bullets.length - 1; i >= 0; i--) {
+        var b = this.bullets[i];
+        
+        // Decrease radius and increase angle
+        b.radius -= b.radialSpeed * dt;
+        b.angle += b.rotSpeed * dt;
+        
+        // Calculate new X, Y
+        b.x = cx + Math.cos(b.angle) * b.radius;
+        b.y = cy + Math.sin(b.angle) * b.radius;
+        
+        // Deactivate if too close to center
+        if (b.radius < 5) {
+            b.active = false;
+            this.bullets.splice(i, 1);
+        }
+    }
+    
     BulletPattern.prototype.update.call(this, dt);
 };
-AuroraBorealisPattern.prototype.checkCollision = function(sx, sy, sw, sh) {
-    var bb = Cbbox.getBound();
-    var scx = sx + sw/2;
-    var scy = sy + sh/2;
-    
-    // There are 3 ribbons that drift horizontally.
-    // Each ribbon has a wave path: x = startX + Math.sin(y/30 + elapsed*5) * 40
-    for (var r = 0; r < 3; r++) {
-        // Base coordinate shifts across screen
-        var baseOffset = 70 + r * 100;
-        var startX = bb[0] + ((baseOffset + this.elapsed * 60) % (bb[2] - bb[0] - 40));
-        
-        var ribbonX = startX + Math.sin(scy / 25 + this.elapsed * 3.5) * 35;
-        if (Math.abs(scx - ribbonX) < 18) { // Ribbon thickness
+MirrorShardVortexPattern.prototype.checkCollision = function(sx, sy, sw, sh) {
+    for (var i = 0; i < this.bullets.length; i++) {
+        var b = this.bullets[i];
+        if (b.active && rectsOverlap(b.x - b.width/2, b.y - b.height/2, b.width, b.height, sx, sy, sw, sh)) {
             return this.damVal;
         }
     }
     return 0;
 };
-AuroraBorealisPattern.prototype.draw = function(ctx) {
+MirrorShardVortexPattern.prototype.draw = function(ctx) {
     ctx.save();
-    var bb = Cbbox.getBound();
-    var colors = ["rgba(0, 255, 120, 0.45)", "rgba(138, 43, 226, 0.45)", "rgba(30, 144, 255, 0.45)"];
     
-    // Draw ribbons as beautiful gradient paths
-    for (var r = 0; r < 3; r++) {
-        var baseOffset = 70 + r * 100;
-        var startX = bb[0] + ((baseOffset + this.elapsed * 60) % (bb[2] - bb[0] - 40));
+    // Draw shards as diamond/crystal glass shapes
+    for (var i = 0; i < this.bullets.length; i++) {
+        var b = this.bullets[i];
+        if (!b.active) continue;
         
         ctx.save();
-        ctx.strokeStyle = colors[r];
-        ctx.lineWidth = 14;
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = colors[r];
+        ctx.translate(b.x, b.y);
+        ctx.rotate(b.angle + Math.PI/4); // Rotate with the spiral trajectory
+        
+        ctx.fillStyle = b.color;
+        ctx.strokeStyle = "#FFFFFF";
+        ctx.lineWidth = 1;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = b.color;
+        
+        // Draw crystalline diamond shape
         ctx.beginPath();
-        for (var y = bb[1]; y <= bb[3]; y += 5) {
-            var rx = startX + Math.sin(y / 25 + this.elapsed * 3.5) * 35;
-            if (y === bb[1]) { ctx.moveTo(rx, y); }
-            else { ctx.lineTo(rx, y); }
-        }
+        ctx.moveTo(0, -b.height);
+        ctx.lineTo(b.width/2, 0);
+        ctx.lineTo(0, b.height);
+        ctx.lineTo(-b.width/2, 0);
+        ctx.closePath();
+        ctx.fill();
         ctx.stroke();
+        
         ctx.restore();
     }
+    
     ctx.restore();
 };
-AuroraBorealisPattern.prototype.isOver = function() {
-    return this.elapsed >= this.duration;
+MirrorShardVortexPattern.prototype.isOver = function() {
+    return this.elapsed >= this.duration && this.bullets.length === 0;
 };
 
 
@@ -1781,8 +1833,17 @@ MirrorDimensionPattern.prototype.checkCollision = function(sx, sy, sw, sh) {
     var dmg = BulletPattern.prototype.checkCollision.call(this, sx, sy, sw, sh);
     if (dmg > 0) return dmg;
     
-    // Check if player collides with mirror heart itself?
-    // Let's make it safe so player can cross mirror, but hitting bullets is key.
+    // Check mirror soul collision
+    if (typeof Soul !== "undefined") {
+        var msw = Soul.getWidth();
+        var msh = Soul.getHeight();
+        for (var i = 0; i < this.bullets.length; i++) {
+            var b = this.bullets[i];
+            if (b.active && rectsOverlap(b.x, b.y, b.width, b.height, this.mirrorPos.x, this.mirrorPos.y, msw, msh)) {
+                return this.damVal;
+            }
+        }
+    }
     
     return 0;
 };
@@ -1791,23 +1852,11 @@ MirrorDimensionPattern.prototype.draw = function(ctx) {
     
     // Draw the gray Mirror Heart representation
     if (typeof Soul !== "undefined") {
+        var msw = Soul.getWidth();
+        var msh = Soul.getHeight();
         ctx.save();
-        ctx.fillStyle = "rgba(128, 128, 128, 0.7)";
-        ctx.strokeStyle = "#FFFFFF";
-        ctx.lineWidth = 1.5;
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = "#D3D3D3";
-        
-        // Draw Heart polygon shape
-        var mx = this.mirrorPos.x + Soul.getWidth()/2;
-        var my = this.mirrorPos.y + Soul.getHeight()/2;
-        ctx.beginPath();
-        ctx.moveTo(mx, my - 6);
-        ctx.bezierCurveTo(mx - 8, my - 14, mx - 16, my - 6, mx, my + 8);
-        ctx.bezierCurveTo(mx + 16, my - 6, mx + 8, my - 14, mx, my - 6);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
+        ctx.filter = "grayscale(100%) brightness(1.2)";
+        ctx.drawImage(document.getElementById("heart"), this.mirrorPos.x, this.mirrorPos.y, msw, msh);
         ctx.restore();
     }
     

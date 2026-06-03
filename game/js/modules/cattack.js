@@ -36,20 +36,46 @@ var Cattack = (function() {
                 if (myKeys.isConfirm()) {
                     var hit = attackBars[0];
                     var damage = Math.max(0, 282 - Math.abs(hit - 370));
-                    if (damage > 280) {
-                        damage *= 1.5;
-                        attackFades.push([hit, 1, 1]);
-                    } else {
-                        attackFades.push([hit, 0, 1]);
+                    var isSmash = false;
+                    
+                    if (typeof Player !== "undefined" && Player.getSoulClass && Player.getSoulClass() === 16) {
+                        if (Math.random() < 0.05) {
+                            isSmash = true;
+                        }
                     }
-                    damage *= (Player.getBuffAtk ? Player.getBuffAtk() : 1.0);
-                    damage = Math.floor(damage);
-                    totalDamage += damage;
-                    attackBars.splice(0, 1);
-                    if (attackBars.length > 0) {
-                        Sound.playSound(damage < 280 ? "hit_1" : "hit_1_crit", true);
+                    
+                    if (isSmash) {
+                        damage = 1000;
+                        attackFades.push([hit, 1, 1]);
+                        totalDamage += damage;
+                        Sound.playSound("hit_2_crit", true);
+                        Sound.playSound("impact", true);
+                        if (typeof triggerShake !== "undefined") {
+                            triggerShake(12, 400);
+                        }
+                        if (typeof Soul !== "undefined" && Soul.addFloatingText) {
+                            var sPos = Soul.getPos();
+                            Soul.addFloatingText("SMASH!", sPos.x + Soul.getWidth() / 2, sPos.y - 20, "#FF4500");
+                        }
                     } else {
-                        Sound.playSound(damage < 280 ? "hit_2" : "hit_2_crit", true);
+                        if (damage > 280) {
+                            damage *= 1.5;
+                            attackFades.push([hit, 1, 1]);
+                        } else {
+                            attackFades.push([hit, 0, 1]);
+                        }
+                        damage *= (Player.getBuffAtk ? Player.getBuffAtk() : 1.0);
+                        damage = Math.floor(damage);
+                        totalDamage += damage;
+                    }
+                    
+                    attackBars.splice(0, 1);
+                    if (!isSmash) {
+                        if (attackBars.length > 0) {
+                            Sound.playSound(damage < 280 ? "hit_1" : "hit_1_crit", true);
+                        } else {
+                            Sound.playSound(damage < 280 ? "hit_2" : "hit_2_crit", true);
+                        }
                     }
                 }
                 if (attackBars.length < 1 || attackBars[attackBars.length - 1] > 740) {

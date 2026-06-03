@@ -197,6 +197,10 @@ Enemy.prototype.draw = function(ctx) {
         ctx.save(); ctx.translate(370, 160); ctx.scale(1.4, 1.4); ctx.translate(-370, -160);
         this.drawPrism(ctx);
         ctx.restore();
+    } else if (this.renderType === "void_maw" || this.renderType === "void_enraged" || this.renderType === "void_shattered") {
+        ctx.save(); ctx.translate(370, 160); ctx.scale(1.4, 1.4); ctx.translate(-370, -160);
+        this.drawVoidMaw(ctx);
+        ctx.restore();
     } else if (this.renderType === "sachiel") {
         ctx.save(); ctx.translate(370, 160); ctx.scale(1.4, 1.4); ctx.translate(-370, -160);
         this.drawSachiel(ctx);
@@ -641,6 +645,23 @@ Enemy.prototype.dealDamage = function(damage) {
     
     
     this.curHP -= finalDmg / this.defense;
+    
+    // El Hambre Cósmica: hits recover utility items
+    if (this.name === "El Hambre Cósmica" && this.stolenItems && this.stolenItems.length > 0) {
+        this.hitsSinceSteal = (this.hitsSinceSteal || 0) + 1;
+        if (this.hitsSinceSteal >= 3) {
+            this.hitsSinceSteal = 0;
+            var recoveredItem = this.stolenItems.shift();
+            if (recoveredItem && typeof Inventory !== "undefined") {
+                Inventory.addItem(recoveredItem);
+                if (typeof Soul !== "undefined" && Soul.addFloatingText) {
+                    var sPos = Soul.getPos();
+                    Soul.addFloatingText("RECOVERED " + recoveredItem.name.toUpperCase() + "!", sPos.x + Soul.getWidth() / 2, sPos.y - 12, "#00FF7F");
+                }
+                Sound.playSound("heal", true);
+            }
+        }
+    }
     
     // Lifesteal Passives
     if (typeof Player !== "undefined") {
@@ -4965,6 +4986,218 @@ Enemy.prototype.drawPrism = function(ctx) {
         ctx.stroke();
         ctx.restore();
         
+        ctx.restore();
+    }
+    
+    ctx.restore();
+};
+
+Enemy.prototype.drawVoidMaw = function(ctx) {
+    ctx.save();
+    var time = Date.now() / 1000;
+    var bossX = 370;
+    var bossY = 160;
+    
+    // Position bounce/breathing
+    var breatheSpeed = this.renderType === "void_enraged" ? 8 : (this.renderType === "void_shattered" ? 12 : 3);
+    var breatheAmp = this.renderType === "void_enraged" ? 8 : (this.renderType === "void_shattered" ? 4 : 5);
+    var breatheY = Math.sin(time * breatheSpeed) * breatheAmp;
+    var shakeX = (this.renderType === "void_shattered" || this.renderType === "void_enraged") ? (Math.random() - 0.5) * 5 : 0;
+    var shakeY = (this.renderType === "void_shattered" || this.renderType === "void_enraged") ? (Math.random() - 0.5) * 5 : 0;
+    
+    ctx.translate(bossX + shakeX, bossY + breatheY + shakeY);
+    
+    // Core color theme
+    var borderGlow = "#9400D3"; // Dark Violet
+    var innerMawColor = "#4B0082"; // Indigo
+    if (this.renderType === "void_enraged") {
+        borderGlow = "#FF00FF"; // Neon Magenta
+        innerMawColor = "#300030";
+    } else if (this.renderType === "void_shattered") {
+        borderGlow = "#BA55D3"; // Medium Orchid
+        innerMawColor = "#1A002C";
+    }
+    
+    // 1. Draw Squirming Void Tentacles (6 tentacles)
+    var numTentacles = 6;
+    for (var t = 0; t < numTentacles; t++) {
+        ctx.save();
+        var tAngle = (t * Math.PI * 2 / numTentacles) + (Math.sin(time * 1.5 + t) * 0.2);
+        ctx.rotate(tAngle);
+        
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        
+        var length = 90 + Math.sin(time * 3 + t) * 15;
+        var startX = 0;
+        var startY = 0;
+        ctx.strokeStyle = t % 2 === 0 ? "#8B008B" : "#4B0082";
+        ctx.lineWidth = 6;
+        ctx.lineCap = "round";
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = borderGlow;
+        
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        for (var seg = 0; seg <= 10; seg++) {
+            var progress = seg / 10;
+            var segX = progress * length;
+            var segY = Math.sin(progress * Math.PI * 2 + time * 4 + t) * 12;
+            ctx.lineTo(segX, segY);
+        }
+        ctx.stroke();
+        ctx.restore();
+    }
+    
+    // 2. Draw Floating Void Particles for Shattered Phase
+    if (this.renderType === "void_shattered") {
+        ctx.save();
+        for (var p = 0; p < 15; p++) {
+            var pAngle = (time * 2 + p * 123.4) % (Math.PI * 2);
+            var pDist = 45 + ((time * 40 + p * 17) % 70);
+            var px = Math.cos(pAngle) * pDist;
+            var py = Math.sin(pAngle) * pDist;
+            var pSize = 2 + (p % 4);
+            ctx.fillStyle = borderGlow;
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = "#FFFFFF";
+            ctx.fillRect(px, py, pSize, pSize);
+        }
+        ctx.restore();
+    }
+    
+    // 3. Draw Singularity Core (inside maw)
+    ctx.save();
+    ctx.shadowBlur = 20;
+    ctx.shadowColor = borderGlow;
+    var grad = ctx.createRadialGradient(0, 0, 5, 0, 0, 35);
+    grad.addColorStop(0, "#000000");
+    grad.addColorStop(0.5, innerMawColor);
+    grad.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(0, 0, 35, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    
+    // Shattered core pulse
+    if (this.renderType === "void_shattered") {
+        ctx.save();
+        ctx.rotate(-time * 2);
+        ctx.strokeStyle = "#FFFFFF";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        for (var edge = 0; edge < 6; edge++) {
+            var eAngle = edge * Math.PI / 3;
+            var eDist = 18 + Math.sin(time * 8) * 3;
+            var ex = Math.cos(eAngle) * eDist;
+            var ey = Math.sin(eAngle) * eDist;
+            if (edge === 0) ctx.moveTo(ex, ey);
+            else ctx.lineTo(ex, ey);
+        }
+        ctx.closePath();
+        ctx.stroke();
+        ctx.restore();
+    }
+    
+    // 4. Draw Jaws & Teeth
+    var mouthOpen = 8 + Math.sin(time * 2.5) * 6;
+    if (this.renderType === "void_enraged") {
+        mouthOpen = 14 + Math.sin(time * 6) * 10;
+    } else if (this.renderType === "void_shattered") {
+        mouthOpen = 4; // Mostly collapsed, shattered
+    }
+    
+    // Upper Jaw
+    ctx.save();
+    ctx.translate(0, -mouthOpen);
+    ctx.fillStyle = "#1A002C";
+    ctx.strokeStyle = borderGlow;
+    ctx.lineWidth = 3;
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = borderGlow;
+    ctx.beginPath();
+    ctx.moveTo(-50, -5);
+    ctx.bezierCurveTo(-45, -35, 45, -35, 50, -5);
+    ctx.bezierCurveTo(30, -15, -30, -15, -50, -5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    
+    // Upper Teeth
+    ctx.fillStyle = "#E0FFFF";
+    ctx.strokeStyle = "#00FFFF";
+    ctx.lineWidth = 0.8;
+    for (var tx = -35; tx <= 35; tx += 14) {
+        ctx.beginPath();
+        ctx.moveTo(tx, -10);
+        ctx.lineTo(tx + 4, 3);
+        ctx.lineTo(tx + 8, -10);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+    }
+    ctx.restore();
+    
+    // Lower Jaw
+    ctx.save();
+    ctx.translate(0, mouthOpen);
+    ctx.fillStyle = "#1A002C";
+    ctx.strokeStyle = borderGlow;
+    ctx.lineWidth = 3;
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = borderGlow;
+    ctx.beginPath();
+    ctx.moveTo(-50, 5);
+    ctx.bezierCurveTo(-45, 35, 45, 35, 50, 5);
+    ctx.bezierCurveTo(30, 15, -30, 15, -50, 5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    
+    // Lower Teeth
+    ctx.fillStyle = "#E0FFFF";
+    ctx.strokeStyle = "#00FFFF";
+    ctx.lineWidth = 0.8;
+    for (var tx = -35; tx <= 35; tx += 14) {
+        ctx.beginPath();
+        ctx.moveTo(tx, 10);
+        ctx.lineTo(tx + 4, -3);
+        ctx.lineTo(tx + 8, 10);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+    }
+    ctx.restore();
+    
+    // 5. Draw Blinking Yellow/Red Cosmic Eyes
+    var eyes = [
+        { x: -65, y: -25, r: 6 },
+        { x: 65, y: -25, r: 6 },
+        { x: -35, y: -45, r: 4 },
+        { x: 35, y: -45, r: 4 },
+        { x: -75, y: 15, r: 5 },
+        { x: 75, y: 15, r: 5 }
+    ];
+    for (var e = 0; e < eyes.length; e++) {
+        var eye = eyes[e];
+        var blink = (time * 1.5 + e * 0.7) % 3 > 2.7; // Blink logic
+        if (blink) continue;
+        
+        ctx.save();
+        ctx.translate(eye.x, eye.y);
+        ctx.fillStyle = this.renderType === "void_enraged" ? "#FF0000" : "#FFD700";
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = this.renderType === "void_enraged" ? "#FF0000" : "#FFD700";
+        ctx.beginPath();
+        ctx.arc(0, 0, eye.r, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Pupil
+        ctx.fillStyle = "#000";
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 1.5, eye.r * 0.7, 0, 0, Math.PI * 2);
+        ctx.fill();
         ctx.restore();
     }
     

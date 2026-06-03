@@ -169,7 +169,7 @@ var Player = (function() {
         if (soulClass === 14) {
             gojoTurns++;
             // RCT: every 8 turns, if below 20% HP, activate progressive healing
-            if (gojoTurns % 8 === 0 && hpCur < hpMax * 0.20) {
+            if (combatTurnCount % 8 === 0 && combatTurnCount > 0 && hpCur < hpMax * 0.20) {
                 gojoRctActive = true;
                 gojoRctTimer = 0;
                 if (typeof Soul !== "undefined" && Soul.addFloatingText) {
@@ -370,20 +370,20 @@ var Player = (function() {
             return false;
         }
 
-        // Mahoraga adaptation (stack DEF on hit, capped at 5 stacks = +150%)
+        // Mahoraga adaptation (stack DEF on hit, capped at 15 stacks = +150%)
         if (soulClass === 12) {
-            if (mahoragaDefStack < 5) {
+            if (mahoragaDefStack < 15) {
                 mahoragaDefStack++;
-                baseDef += 0.30;
+                baseDef += 0.10;
                 recalculateBuffs();
+                mahoragaWheelSpinTimer = 2.0;
+                if (typeof Soul !== "undefined" && Soul.addFloatingText) {
+                    var sPos = Soul.getPos();
+                    var displayPct = mahoragaDefStack * 10;
+                    Soul.addFloatingText("ADAPTED +" + displayPct + "%", sPos.x + Soul.getWidth() / 2, sPos.y - 12, "#FFD700");
+                }
+                console.log("MAHORAGA ADAPTED: Stack " + mahoragaDefStack + " (+" + (mahoragaDefStack * 10) + "% DEF)");
             }
-            mahoragaWheelSpinTimer = 2.0;
-            if (typeof Soul !== "undefined" && Soul.addFloatingText) {
-                var sPos = Soul.getPos();
-                var displayPct = Math.min(mahoragaDefStack * 30, 150);
-                Soul.addFloatingText("ADAPTED +" + displayPct + "%", sPos.x + Soul.getWidth() / 2, sPos.y - 12, "#FFD700");
-            }
-            console.log("MAHORAGA ADAPTED: Stack " + mahoragaDefStack + " (+" + Math.min(mahoragaDefStack * 30, 150) + "% DEF)");
         }
 
         var dmg = value;
@@ -392,9 +392,9 @@ var Player = (function() {
         // Apply defense reduction
         dmg = Math.ceil(dmg / buffDef);
         
-        // Mahoraga at max adaptation (5 stacks): minimum 1 HP damage
-        if (soulClass === 12 && mahoragaDefStack >= 5) {
-            dmg = Math.max(1, dmg);
+        // Mahoraga at max adaptation (15 stacks): flat 1 HP damage
+        if (soulClass === 12 && mahoragaDefStack >= 15) {
+            dmg = 1;
         }
         
         if (dmg <= 0) return false; // No damage dealt
@@ -570,7 +570,7 @@ var Player = (function() {
         // Mahoraga: reset adaptation on boss phase change
         resetMahoragaAdaptation: function() {
             if (soulClass === 12) {
-                baseDef -= (mahoragaDefStack * 0.30);
+                baseDef -= (mahoragaDefStack * 0.10);
                 mahoragaDefStack = 0;
                 recalculateBuffs();
                 if (typeof Soul !== "undefined" && Soul.addFloatingText) {

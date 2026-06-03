@@ -26,7 +26,7 @@ var Overworld = (function() {
         { name: "Corazón Caótico", desc: "Caótico. HP:100, Cada turno cambia de alma y stats. Arcoíris." },
         { name: "Divergent zilla", desc: "Adaptación. HP:120. Se adapta ganando +30% DEF por golpe (máx +150%, recibe 1 HP mín). Se reinicia al cambiar fase del boss." },
         { name: "Eva 01", desc: "Berserk. HP:110. Si tu HP baja del 30%: +110% ATK, +55% VEL, regenera 4.4 HP/seg. +20% stats vs Ángeles." },
-        { name: "Gojo", desc: "Infinito. HP:90, VEL:+20%. Satoru Gojo. Tu barrera de Infinito bloquea un golpe de forma absoluta cada 4 turnos." },
+        { name: "Gojo", desc: "Infinito. HP:90, VEL:+20%. Satoru Gojo. Barrera de Infinito bloquea 1 golpe cada 4 turnos. RCT: cura progresivamente bajo 20% HP cada 8 turnos." },
         { name: "Subaru", desc: "Retorno por Muerte. HP:70. Si mueres, revives con 50% HP y 2 seg de invulnerabilidad (hasta 3 veces por combate)." },
         { name: "All Might", desc: "One For All. HP:150, ATK:+60%, DEF:+40%. Símbolo de la Paz. Tu HP Máximo decae -3/turno (mín 60)." },
         { name: "Itadori", desc: "Jujutsu. HP:100, VEL:+10%, ATK:+30%. Black Flash (20% crit 2.5x), Sangre Perforante (sangrado al enemigo), RCT cada 8 turnos." },
@@ -195,6 +195,23 @@ var Overworld = (function() {
             bossId: "prism",
             label: "COLOSO DE ESPEJOS",
             color: "rgba(0, 240, 255, 0.6)",
+            action: function() {
+                var self = this;
+                Transition.start(function() {
+                    main.gameState = main.GAME_STATE.COMBAT;
+                    Combat.init(self.bossId);
+                    Combat.setup(main.ctx);
+                });
+            }
+        });
+        
+        // El Hambre Cósmica battle trigger (Anomalies Group)
+        triggerList.push({
+            x: 640, y: 207, w: 26, h: 26,
+            triggered: false,
+            bossId: "void_maw",
+            label: "EL HAMBRE CÓSMICA",
+            color: "rgba(148, 0, 211, 0.6)",
             action: function() {
                 var self = this;
                 Transition.start(function() {
@@ -820,6 +837,43 @@ var Overworld = (function() {
                     ctx.lineTo(-pSize * 0.3, 0);
                     ctx.closePath();
                     ctx.fill();
+                    
+                    ctx.restore();
+                    ctx.shadowBlur = 0;
+                } else if (t.bossId === "void_maw") {
+                    // Pulsing purple void portal for El Hambre Cósmica
+                    var vTime = animTimer;
+                    var vSize = 18 + Math.sin(vTime * 3.5) * 3;
+                    ctx.save();
+                    ctx.translate(gcx, gcy);
+                    
+                    // Rotate opposite to pulse
+                    ctx.rotate(-vTime * 1.5);
+                    
+                    // Radial gradient glow
+                    var pGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, vSize);
+                    pGrad.addColorStop(0, "#000000");
+                    pGrad.addColorStop(0.4, "#4B0082"); // Indigo
+                    pGrad.addColorStop(0.8, "#9400D3"); // Violet
+                    pGrad.addColorStop(1, "rgba(0,0,0,0)");
+                    
+                    ctx.fillStyle = pGrad;
+                    ctx.shadowBlur = 20;
+                    ctx.shadowColor = "#FF00FF";
+                    ctx.beginPath();
+                    ctx.arc(0, 0, vSize, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Draw mini orbiting matter/debris
+                    ctx.fillStyle = "#FFFFFF";
+                    ctx.shadowBlur = 5;
+                    ctx.shadowColor = "#FFFFFF";
+                    for (var d = 0; d < 4; d++) {
+                        var dAngle = vTime * 2.5 + (d * Math.PI / 2);
+                        var dx = Math.cos(dAngle) * (vSize * 0.7);
+                        var dy = Math.sin(dAngle) * (vSize * 0.7);
+                        ctx.fillRect(dx - 1.5, dy - 1.5, 3, 3);
+                    }
                     
                     ctx.restore();
                     ctx.shadowBlur = 0;

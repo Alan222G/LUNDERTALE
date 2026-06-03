@@ -26,6 +26,8 @@ var Cgroup = (function() {
             setupGlitch();
         } else if (currentBossId === "prism") {
             setupPrism();
+        } else if (currentBossId === "void_maw") {
+            setupVoidMaw();
         } else {
             setupSingularity();
         }
@@ -685,7 +687,7 @@ var Cgroup = (function() {
                 attacks: [
                     "prismBeamGrid", "shatteringSpikes", "mirrorReflect", "crystallineShield", "refractionCascade",
                     "glassFracture", "kaleidoscopeSpiral", "prismLaserSweep", "birefringenceSplit", "mirrorMaze",
-                    "shatteredCore", "auroraBorealis", "spectralRefract", "mirrorDimension", "crystalCataclysm",
+                    "shatteredCore", "mirrorShardVortex", "spectralRefract", "mirrorDimension", "crystalCataclysm",
                     "prismStrobe", "glassRain", "crystallineRay"
                 ],
                 phases: [
@@ -702,8 +704,8 @@ var Cgroup = (function() {
                         speech: ["EL REFLEJO SE\nDISTORSIONA.", "LA BIREFRINGENCIA\nTE DIVIDE.", "MIRA LAS GRIETAS."] 
                     },
                     { 
-                        patterns: ["shatteredCore", "auroraBorealis", "spectralRefract", "mirrorDimension", "crystalCataclysm", "glassRain", "crystallineRay"], 
-                        soulMode: "inverse", 
+                        patterns: ["shatteredCore", "mirrorShardVortex", "spectralRefract", "mirrorDimension", "crystalCataclysm", "glassRain", "crystallineRay"], 
+                        soulMode: "red", 
                         renderType: "prism_phase3",
                         speech: ["TODO SE\nFRACTURA.", "EL ABISMO\nREFLEJA TU\nALMA.", "CRISTALIZATE!"] 
                     }
@@ -761,6 +763,196 @@ var Cgroup = (function() {
 
     function dealDamage(idx, damage) {
         return enemies[idx].dealDamage(damage);
+    }
+
+    function setupVoidMaw() {
+        enemies = [
+            new Enemy({
+                name: "El Hambre Cósmica",
+                checkText: "Una anomalía gravitatoria hambrienta. Devora tu inventario.",
+                maxHP: 5200,
+                curHP: 5200,
+                renderType: "void_maw",
+                atk: 28,
+                def: 22,
+                defense: 1.15,
+                acts: ["Check", "Satiate/Feed", "Taunt", "Flee"],
+                actResponses: [
+                    "* EL HAMBRE CÓSMICA - ATK 28 DEF 22\n* Un maw cósmico devorador.\n* ¡Ten cuidado, se comerá tus objetos de inventario!",
+                    "* Le ofreces uno de tus objetos de inventario al Hambre Cósmica.",
+                    "* Te burlas de su apetito insaciable.\n* Ruge enfadado.",
+                    "* Intentas huir, pero su gravedad te arrastra de vuelta."
+                ],
+                actFunctions: [
+                    function() { console.log("Checked Void Maw"); },
+                    function() {
+                        console.log("Fed Void Maw");
+                        if (typeof Inventory !== "undefined") {
+                            var len = Inventory.getLength();
+                            if (len > 0) {
+                                var index = Math.floor(Math.random() * len);
+                                var item = Inventory.getEquippedItemObject(index);
+                                Inventory.removeItem(index);
+                                
+                                if (item.name === "Brebaje Tóxico") {
+                                    enemies[0].dealDamage(500);
+                                    enemies[0].bleedTimer = 5.0;
+                                    enemies[0].bleedDmg = 15;
+                                    enemies[0].mercyHP = Math.min(100, enemies[0].mercyHP + 15);
+                                    if (typeof Soul !== "undefined" && Soul.addFloatingText) {
+                                        var sPos = Soul.getPos();
+                                        Soul.addFloatingText("FED POISON! -500 HP", sPos.x + Soul.getWidth() / 2, sPos.y - 12, "#7CFC00");
+                                    }
+                                } else if (item.name === "Materia Inestable") {
+                                    enemies[0].dealDamage(400);
+                                    enemies[0].mercyHP = Math.min(100, enemies[0].mercyHP + 10);
+                                    if (typeof Soul !== "undefined" && Soul.addFloatingText) {
+                                        var sPos = Soul.getPos();
+                                        Soul.addFloatingText("FED UNSTABLE! -400 HP", sPos.x + Soul.getWidth() / 2, sPos.y - 12, "#FF8C00");
+                                    }
+                                } else if (item.healVal > 0) {
+                                    enemies[0].curHP = Math.min(enemies[0].maxHP, enemies[0].curHP + 400);
+                                    enemies[0].mercyHP = Math.min(100, enemies[0].mercyHP + 30);
+                                    if (typeof Soul !== "undefined" && Soul.addFloatingText) {
+                                        var sPos = Soul.getPos();
+                                        Soul.addFloatingText("FED POTION! +400 HP", sPos.x + Soul.getWidth() / 2, sPos.y - 12, "#00FF00");
+                                    }
+                                } else {
+                                    enemies[0].mercyHP = Math.min(100, enemies[0].mercyHP + 20);
+                                    if (typeof Soul !== "undefined" && Soul.addFloatingText) {
+                                        var sPos = Soul.getPos();
+                                        Soul.addFloatingText("FED ITEM! +20 MERCY", sPos.x + Soul.getWidth() / 2, sPos.y - 12, "#DDA0DD");
+                                    }
+                                }
+                                Sound.playSound("heal", true);
+                            } else {
+                                if (typeof Soul !== "undefined" && Soul.addFloatingText) {
+                                    var sPos = Soul.getPos();
+                                    Soul.addFloatingText("NO ITEMS!", sPos.x + Soul.getWidth() / 2, sPos.y - 12, "#FF0000");
+                                }
+                            }
+                        }
+                    },
+                    function() {
+                        console.log("Taunted Void Maw");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 10);
+                    },
+                    function() {
+                        console.log("Flee failed");
+                    }
+                ],
+                texts: [
+                    "* El Hambre Cósmica ruge con una resonancia de gravedad infinita.",
+                    "* Tus objetos del inventario tiemblan ante el vacío.",
+                    "* Tentáculos de energía oscura azotan el aire a tu alrededor.",
+                    "* Una mirada de mil ojos amarillos te juzga desde el abismo."
+                ],
+                speech: [
+                    "EL VACIO\nTIENE HAMBRE.",
+                    "TU EXISTENCIA\nES MI\nALIMENTO.",
+                    "ENTREGAME\nTUS BIENES.",
+                    "MÁS... MÁS!"
+                ],
+                spriteId: "asriel",
+                attacks: [
+                    "voidTentacleLash", "voidBiteSlam", "voidEyeBeam", "voidGravitySingularity", 
+                    "voidInventoryDevourAttempt", "voidSpitBackBarrage"
+                ],
+                phases: [
+                    { 
+                        patterns: ["voidTentacleLash", "voidEyeBeam", "voidSpitBackBarrage"], 
+                        soulMode: "red", 
+                        renderType: "void_maw",
+                        speech: ["EL VACIO\nTIENE HAMBRE.", "TU EXISTENCIA\nES MI\nALIMENTO.", "ENTREGAME\nTUS BIENES."]
+                    },
+                    { 
+                        patterns: ["voidBiteSlam", "voidGravitySingularity", "voidInventoryDevourAttempt", "voidSpitBackBarrage"], 
+                        soulMode: "red", 
+                        renderType: "void_enraged",
+                        speech: ["¡NADA SE\nESCAPA DEL\nABISMO!", "¡LA ANOMALIA\nSE EXPANDE!", "MÁS... ¡QUIERO\nMÁS!"]
+                    },
+                    { 
+                        patterns: ["voidTentacleLash", "voidBiteSlam", "voidEyeBeam", "voidGravitySingularity", "voidInventoryDevourAttempt", "voidSpitBackBarrage"], 
+                        soulMode: "red", 
+                        renderType: "void_shattered",
+                        speech: ["¡TODO SE\nCOLAPSA!", "EL FINAL\nCÓSMICO...", "¡CONSUMO\nABSOLUTO!"]
+                    }
+                ],
+                phaseHP: [5200, 6400, 7900],
+                karmaEnabled: false,
+                jitterEnabled: true,
+                damagePos: new Vect(370, 260, 0),
+                damageVel: 120,
+                bubbleOff: 30,
+                mercyHP: 100,
+                xpReward: 4000,
+                goldReward: 2000,
+            })
+        ];
+        
+        enemies[0].stolenItems = [];
+        enemies[0].hitsSinceSteal = 0;
+        enemies[0].onHitPlayer = function(dmgVal) {
+            if (typeof Inventory !== "undefined") {
+                var len = Inventory.getLength();
+                if (len > 0) {
+                    var index = Math.floor(Math.random() * len);
+                    var item = Inventory.getEquippedItemObject(index);
+                    Inventory.removeItem(index);
+                    
+                    if (item.name === "Brebaje Tóxico") {
+                        this.dealDamage(500);
+                        this.bleedTimer = 5.0;
+                        this.bleedDmg = 15;
+                        if (typeof Soul !== "undefined" && Soul.addFloatingText) {
+                            var sPos = Soul.getPos();
+                            Soul.addFloatingText("DEVOUR POISON! -500 HP", sPos.x + Soul.getWidth() / 2, sPos.y - 12, "#7CFC00");
+                        }
+                        Sound.playSound("damage", true);
+                    } else if (item.name === "Materia Inestable") {
+                        var rand = Math.random();
+                        if (rand < 0.33) {
+                            this.dealDamage(400);
+                            if (typeof Soul !== "undefined" && Soul.addFloatingText) {
+                                Soul.addFloatingText("UNSTABLE BOOM! -400 HP", 370, 150, "#FF0000");
+                            }
+                            Sound.playSound("impact", true);
+                        } else if (rand < 0.66) {
+                            this.curHP = Math.min(this.maxHP, this.curHP + 400);
+                            if (typeof Soul !== "undefined" && Soul.addFloatingText) {
+                                Soul.addFloatingText("UNSTABLE POWER! +400 HP", 370, 150, "#00FF00");
+                            }
+                            Sound.playSound("heal", true);
+                        } else {
+                            Player.damage(20);
+                            if (typeof Soul !== "undefined" && Soul.addFloatingText) {
+                                var sPos = Soul.getPos();
+                                Soul.addFloatingText("UNSTABLE CORRUPTION! -20 HP", sPos.x + Soul.getWidth() / 2, sPos.y - 12, "#9900FF");
+                            }
+                            Sound.playSound("damage", true);
+                        }
+                    } else if (item.healVal > 0) {
+                        this.curHP = Math.min(this.maxHP, this.curHP + 400);
+                        if (typeof Soul !== "undefined" && Soul.addFloatingText) {
+                            var sPos = Soul.getPos();
+                            Soul.addFloatingText("DEVOUR POTION! +400 HP", sPos.x + Soul.getWidth() / 2, sPos.y - 12, "#00FF00");
+                        }
+                        Sound.playSound("heal", true);
+                    } else {
+                        this.stolenItems.push(item);
+                        if (typeof Soul !== "undefined" && Soul.addFloatingText) {
+                            var sPos = Soul.getPos();
+                            Soul.addFloatingText("STOLE " + item.name.toUpperCase() + "!", sPos.x + Soul.getWidth() / 2, sPos.y - 12, "#DDA0DD");
+                        }
+                        Sound.playSound("ting", true);
+                    }
+                }
+            }
+        };
+
+        enemies[0].bubblePos = enemies[0].damagePos.getAdd(new Vect(60, -160, 0));
+        mercies = ["Spare", "Flee"];
+        defends = [];
     }
 
     return {

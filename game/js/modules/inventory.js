@@ -206,11 +206,24 @@ var Inventory = (function() {
 
     function getEquippedCount() { return equippedItems.length; }
 
+    function getEquippedItemObject(index) {
+        return equippedItems[index];
+    }
+
+    function addItem(item) {
+        if (equippedItems.length < 8) {
+            equippedItems.push(item);
+            return true;
+        }
+        return false;
+    }
+
     return {
         init: init, 
         getNames: getNames, getText: getText, getLength: getLength, 
         removeItem: removeItem, activate: activate,
         getAllNames: getAllNames, getAllText: getAllText, getAllLength: getAllLength,
-        isEquipped: isEquipped, toggleEquip: toggleEquip, getEquippedCount: getEquippedCount
+        isEquipped: isEquipped, toggleEquip: toggleEquip, getEquippedCount: getEquippedCount,
+        getEquippedItemObject: getEquippedItemObject, addItem: addItem
     };
 }());
