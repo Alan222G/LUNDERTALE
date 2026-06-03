@@ -684,6 +684,22 @@ Enemy.prototype.dealDamage = function(damage) {
     }
     
     if (this.curHP <= 0) {
+        // Return stolen items for El Hambre Cósmica on phase defeat / death
+        if (this.name === "El Hambre Cósmica" && this.stolenItems && this.stolenItems.length > 0) {
+            if (typeof Inventory !== "undefined") {
+                while (this.stolenItems.length > 0) {
+                    var item = this.stolenItems.shift();
+                    Inventory.addItem(item);
+                }
+                if (typeof Soul !== "undefined" && Soul.addFloatingText) {
+                    var sPos = Soul.getPos();
+                    Soul.addFloatingText("ITEMS RETURNED!", sPos.x + Soul.getWidth() / 2, sPos.y - 12, "#00FF7F");
+                }
+                Sound.playSound("heal", true);
+                console.log("El Hambre Cósmica defeated phase/dead: Stolen items returned!");
+            }
+        }
+
         if (this.phases && this.currentPhase < this.phases.length - 1) {
             this.currentPhase++;
             // Reset Mahoraga adaptation on boss phase change!
@@ -1050,7 +1066,7 @@ Enemy.prototype.drawThrone = function(ctx) {
     ctx.restore();
 };
 
-Enemy.prototype.onHitPlayer = function(damageDealt) {
+Enemy.prototype.onHitPlayer = function(damageDealt, patternName) {
     if (typeof Player === "undefined") return;
     
     // 1. Seraphina passives
@@ -4999,8 +5015,8 @@ Enemy.prototype.drawVoidMaw = function(ctx) {
     var bossY = 160;
     
     // Position bounce/breathing
-    var breatheSpeed = this.renderType === "void_enraged" ? 8 : (this.renderType === "void_shattered" ? 12 : 3);
-    var breatheAmp = this.renderType === "void_enraged" ? 8 : (this.renderType === "void_shattered" ? 4 : 5);
+    var breatheSpeed = (this.renderType === "void_enraged" || this.renderType === "void_shattered") ? 8 : 3;
+    var breatheAmp = (this.renderType === "void_enraged" || this.renderType === "void_shattered") ? 8 : 5;
     var breatheY = Math.sin(time * breatheSpeed) * breatheAmp;
     var shakeX = (this.renderType === "void_shattered" || this.renderType === "void_enraged") ? (Math.random() - 0.5) * 5 : 0;
     var shakeY = (this.renderType === "void_shattered" || this.renderType === "void_enraged") ? (Math.random() - 0.5) * 5 : 0;
@@ -5102,10 +5118,8 @@ Enemy.prototype.drawVoidMaw = function(ctx) {
     
     // 4. Draw Jaws & Teeth
     var mouthOpen = 8 + Math.sin(time * 2.5) * 6;
-    if (this.renderType === "void_enraged") {
+    if (this.renderType === "void_enraged" || this.renderType === "void_shattered") {
         mouthOpen = 14 + Math.sin(time * 6) * 10;
-    } else if (this.renderType === "void_shattered") {
-        mouthOpen = 4; // Mostly collapsed, shattered
     }
     
     // Upper Jaw

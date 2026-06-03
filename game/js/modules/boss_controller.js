@@ -384,6 +384,9 @@ var BossController = (function() {
     // Start a new attack turn
     function startAttack(enemy, battleBox, patternName) {
         turnCount++;
+        if (enemy) {
+            enemy.hitsThisTurn = 0;
+        }
         currentPattern = createPattern(patternName);
         if (currentPattern) {
             currentPattern.generateBullets(battleBox);
@@ -479,7 +482,7 @@ var BossController = (function() {
                     }
                     // Trigger brutal passives
                     if (enemy && typeof enemy.onHitPlayer === 'function') {
-                        enemy.onHitPlayer(finalDmg);
+                        enemy.onHitPlayer(finalDmg, currentPattern.name);
                     }
                     
                     // Item Effect: Espejo del Vacío (Reflection)

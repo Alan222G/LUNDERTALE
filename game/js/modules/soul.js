@@ -211,85 +211,56 @@ var Soul = (function() {
         if (sClass === 12) { // Mahoraga — Divine Dharma Wheel + Adaptation Stacks
             var cx = drawPos.x + sw/2;
             var cy = drawPos.y - 8;
-            var time = Date.now() / 1000;
-            var isSpinning = (typeof Player !== "undefined" && Player.getMahoragaWheelSpinTimer && Player.getMahoragaWheelSpinTimer() > 0);
             var stacks = (typeof Player !== "undefined" && Player.getMahoragaDefStack) ? Player.getMahoragaDefStack() : 0;
-            var isFullyAdapted = (stacks >= 10);
             
             ctx.save();
             ctx.translate(cx, cy);
             
-            // Set rotation: if fully adapted (>= 100% / 10 stacks), it stays static.
-            if (!isFullyAdapted) {
-                var spinSpeed = isSpinning ? 40 : 600;
-                ctx.rotate((Date.now() / spinSpeed) % (Math.PI * 2));
-            }
+            // Constantly rotate at a normal, slow pace to avoid performance spike
+            ctx.rotate((Date.now() / 2000) % (Math.PI * 2));
             
-            // Divine glow at high stacks (10+ / 100%+)
-            if (stacks >= 10) {
-                ctx.save();
-                var divAlpha = 0.15 + Math.sin(time * 4) * 0.1;
-                var divGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, 18);
-                divGrad.addColorStop(0, "rgba(255, 215, 0, " + divAlpha + ")");
-                divGrad.addColorStop(1, "rgba(255, 215, 0, 0)");
-                ctx.fillStyle = divGrad;
-                ctx.beginPath();
-                ctx.arc(0, 0, 18, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
-            }
-            
-            // Spinning glow when adapting (if not fully adapted)
-            if (isSpinning && !isFullyAdapted) {
-                ctx.shadowBlur = 14;
-                ctx.shadowColor = "#FFD700";
-            } else if (isFullyAdapted) {
-                ctx.shadowBlur = 8;
-                ctx.shadowColor = "#FFD700";
-            }
-            
-            // Outer ring
-            ctx.strokeStyle = stacks >= 10 ? "#FFE066" : "#DAA520";
-            ctx.lineWidth = stacks >= 10 ? 2.0 : 1.5;
+            // Outer ring (cool grey outline, no shadow/glow to prevent performance lag)
+            ctx.strokeStyle = "#7F8C8D";
+            ctx.lineWidth = 1.5;
             ctx.beginPath();
             ctx.arc(0, 0, 9, 0, Math.PI * 2);
             ctx.stroke();
             
             // Inner ring
-            ctx.strokeStyle = stacks >= 10 ? "#FFE066" : "#DAA520";
+            ctx.strokeStyle = "#7F8C8D";
             ctx.lineWidth = 1.0;
             ctx.beginPath();
             ctx.arc(0, 0, 3, 0, Math.PI * 2);
             ctx.stroke();
             
-            // 8 spokes with diamond knobs
+            // 8 spokes with silver knobs
             for (var sp = 0; sp < 8; sp++) {
                 var sAngle = (sp * Math.PI / 4);
-                ctx.strokeStyle = stacks >= 10 ? "#FFE066" : "#DAA520";
+                ctx.strokeStyle = "#7F8C8D";
                 ctx.lineWidth = 1.2;
                 ctx.beginPath();
                 ctx.moveTo(Math.cos(sAngle) * 3, Math.sin(sAngle) * 3);
                 ctx.lineTo(Math.cos(sAngle) * 9, Math.sin(sAngle) * 9);
                 ctx.stroke();
-                // Diamond knobs at spoke ends
+                
+                // Silver knobs at spoke ends
                 ctx.save();
                 ctx.translate(Math.cos(sAngle) * 10, Math.sin(sAngle) * 10);
                 ctx.rotate(sAngle + Math.PI / 4);
-                ctx.fillStyle = stacks >= 10 ? "#FFE066" : (isSpinning ? "#FFFFFF" : "#FFD700");
+                ctx.fillStyle = "#BDC3C7";
                 ctx.fillRect(-1.5, -1.5, 3, 3);
                 ctx.restore();
             }
             ctx.restore();
             
-            // Adaptation stack counter (below soul)
-            if (stacks > 0 && stacks < 15) {
+            // Adaptation percentage indicator below soul (e.g., "100% Adaptado" at 15 stacks)
+            if (stacks > 0) {
                 ctx.save();
-                ctx.font = "bold 7px monospace";
+                ctx.font = "bold 8px monospace";
                 ctx.textAlign = "center";
-                ctx.fillStyle = stacks >= 10 ? "#FFE066" : "#DAA520";
-                ctx.shadowBlur = stacks >= 10 ? 6 : 0;
-                ctx.shadowColor = "#FFD700";
-                ctx.fillText("+" + (stacks * 10) + "%", cx, drawPos.y + sh + 8);
+                ctx.fillStyle = "#FFFFFF"; // Clean white, no glow
+                var pct = Math.floor((stacks / 15) * 100);
+                ctx.fillText(pct + "% Adaptado", cx, drawPos.y + sh + 10);
                 ctx.restore();
             }
         } else if (sClass === 13) { // Eva 01 — AT Field + Green Energy Core + Berserk

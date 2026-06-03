@@ -1,3 +1,126 @@
+// Crystal particle engine for Coloso de los Espejos visual enhancements
+var crystalParticles = [];
+function updateCrystalParticles(dt) {
+    for (var i = crystalParticles.length - 1; i >= 0; i--) {
+        var p = crystalParticles[i];
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        if (p.angle !== undefined && p.rotSpeed !== undefined) {
+            p.angle += p.rotSpeed * dt;
+        }
+        p.life -= dt;
+        if (p.life <= 0) crystalParticles.splice(i, 1);
+    }
+}
+function drawCrystalParticles(ctx) {
+    ctx.save();
+    for (var i = 0; i < crystalParticles.length; i++) {
+        var p = crystalParticles[i];
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        if (p.angle !== undefined) {
+            ctx.rotate(p.angle);
+        }
+        ctx.fillStyle = p.color || "#00FFFF";
+        ctx.shadowBlur = p.glow || 8;
+        ctx.shadowColor = p.color || "#00FFFF";
+        
+        if (p.isShard) {
+            var sz = p.size;
+            ctx.beginPath();
+            ctx.moveTo(0, -sz);
+            ctx.lineTo(sz * 0.4, -sz * 0.2);
+            ctx.lineTo(sz * 0.2, sz * 0.8);
+            ctx.lineTo(0, sz);
+            ctx.lineTo(-sz * 0.2, sz * 0.8);
+            ctx.lineTo(-sz * 0.4, -sz * 0.2);
+            ctx.closePath();
+            ctx.fill();
+        } else {
+            ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+        }
+        ctx.restore();
+    }
+    ctx.restore();
+}
+function spawnCrystalParticle(x, y, vx, vy, size, life, color, glow, isShard, angle, rotSpeed) {
+    crystalParticles.push({
+        x: x, y: y,
+        vx: vx, vy: vy,
+        size: size,
+        life: life,
+        color: color,
+        glow: glow,
+        isShard: isShard,
+        angle: angle,
+        rotSpeed: rotSpeed
+    });
+}
+
+// Intercept BulletPattern prototype methods
+var _origBulletPatternUpdate = BulletPattern.prototype.update;
+var _origBulletPatternDraw = BulletPattern.prototype.draw;
+var _origBulletPatternGenerate = BulletPattern.prototype.generateBullets;
+
+BulletPattern.prototype.generateBullets = function(battleBox) {
+    _origBulletPatternGenerate.call(this, battleBox);
+    crystalParticles = [];
+};
+
+BulletPattern.prototype.update = function(dt) {
+    _origBulletPatternUpdate.call(this, dt);
+    
+    // If it's a Coloso de los Espejos pattern, update particles and spawn trails for active bullets
+    if (this.name && (
+        this.name.indexOf("prism") === 0 || 
+        this.name.indexOf("mirror") === 0 || 
+        this.name.indexOf("glass") === 0 || 
+        this.name.indexOf("crystal") === 0 || 
+        this.name.indexOf("refract") === 0 || 
+        this.name.indexOf("shatter") === 0 || 
+        this.name === "kaleidoscopeSpiral" || 
+        this.name === "birefringenceSplit"
+    )) {
+        updateCrystalParticles(dt);
+        
+        // Spawn shiny trails for active bullets
+        for (var i = 0; i < this.bullets.length; i++) {
+            var b = this.bullets[i];
+            if (b.active && Math.random() < 0.22) {
+                var color = b.color || "#00FFFF";
+                spawnCrystalParticle(
+                    b.x, b.y, 
+                    (Math.random() - 0.5) * 15, 
+                    (Math.random() - 0.5) * 15, 
+                    2 + Math.random() * 2, 
+                    0.25 + Math.random() * 0.15, 
+                    color, 6, 
+                    Math.random() < 0.35, 
+                    Math.random() * Math.PI, 
+                    (Math.random() - 0.5) * 5
+                );
+            }
+        }
+    }
+};
+
+BulletPattern.prototype.draw = function(ctx) {
+    _origBulletPatternDraw.call(this, ctx);
+    if (this.name && (
+        this.name.indexOf("prism") === 0 || 
+        this.name.indexOf("mirror") === 0 || 
+        this.name.indexOf("glass") === 0 || 
+        this.name.indexOf("crystal") === 0 || 
+        this.name.indexOf("refract") === 0 || 
+        this.name.indexOf("shatter") === 0 || 
+        this.name === "kaleidoscopeSpiral" || 
+        this.name === "birefringenceSplit"
+    )) {
+        drawCrystalParticles(ctx);
+    }
+};
+
+
 // prismPatterns.js — Unified Pattern Library for EL COLOSO DE ESPEJOS (Mirror Colossus)
 // Renders high-fidelity crystalline and reflection-based attacks, 7 per phase with at most 2 repeated.
 // 18 unique patterns total, featuring reflection mechanics, custom visual shapes, and high performance.
@@ -375,7 +498,19 @@ ShatteringSpikesPattern.prototype.update = function(dt) {
             if (s.y >= bb[3] - 12) {
                 // Shatter into shards
                 Sound.playSound("ting", true);
-                triggerShake(3, 100);
+                triggerShake(6, 150);
+                for (var p = 0; p < 12; p++) {
+                    spawnCrystalParticle(
+                        s.x, bb[3] - 16, 
+                        (Math.random() - 0.5) * 200, 
+                        -150 - Math.random() * 150, 
+                        4 + Math.random() * 4, 
+                        0.55, 
+                        "#E0FFFF", 8, true, 
+                        Math.random() * Math.PI, 
+                        (Math.random() - 0.5) * 10
+                    );
+                }
                 for (var j = 0; j < 4; j++) {
                     var angle = -Math.PI / 6 - (j * Math.PI / 4); // upwards fan
                     this.bullets.push(new Bullet({

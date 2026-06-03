@@ -895,8 +895,20 @@ var Cgroup = (function() {
         
         enemies[0].stolenItems = [];
         enemies[0].hitsSinceSteal = 0;
-        enemies[0].onHitPlayer = function(dmgVal) {
+        enemies[0].hitsThisTurn = 0;
+        enemies[0].onHitPlayer = function(dmgVal, patternName) {
             if (typeof Inventory !== "undefined") {
+                this.hitsThisTurn = (this.hitsThisTurn || 0) + 1;
+                
+                var shouldSteal = false;
+                if (patternName === "voidInventoryDevourAttempt" || patternName === "voidInventoryPurge") {
+                    shouldSteal = true;
+                } else if (this.hitsThisTurn % 3 === 0) {
+                    shouldSteal = true;
+                }
+                
+                if (!shouldSteal) return;
+
                 var len = Inventory.getLength();
                 if (len > 0) {
                     var index = Math.floor(Math.random() * len);

@@ -33,6 +33,7 @@ var Player = (function() {
     var gojoTurns = 0;
     var gojoRctActive = false;
     var gojoRctTimer = 0;
+    var rctChargeTurns = 0;
     var subaruRevives = 3;
     var gokuForm = 0; // 0=Base,1=SSJ,2=SSJ2,3=SSJ3,4=SSG,5=SSB,6=UISign,7=MUI
     var combatTurnCount = 0;
@@ -70,6 +71,7 @@ var Player = (function() {
         gojoTurns = 3; // Gojo starts with Infinity charged!
         gojoRctActive = false;
         gojoRctTimer = 0;
+        rctChargeTurns = 0;
         subaruRevives = 3;
         gokuForm = 0;
         combatTurnCount = 0;
@@ -165,19 +167,15 @@ var Player = (function() {
         // Increment combat turn counter
         combatTurnCount++;
         
-        // Gojo Infinity charging + RCT (Reverse Cursed Technique)
+        // Gojo Infinity charging
         if (soulClass === 14) {
             gojoTurns++;
-            // RCT: every 8 turns, if below 20% HP, activate progressive healing
-            if (combatTurnCount % 8 === 0 && combatTurnCount > 0 && hpCur < hpMax * 0.20) {
-                gojoRctActive = true;
-                gojoRctTimer = 0;
-                if (typeof Soul !== "undefined" && Soul.addFloatingText) {
-                    var sPos = Soul.getPos();
-                    Soul.addFloatingText("RCT", sPos.x + Soul.getWidth() / 2, sPos.y - 12, "#00FF88");
-                }
-                console.log("GOJO RCT ACTIVATED: Progressive healing until full HP!");
-            }
+        }
+        
+        // RCT (Reverse Cursed Technique) charge accumulation
+        if (soulClass === 14 || soulClass === 17) {
+            rctChargeTurns++;
+            console.log("RCT charge incremented: " + rctChargeTurns + "/8 turns");
         }
 
         if (soulClass === 11) { // Chaos Heart (Rainbow)
@@ -199,16 +197,7 @@ var Player = (function() {
             hpCur = Math.min(hpCur, hpMax);
         }
         
-        // Itadori RCT (Reverse Cursed Technique): every 8 turns, heal if below 20% HP
-        if (soulClass === 17 && combatTurnCount % 8 === 0 && combatTurnCount > 0 && hpCur < hpMax * 0.20) {
-            gojoRctActive = true; // Reuse RCT flag (shared Jujutsu technique)
-            gojoRctTimer = 0;
-            if (typeof Soul !== "undefined" && Soul.addFloatingText) {
-                var sPos = Soul.getPos();
-                Soul.addFloatingText("RCT", sPos.x + Soul.getWidth() / 2, sPos.y - 12, "#FF69B4");
-            }
-            console.log("ITADORI RCT ACTIVATED: Progressive healing until full HP!");
-        }
+        // Itadori RCT is handled by the shared RCT charge accumulator above
         
         // Goku Transformation: auto-transform each turn
         if (soulClass === 18 && gokuForm < 7) {
@@ -473,13 +462,27 @@ var Player = (function() {
             hpCur = Math.min(hpMax, hpCur + 4.4 * dt);
         }
         
-        // RCT (Reverse Cursed Technique): progressive healing 2 HP/sec until full HP
-        // Shared by Gojo (14) and Itadori (17) — both Jujutsu sorcerers
+        // RCT (Reverse Cursed Technique) Activation check when below 20% HP
+        if ((soulClass === 14 || soulClass === 17) && !gojoRctActive && rctChargeTurns >= 8 && hpCur < hpMax * 0.20) {
+            gojoRctActive = true;
+            gojoRctTimer = 0;
+            if (typeof Soul !== "undefined" && Soul.addFloatingText) {
+                var sPos = Soul.getPos();
+                var color = (soulClass === 14) ? "#00FF88" : "#FF69B4";
+                Soul.addFloatingText("RCT", sPos.x + Soul.getWidth() / 2, sPos.y - 12, color);
+            }
+            console.log("RCT ACTIVATED: Progressive healing initiated!");
+        }
+
+        // RCT (Reverse Cursed Technique): progressive healing until full HP
+        // Gojo (14): 4 HP/sec, Itadori (17): 2 HP/sec
         if ((soulClass === 14 || soulClass === 17) && gojoRctActive) {
-            hpCur = Math.min(hpMax, hpCur + 2.0 * dt);
+            var rctRate = (soulClass === 14) ? 4.0 : 2.0;
+            hpCur = Math.min(hpMax, hpCur + rctRate * dt);
             if (hpCur >= hpMax) {
                 gojoRctActive = false;
-                console.log("RCT: Fully healed!");
+                rctChargeTurns = 0; // Reset charge turns back to 0
+                console.log("RCT: Fully healed! Resetting charge turns to 0.");
             }
         }
         
@@ -561,6 +564,7 @@ var Player = (function() {
         setHitboxScaleMultiplier: function(val, turns) { hitboxScaleOverride = val; hitboxScaleTurns = turns; },
         getGojoTurns: function() { return gojoTurns; },
         isGojoRctActive: function() { return gojoRctActive; },
+        getRctChargeTurns: function() { return rctChargeTurns; },
         getMahoragaWheelSpinTimer: function() { return mahoragaWheelSpinTimer; },
         getMahoragaDefStack: function() { return mahoragaDefStack; },
         getSubaruRevives: function() { return subaruRevives; },
