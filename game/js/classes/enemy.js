@@ -80,7 +80,7 @@ var Enemy = function(config) {
     this.jitterY = 0;
 
     // Spareable flag
-    this.spareable = false;
+    this.spareable = config.spareable !== undefined ? config.spareable : true;
     this.mercyHP = config.mercyHP || 0;
     this.totalMercyHP = config.mercyHP || 0;
 
@@ -90,6 +90,32 @@ var Enemy = function(config) {
     this.renderType = config.renderType || "sprite";
     this.timeCounter = 0; // used for animation
 };
+
+// Getter/setter to scale mercy changes for spareable bosses in Phase 1
+Object.defineProperty(Enemy.prototype, "mercyHP", {
+    get: function() {
+        return this._mercyHP;
+    },
+    set: function(val) {
+        if (this._mercyHP === undefined) {
+            this._mercyHP = val;
+            this.totalMercyHP = val;
+            return;
+        }
+        var diff = val - this._mercyHP;
+        if (diff < 0) {
+            // Decrease (Mercy going up / bar filling)
+            // Apply scale factor of 0.45 to ensure at least 10 actions are required
+            var scale = (this.spareable && this.currentPhase === 0) ? 0.45 : 1.0;
+            this._mercyHP = Math.max(0, this._mercyHP + diff * scale);
+        } else {
+            // Increase (Mercy going down / penalty)
+            this._mercyHP = Math.min(this.totalMercyHP || 100, this._mercyHP + diff);
+        }
+    },
+    configurable: true,
+    enumerable: true
+});
 
 // Add an animation from JSON data
 Enemy.prototype.addAnimation = function(text, pos) {
@@ -200,6 +226,10 @@ Enemy.prototype.draw = function(ctx) {
     } else if (this.renderType === "void_maw" || this.renderType === "void_enraged" || this.renderType === "void_shattered") {
         ctx.save(); ctx.translate(370, 160); ctx.scale(1.4, 1.4); ctx.translate(-370, -160);
         this.drawVoidMaw(ctx);
+        ctx.restore();
+    } else if (this.renderType === "bill_normal" || this.renderType === "bill_madness" || this.renderType === "bill_angry") {
+        ctx.save(); ctx.translate(370, 160); ctx.scale(1.4, 1.4); ctx.translate(-370, -160);
+        this.drawBillCipher(ctx);
         ctx.restore();
     } else if (this.renderType === "sachiel") {
         ctx.save(); ctx.translate(370, 160); ctx.scale(1.4, 1.4); ctx.translate(-370, -160);
@@ -5217,4 +5247,253 @@ Enemy.prototype.drawVoidMaw = function(ctx) {
     
     ctx.restore();
 };
+
+Enemy.prototype.drawBillCipher = function(ctx) {
+    var time = Date.now() / 1000;
+    ctx.save();
+    
+    // Floating movement
+    var floatOffset = Math.sin(time * 3) * 6;
+    ctx.translate(370, 150 + floatOffset);
+    
+    // 1. Draw limbs (behind body)
+    ctx.strokeStyle = "#000000";
+    ctx.lineWidth = 3;
+    ctx.lineCap = "round";
+    
+    var isP1 = (this.renderType === "bill_normal");
+    var isP2 = (this.renderType === "bill_madness");
+    var isP3 = (this.renderType === "bill_angry");
+    
+    // Left Leg
+    ctx.beginPath();
+    ctx.moveTo(-15, 40);
+    if (isP3) {
+        ctx.lineTo(-25, 75);
+        ctx.lineTo(-35, 75); // Foot
+    } else {
+        var legSwing = Math.sin(time * 4) * 5;
+        ctx.lineTo(-20 + legSwing, 70);
+        ctx.lineTo(-28 + legSwing, 70);
+    }
+    ctx.stroke();
+    
+    // Right Leg
+    ctx.beginPath();
+    ctx.moveTo(15, 40);
+    if (isP3) {
+        ctx.lineTo(25, 75);
+        ctx.lineTo(35, 75); // Foot
+    } else {
+        var legSwing = Math.cos(time * 4) * 5;
+        ctx.lineTo(20 + legSwing, 70);
+        ctx.lineTo(28 + legSwing, 70);
+    }
+    ctx.stroke();
+    
+    // Left Arm
+    ctx.beginPath();
+    ctx.moveTo(-22, 10);
+    if (isP3) {
+        ctx.lineTo(-55, -20); // Arms raised angrily
+    } else if (isP2) {
+        ctx.lineTo(-45 + Math.sin(time * 15) * 8, 5); // Glitchy arms
+    } else {
+        ctx.lineTo(-45, -5 + Math.sin(time * 2.5) * 8); // Floating arms
+    }
+    ctx.stroke();
+    
+    // Right Arm
+    ctx.beginPath();
+    ctx.moveTo(22, 10);
+    if (isP3) {
+        ctx.lineTo(55, -20); // Arms raised angrily
+    } else if (isP2) {
+        ctx.lineTo(45 + Math.cos(time * 15) * 8, 5); // Glitchy arms
+    } else {
+        ctx.lineTo(45, -5 + Math.cos(time * 2.5) * 8); // Floating arms
+    }
+    ctx.stroke();
+
+    // 2. Draw Triangle Body
+    ctx.beginPath();
+    ctx.moveTo(0, -45); // Apex
+    ctx.lineTo(45, 40);  // Bottom-right
+    ctx.lineTo(-45, 40); // Bottom-left
+    ctx.closePath();
+    
+    if (isP1) {
+        ctx.fillStyle = "#FFD700"; // Gold/Yellow
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = "#FFD700";
+    } else if (isP2) {
+        // Shifting madness colors
+        var red = Math.floor(180 + Math.sin(time * 6) * 75);
+        var green = Math.floor(40 + Math.cos(time * 6) * 40);
+        var blue = Math.floor(180 + Math.sin(time * 6 + Math.PI) * 75);
+        ctx.fillStyle = "rgb(" + red + "," + green + "," + blue + ")";
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = "rgba(" + red + "," + green + "," + blue + ", 0.8)";
+    } else {
+        ctx.fillStyle = "#FF0000"; // Angry Red
+        ctx.shadowBlur = 25;
+        ctx.shadowColor = "#FF0000";
+    }
+    ctx.fill();
+    ctx.shadowBlur = 0; // reset shadow for body outline
+    ctx.strokeStyle = "#000000";
+    ctx.lineWidth = 3.5;
+    ctx.stroke();
+    
+    // Brick pattern lines inside Bill's body (Gravity Falls style)
+    ctx.save();
+    ctx.strokeStyle = "rgba(0, 0, 0, 0.15)";
+    ctx.lineWidth = 1.5;
+    // Horizontal lines
+    for (var ly = -20; ly < 40; ly += 15) {
+        // Calculate horizontal bounds of the triangle at this height
+        var t = (ly + 45) / 85; // 0 at apex (-45), 1 at bottom (40)
+        var halfW = t * 45;
+        ctx.beginPath();
+        ctx.moveTo(-halfW, ly);
+        ctx.lineTo(halfW, ly);
+        ctx.stroke();
+        
+        // Vertical lines (bricks staggered)
+        var numSegments = Math.floor(halfW / 12) + 1;
+        for (var s = -numSegments; s <= numSegments; s++) {
+            var sx = s * 16 + (Math.floor(ly / 15) % 2 === 0 ? 8 : 0);
+            if (Math.abs(sx) < halfW - 2) {
+                ctx.beginPath();
+                ctx.moveTo(sx, ly);
+                ctx.lineTo(sx, ly + 15);
+                ctx.stroke();
+            }
+        }
+    }
+    ctx.restore();
+    
+    // 3. Draw Bow Tie (overlapping body slightly at base)
+    ctx.save();
+    ctx.fillStyle = "#000000";
+    ctx.shadowBlur = isP3 ? 8 : 0;
+    ctx.shadowColor = "#FF0000";
+    ctx.beginPath();
+    ctx.moveTo(0, 40);
+    ctx.lineTo(-12, 33);
+    ctx.lineTo(-12, 47);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(0, 40);
+    ctx.lineTo(12, 33);
+    ctx.lineTo(12, 47);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(0, 40, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    
+    // 4. Draw Single Centered Eye
+    ctx.save();
+    ctx.translate(0, 0); // Center of triangle roughly
+    
+    // Eye outline
+    ctx.fillStyle = "#FFFFFF";
+    ctx.strokeStyle = "#000000";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 18, 11, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    
+    // Iris / Pupil
+    var isBlinking = (Math.sin(time * 2.2) > 0.92);
+    if (!isBlinking) {
+        if (isP1) {
+            ctx.fillStyle = "#000000";
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 3.5, 9, 0, 0, Math.PI * 2);
+            ctx.fill();
+        } else if (isP2) {
+            // Glowing red madness eye
+            ctx.fillStyle = "#FF0000";
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = "#FF0000";
+            ctx.beginPath();
+            ctx.arc(0, 0, 7, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Pupil slit
+            ctx.fillStyle = "#000000";
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 2, 7, 0, 0, Math.PI * 2);
+            ctx.fill();
+        } else {
+            // Angry giant veins / fiery glowing red eye
+            ctx.fillStyle = "#8B0000";
+            ctx.beginPath();
+            ctx.arc(0, 0, 9, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Fiery yellow pupil slit
+            ctx.fillStyle = "#FFFF00";
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = "#FFFF00";
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 3, 8, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    } else {
+        // Draw closed eye line (blink)
+        ctx.strokeStyle = "#000000";
+        ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        ctx.moveTo(-18, 0);
+        ctx.lineTo(18, 0);
+        ctx.stroke();
+    }
+    
+    // Eye lash lines (four lash lines radiating outward)
+    ctx.strokeStyle = "#000000";
+    ctx.lineWidth = 2;
+    // Top lashes
+    ctx.beginPath(); ctx.moveTo(-12, -8); ctx.lineTo(-18, -14); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-4, -11); ctx.lineTo(-6, -18); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(4, -11); ctx.lineTo(6, -18); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(12, -8); ctx.lineTo(18, -14); ctx.stroke();
+    // Bottom lashes
+    ctx.beginPath(); ctx.moveTo(-12, 8); ctx.lineTo(-18, 14); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-4, 11); ctx.lineTo(-6, 18); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(4, 11); ctx.lineTo(6, 18); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(12, 8); ctx.lineTo(18, 14); ctx.stroke();
+    
+    ctx.restore();
+    
+    // 5. Draw Floating Top Hat (drawn above apex)
+    ctx.save();
+    // Hover hat offset slightly separate from body float
+    var hatFloat = Math.sin(time * 3.5) * 2;
+    ctx.translate(0, -48 + hatFloat);
+    ctx.fillStyle = "#000000";
+    ctx.strokeStyle = isP3 ? "#FF0000" : "#000000";
+    ctx.lineWidth = 2;
+    if (isP3) {
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = "#FF0000";
+    }
+    
+    // Hat cylinder
+    ctx.fillRect(-10, -25, 20, 25);
+    ctx.strokeRect(-10, -25, 20, 25);
+    
+    // Hat brim
+    ctx.fillRect(-18, 0, 36, 4);
+    ctx.strokeRect(-18, 0, 36, 4);
+    ctx.restore();
+    
+    ctx.restore();
+};
+
 

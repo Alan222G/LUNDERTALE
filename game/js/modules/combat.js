@@ -15,6 +15,7 @@ var Combat = (function() {
     var selectStateOther = 0;
     var gravityDmgTimer = 0;
     var deathTimer = 0; // Timer for center black hole contact damage
+    var victoryType = "killed";
 
     function init(bossId) {
         combatState = COMBAT_STATE.MAIN;
@@ -22,6 +23,7 @@ var Combat = (function() {
         selectStateEnemy = 0;
         selectStateOther = 0;
         gravityDmgTimer = 0;
+        victoryType = "killed";
         Cbbox.setup(574, 140);
         Cgroup.setup(bossId);
 
@@ -179,15 +181,33 @@ var Combat = (function() {
                     Sound.playSound("button", true);
                     if (selectStateOther === 0) { // Spare
                         var em = Cgroup.getEnemy(0); // target first enemy
-                        if (em.mercyHP <= 0) {
+                        if (em.spareable && em.currentPhase === 0 && em.mercyHP <= 0) {
+                            victoryType = "spared";
                             combatState = COMBAT_STATE.WIN;
                         } else {
                             // Cannot spare
-                            Cbubble.setup(em.bubblePos, "* " + em.name + " is not\n  ready to be spared.", em.bubbleOff, 4);
+                            var msg = "* " + em.name + " is not\n  ready to be spared.";
+                            if (!em.spareable) {
+                                msg = "* Sparing is useless\n  against " + em.name + ".";
+                            } else if (em.currentPhase > 0) {
+                                msg = "* It is too late\n  to spare " + em.name + "!";
+                            }
+                            Cbubble.setup(em.bubblePos, msg, em.bubbleOff, 4);
                             combatState = COMBAT_STATE.RESPOND;
                         }
                     } else if (selectStateOther === 1) { // Flee
-                        combatState = COMBAT_STATE.WIN;
+                        if (typeof Overworld !== "undefined" && Overworld.resetBossTrigger) {
+                            Overworld.resetBossTrigger();
+                        }
+                        Player.init();
+                        Inventory.init();
+                        BossController.reset();
+                        Sound.playSound("flash", true);
+                        Transition.start("overworld", function() {
+                            main.gameState = main.GAME_STATE.OVERWORLD;
+                            Overworld.setup(main.ctx);
+                        });
+                        combatState = -1;
                     }
                     myKeys.keydown = [];
                 }
@@ -329,7 +349,7 @@ var Combat = (function() {
             case COMBAT_STATE.WIN:
                 // Mark boss as defeated in overworld ONLY on victory!
                 if (typeof Overworld !== "undefined" && Overworld.markBossDefeated) {
-                    Overworld.markBossDefeated();
+                    Overworld.markBossDefeated(victoryType);
                 }
                 Transition.start(function() {
                     main.gameState = main.GAME_STATE.OVERWORLD;
@@ -359,6 +379,9 @@ var Combat = (function() {
 
     function draw(ctx) {
         Cgroup.draw(ctx);
+        if (combatState !== COMBAT_STATE.DEATH && combatState !== COMBAT_STATE.WIN && combatState !== -1) {
+            drawSpareProgressBar(ctx);
+        }
 
         switch (combatState) {
             case COMBAT_STATE.MAIN:
@@ -585,6 +608,46 @@ var Combat = (function() {
             if (state < options.length - 1) { state++; Sound.playSound("button", true); }
         }
         return state;
+    }
+
+    function drawSpareProgressBar(ctx) {
+        var em = Cgroup.getEnemy(0);
+        if (!em || em.currentPhase > 0) return; // Only in Phase 1
+
+        ctx.save();
+        ctx.textAlign = "center";
+        ctx.font = "14pt 'Determination Mono', monospace";
+
+        if (em.spareable) {
+            // Draw progress bar
+            var barWidth = 200;
+            var barHeight = 12;
+            var x = 370 - barWidth / 2;
+            var y = 315;
+            
+            // Background (dark grey)
+            ctx.fillStyle = "#333";
+            ctx.fillRect(x, y, barWidth, barHeight);
+            
+            // Border
+            ctx.strokeStyle = "#FFF";
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(x, y, barWidth, barHeight);
+            
+            // Progress percentage
+            var progress = Math.max(0, Math.min(1.0, (em.totalMercyHP - em.mercyHP) / em.totalMercyHP));
+            ctx.fillStyle = "#FFD700"; // Gold / Yellow
+            ctx.fillRect(x + 1, y + 1, (barWidth - 2) * progress, barHeight - 2);
+
+            // Text label
+            ctx.fillStyle = "#FFD700";
+            ctx.fillText("SPARE", 370, y - 8);
+        } else {
+            // Not spareable (Godzilla, Ramiel, Sachiel, Darth Vader)
+            ctx.fillStyle = "#888";
+            ctx.fillText("SPARE: IMPOSIBLE", 370, 310);
+        }
+        ctx.restore();
     }
 
     return {

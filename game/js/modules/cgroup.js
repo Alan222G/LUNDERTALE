@@ -28,6 +28,8 @@ var Cgroup = (function() {
             setupPrism();
         } else if (currentBossId === "void_maw") {
             setupVoidMaw();
+        } else if (currentBossId === "bill") {
+            setupBillCipher();
         } else {
             setupSingularity();
         }
@@ -44,17 +46,39 @@ var Cgroup = (function() {
                 atk: 12,
                 def: 8,
                 defense: 1,
-                acts: ["Check", "Study", "Taunt", "Flee"],
+                spareable: true,
+                acts: ["Check", "Meditate", "Plead", "Absorb Waves", "Offer Gold", "Sing", "Flee"],
                 actResponses: [
                     "* ANTI-GRAVITY - ATK ?? DEF ??\n* A tear in the fabric of reality.\n* It consumes all.",
-                    "* You try to understand the anomaly.\n* Your mind aches.",
-                    "* You taunt the void.\n* It does not care.",
+                    "* Te sientas y meditas ante la inmensidad del vacío.\n* Sientes cómo la gravedad se calma ligeramente.",
+                    "* Suplicas clemencia ante la singularidad.\n* El vacío resuena con un eco amortiguado.",
+                    "* Intentas absorber las ondas gravitacionales con tu alma.\n* La inestabilidad cósmica disminuye.",
+                    "* Lanzas unas monedas de oro hacia el agujero negro.\n* Desaparecen instantáneamente, pero parece saciar su hambre temporalmente.",
+                    "* You hum a gentle melody to the cosmic silence.\n* The star pulses in harmony.",
                     "* You turn your back and run away..."
                 ],
                 actFunctions: [
                     function() { console.log("Checked Singularity"); },
-                    function() { console.log("Studied Singularity"); },
-                    function() { console.log("Taunted Singularity"); },
+                    function() {
+                        console.log("Meditated");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 15);
+                    },
+                    function() {
+                        console.log("Pleaded");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 12);
+                    },
+                    function() {
+                        console.log("Absorbed waves");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 20);
+                    },
+                    function() {
+                        console.log("Offered gold");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 25);
+                    },
+                    function() {
+                        console.log("Sang");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 15);
+                    },
                     function() {
                         console.log("Fled Singularity");
                         Sound.playSound("flash", true);
@@ -88,7 +112,7 @@ var Cgroup = (function() {
                 damagePos: new Vect(370, 320, 0),
                 damageVel: 120,
                 bubbleOff: 30,
-                mercyHP: 90,
+                mercyHP: 100,
                 xpReward: 200,
                 goldReward: 100,
             })
@@ -109,12 +133,15 @@ var Cgroup = (function() {
                 atk: 10,
                 def: 7,
                 defense: 1,
-                acts: ["Check", "Pray", "Sing", "Defy", "Flee"],
+                spareable: true,
+                acts: ["Check", "Pray", "Sing", "Defy", "Bow", "Confess", "Flee"],
                 actResponses: [
                     "* SERAPHINA VEX - ATK 10 DEF 5\n* The eyes judge your every sin.\n* The rings are unyielding.",
                     "* You kneel and offer a prayer.\n* The golden glow softens slightly.",
                     "* You hum a gentle melody.\n* The wings flutter to the rhythm.",
                     "* You stare directly into the central eye.\n* It narrows in anger.",
+                    "* You bow deeply to show respect.\n* Seraphina's presence feels less threatening.",
+                    "* You confess your deepest mistakes.\n* The wings wrap around, acknowledging your truth.",
                     "* You turn your back and run away..."
                 ],
                 actFunctions: [
@@ -130,6 +157,14 @@ var Cgroup = (function() {
                     function() {
                         console.log("Defied Seraphina");
                         enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 5);
+                    },
+                    function() {
+                        console.log("Bowed to Seraphina");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 15);
+                    },
+                    function() {
+                        console.log("Confessed to Seraphina");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 30);
                     },
                     function() {
                         console.log("Fled Seraphina");
@@ -189,7 +224,7 @@ var Cgroup = (function() {
                 renderType: "ramiel_crystal",
                 atk: 14,
                 def: 10,
-                defense: 1.2,
+                spareable: false,
                 acts: ["Check", "Analyze", "Provoke", "Flee"],
                 actResponses: [
                     "* RAMIEL - ATK 14 DEF 10\n* The 5th Angel. A fortress of light.\n* Its A.T. Field is almost absolute.",
@@ -201,11 +236,9 @@ var Cgroup = (function() {
                     function() { console.log("Checked Ramiel"); },
                     function() {
                         console.log("Analyzed Ramiel");
-                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 15);
                     },
                     function() {
                         console.log("Provoked Ramiel");
-                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 10);
                     },
                     function() {
                         console.log("Fled Ramiel");
@@ -265,7 +298,7 @@ var Cgroup = (function() {
                 renderType: "sachiel",
                 atk: 15,
                 def: 12,
-                defense: 1.1,
+                spareable: false,
                 acts: ["Check", "Study Core", "Shield", "Flee"],
                 actResponses: [
                     "* SACHIEL - ATK 15 DEF 12\n* The Third Angel.\n* Its A.T. Field is weak but its strikes are brutal.",
@@ -277,11 +310,9 @@ var Cgroup = (function() {
                     function() { console.log("Checked Sachiel"); },
                     function() {
                         console.log("Studied Sachiel's Core");
-                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 20);
                     },
                     function() {
                         console.log("Shielded against Sachiel");
-                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 10);
                     },
                     function() {
                         console.log("Fled Sachiel");
@@ -341,13 +372,16 @@ var Cgroup = (function() {
                 renderType: "hourglass",
                 atk: 11,
                 def: 8,
-                defense: 1.0,
-                acts: ["Check", "Observe", "Wait", "Break"],
+                spareable: true,
+                acts: ["Check", "Observe", "Wait", "Break", "Wind Up", "Count Sand", "Flee"],
                 actResponses: [
                     "* PARADOJA - ATK 11 DEF 8\n* El tiempo se dobla a su alrededor.",
                     "* Observas el flujo de las partículas.\n* El patrón se graba en tu mente.",
                     "* Te quedas completamente quieto.\n* El tiempo parece detenerse.\n* Paradoja se intriga.",
-                    "* Golpeas el cristal del reloj.\n* Una grieta aparece.\n* Paradoja grita en agonía temporal."
+                    "* Golpeas el cristal del reloj.\n* Una grieta aparece.\n* Paradoja grita en agonía temporal.",
+                    "* Le das cuerda al mecanismo trasero.\n* El tic-tac acelera de forma juguetona.",
+                    "* Intentas contar cada grano de arena que cae.\n* Paradoja parece divertirse con tu intento inútil.",
+                    "* Intentas huir, pero la paradoja te regresa al presente."
                 ],
                 actFunctions: [
                     function() { console.log("Checked Paradox"); },
@@ -362,7 +396,17 @@ var Cgroup = (function() {
                     function() {
                         console.log("Broke Paradox");
                         enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 5);
-                        // Maybe enrage later
+                    },
+                    function() {
+                        console.log("Wound up Paradox");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 30);
+                    },
+                    function() {
+                        console.log("Counted sand of Paradox");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 10);
+                    },
+                    function() {
+                        console.log("Flee Paradox failed");
                     }
                 ],
                 texts: [
@@ -413,7 +457,7 @@ var Cgroup = (function() {
                 renderType: "godzilla_head",
                 atk: 18,
                 def: 15,
-                defense: 1.4,
+                spareable: false,
                 acts: ["Check", "Dodge", "Roar Back", "Flee"],
                 actResponses: [
                     "* GODZILLA - ATK 18 DEF 15\n* El Titán Alfa. Su presencia es devastadora.",
@@ -428,12 +472,10 @@ var Cgroup = (function() {
                         if (typeof Player !== "undefined" && Player.addSpeedBuff) {
                             Player.addSpeedBuff(1.2, 1);
                         }
-                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 15);
                     },
                     function() {
                         console.log("Roared at Godzilla");
                         enemies[0].defense = Math.max(0.8, enemies[0].defense - 0.2);
-                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 25);
                     },
                     function() {
                         console.log("Flee Godzilla failed");
@@ -487,7 +529,7 @@ var Cgroup = (function() {
                 renderType: "vader_normal",
                 atk: 22,
                 def: 18,
-                defense: 1.5,
+                spareable: false,
                 acts: ["Check", "Defy", "Bribe", "Flee"],
                 actResponses: [
                     "* DARTH VADER - ATK 22 DEF 18\n* Sientes la inmensa presión del Lado Oscuro.",
@@ -499,11 +541,9 @@ var Cgroup = (function() {
                     function() { console.log("Checked Vader"); },
                     function() {
                         console.log("Defied Vader");
-                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 20);
                     },
                     function() {
                         console.log("Bribed Vader");
-                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 5);
                     },
                     function() {
                         console.log("Flee Vader failed");
@@ -558,11 +598,15 @@ var Cgroup = (function() {
                 atk: 32,
                 def: 30,
                 defense: 1.3,
-                acts: ["Check", "Reboot/Rest", "Decode/Fix", "Flee"],
+                spareable: true,
+                acts: ["Check", "Reboot/Rest", "Decode/Fix", "Clear Cache", "Ignore Log", "Overclock", "Flee"],
                 actResponses: [
                     "* ERROR 404 - ATK 32 DEF 30\n* La Falla Criptográfica. Su inestabilidad corrompe todo lo que toca.",
                     "* Intentas reiniciar tus sensores temporales.\n* Recuperas algo de balance y curas 15 HP.",
                     "* Tratas de depurar y corregir los punteros de la Falla.\n* Su inestabilidad aumenta y su defensa disminuye.",
+                    "* Borras el caché del buffer del juego.\n* Las fluctuaciones se estabilizan un poco.",
+                    "* Ignoras los registros de advertencia rojos en tu visión.\n* La anomalía se confunde por la falta de atención.",
+                    "* Forzar overclocking en el procesador local.\n* La velocidad del juego aumenta, pero el glitch se estresa.",
                     "* ¡No puedes huir de una excepción fatal de kernel!"
                 ],
                 actFunctions: [
@@ -578,6 +622,18 @@ var Cgroup = (function() {
                         console.log("Decoded Glitch / Defense down");
                         enemies[0].defense = Math.max(0.85, enemies[0].defense - 0.15);
                         enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 25);
+                    },
+                    function() {
+                        console.log("Cleared Cache");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 15);
+                    },
+                    function() {
+                        console.log("Ignored Log");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 10);
+                    },
+                    function() {
+                        console.log("Overclocked");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 30);
                     },
                     function() {
                         console.log("Flee Glitch failed");
@@ -648,12 +704,15 @@ var Cgroup = (function() {
                 renderType: "prism_phase1",
                 atk: 25,
                 def: 24,
-                defense: 1.25,
-                acts: ["Check", "Polish/Clean", "Refract/Shatter", "Flee"],
+                spareable: true,
+                acts: ["Check", "Polish/Clean", "Refract/Shatter", "Adjust Angle", "Wave at Self", "Break Ray", "Flee"],
                 actResponses: [
                     "* COLOSO DE ESPEJOS - ATK 25 DEF 24\n* Un gigante de cristal y reflejos.\n* Su superficie copia todo destello de luz.",
                     "* Limpias y pules las facetas del Coloso.\n* Las reflexiones brillan con más intensidad, aumentando su vulnerabilidad (DEF -20%).",
                     "* Golpeas el aire creando vibraciones resonantes.\n* El cristal resuena y se debilita levemente.",
+                    "* Ajustas tu posición con respecto al ángulo del cristal.\n* Coloso de Espejos se confunde al perder tu reflejo directo.",
+                    "* Saludas alegremente a tu propio reflejo en el espejo.\n* El reflejo te devuelve el saludo... Coloso se siente extrañamente halagado.",
+                    "* Interrumpes un rayo de luz espectral.\n* El Coloso vibra con una resonancia de color.",
                     "* ¡No puedes escapar de tus propias reflexiones!"
                 ],
                 actFunctions: [
@@ -666,6 +725,18 @@ var Cgroup = (function() {
                     function() {
                         console.log("Refracted Coloso");
                         enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 25);
+                    },
+                    function() {
+                        console.log("Adjusted Angle");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 15);
+                    },
+                    function() {
+                        console.log("Waved at Self");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 12);
+                    },
+                    function() {
+                        console.log("Broke Ray");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 20);
                     },
                     function() {
                         console.log("Flee Coloso failed");
@@ -776,11 +847,15 @@ var Cgroup = (function() {
                 atk: 28,
                 def: 22,
                 defense: 1.15,
-                acts: ["Check", "Satiate/Feed", "Taunt", "Flee"],
+                spareable: true,
+                acts: ["Check", "Satiate/Feed", "Taunt", "Sacrifice Gold", "Sing Void Hymn", "Absorb Gravity", "Flee"],
                 actResponses: [
                     "* EL HAMBRE CÓSMICA - ATK 28 DEF 22\n* Un maw cósmico devorador.\n* ¡Ten cuidado, se comerá tus objetos de inventario!",
                     "* Le ofreces uno de tus objetos de inventario al Hambre Cósmica.",
                     "* Te burlas de su apetito insaciable.\n* Ruge enfadado.",
+                    "* Lanzas algo de oro hacia la singularidad para calmar su apetito.",
+                    "* Entonas un himno al vacío infinito.\n* El Hambre Cósmica parece responder con un murmullo melódico.",
+                    "* Intentas contrarrestar su tirón gravitacional concentrando tu energía.\n* La gravedad disminuye levemente.",
                     "* Intentas huir, pero su gravedad te arrastra de vuelta."
                 ],
                 actFunctions: [
@@ -812,16 +887,16 @@ var Cgroup = (function() {
                                     }
                                 } else if (item.healVal > 0) {
                                     enemies[0].curHP = Math.min(enemies[0].maxHP, enemies[0].curHP + 400);
-                                    enemies[0].mercyHP = Math.min(100, enemies[0].mercyHP + 30);
+                                    enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 30);
                                     if (typeof Soul !== "undefined" && Soul.addFloatingText) {
                                         var sPos = Soul.getPos();
-                                        Soul.addFloatingText("FED POTION! +400 HP", sPos.x + Soul.getWidth() / 2, sPos.y - 12, "#00FF00");
+                                        Soul.addFloatingText("FED POTION! +30 SPARE", sPos.x + Soul.getWidth() / 2, sPos.y - 12, "#00FF00");
                                     }
                                 } else {
-                                    enemies[0].mercyHP = Math.min(100, enemies[0].mercyHP + 20);
+                                    enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 20);
                                     if (typeof Soul !== "undefined" && Soul.addFloatingText) {
                                         var sPos = Soul.getPos();
-                                        Soul.addFloatingText("FED ITEM! +20 MERCY", sPos.x + Soul.getWidth() / 2, sPos.y - 12, "#DDA0DD");
+                                        Soul.addFloatingText("FED ITEM! +20 SPARE", sPos.x + Soul.getWidth() / 2, sPos.y - 12, "#DDA0DD");
                                     }
                                 }
                                 Sound.playSound("heal", true);
@@ -836,6 +911,18 @@ var Cgroup = (function() {
                     function() {
                         console.log("Taunted Void Maw");
                         enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 10);
+                    },
+                    function() {
+                        console.log("Sacrificed Gold");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 20);
+                    },
+                    function() {
+                        console.log("Sang Void Hymn");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 15);
+                    },
+                    function() {
+                        console.log("Absorbed Gravity");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 12);
                     },
                     function() {
                         console.log("Flee failed");
@@ -965,6 +1052,113 @@ var Cgroup = (function() {
             }
         };
 
+        enemies[0].bubblePos = enemies[0].damagePos.getAdd(new Vect(60, -160, 0));
+        mercies = ["Spare", "Flee"];
+        defends = [];
+    }
+
+    function setupBillCipher() {
+        enemies = [
+            new Enemy({
+                name: "Bill Cipher",
+                checkText: "El demonio del sueño. Una mente triangular tridimensional.",
+                maxHP: 5000,
+                curHP: 5000,
+                renderType: "bill_normal",
+                atk: 24,
+                def: 20,
+                defense: 1.25,
+                spareable: true,
+                acts: ["Check", "Make a Deal", "Question", "Laugh", "Flatter", "Handshake", "Ignore", "Flee"],
+                actResponses: [
+                    "* BILL CIPHER - ATK 24 DEF 20\n* ¡Ten cuidado! No confíes en él, se meterá en tu mente.",
+                    "* Intentas hacer un trato con Bill Cipher.\n* '¡Oh, me encantan los tratos! ¿Qué tal tu alma por un caramelo?'",
+                    "* Le preguntas sobre el portal dimensional.\n* Se ríe ruidosamente. 'El portal es solo el comienzo'.",
+                    "* Te ríes con él de la locura cósmica.\n* '¡Eso es! ¡La locura es divertida!'\n* Se siente más cómodo contigo.",
+                    "* Halagas su sombrero de copa y su pajarita.\n* '¡Por fin alguien con buen gusto! ¡Mira y aprende, niño!'",
+                    "* Estiras tu mano para un apretón de manos.\n* Tu mano se ilumina con fuego azul... ¡Eso fue arriesgado!",
+                    "* Decides ignorar sus comentarios provocativos.\n* Bill se enoja ligeramente.",
+                    "* Intentas huir, pero la física misma se tuerce a su favor."
+                ],
+                actFunctions: [
+                    function() { console.log("Checked Bill Cipher"); },
+                    function() {
+                        console.log("Made Deal");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 15);
+                    },
+                    function() {
+                        console.log("Questioned Bill");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 20);
+                    },
+                    function() {
+                        console.log("Laughed with Bill");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 12);
+                    },
+                    function() {
+                        console.log("Flattered Bill");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 25);
+                    },
+                    function() {
+                        console.log("Handshake with Bill");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 35);
+                    },
+                    function() {
+                        console.log("Ignored Bill");
+                        enemies[0].mercyHP = Math.min(100, enemies[0].mercyHP + 15);
+                    },
+                    function() {
+                        console.log("Flee failed");
+                    }
+                ],
+                texts: [
+                    "* Bill Cipher flota en el centro con su ojo girando.",
+                    "* La música se distorsiona con ecos extraños.",
+                    "* El espacio alrededor del cuadro de combate parpadea.",
+                    "* Sientes como si tu mente estuviera siendo observada."
+                ],
+                speech: [
+                    "¡HOLA, SACO\nDE HUESOS!",
+                    "¿QUIERES HACER\nUN TRATO?",
+                    "LA REALIDAD\nES UNA ILUSION.",
+                    "¡COMPRA ORO!"
+                ],
+                spriteId: "asriel",
+                attacks: [
+                    "billEyeLasers", "billCipherWheel", "billDealBlueFire", "billHatDrop", "billCaneSwack", "billTriangleBeams", "billPyramidTrap",
+                    "billMadnessBubbles", "billTimeGlitch", "billDimensionalRift", "billWeirdmageddonRain", "billFloatingPyramids", "billShadowClones", "billTeleportSlam",
+                    "billAngryRedNova", "billFistSlam", "billTeethChirp", "billCataclysmRays", "billGravityChaos", "billNightmareVortex", "billArmageddon"
+                ],
+                phases: [
+                    {
+                        patterns: ["billEyeLasers", "billCipherWheel", "billDealBlueFire", "billHatDrop", "billCaneSwack", "billTriangleBeams", "billPyramidTrap"],
+                        soulMode: "red",
+                        renderType: "bill_normal",
+                        speech: ["¡HOLA, SACO\nDE HUESOS!", "¿QUIERES HACER\nUN TRATO?", "LA REALIDAD\nES UNA ILUSION.", "¡COMPRA ORO!"]
+                    },
+                    {
+                        patterns: ["billMadnessBubbles", "billTimeGlitch", "billDimensionalRift", "billWeirdmageddonRain", "billFloatingPyramids", "billShadowClones", "billTeleportSlam"],
+                        soulMode: "red",
+                        renderType: "bill_madness",
+                        speech: ["¡BIENVENIDOS\nA RAROAGEDON!", "¡EL TIEMPO SE\nHA CONGELADO!", "¡LA LOCURA\nREINA AQUÍ!"]
+                    },
+                    {
+                        patterns: ["billAngryRedNova", "billFistSlam", "billTeethChirp", "billCataclysmRays", "billGravityChaos", "billNightmareVortex", "billArmageddon"],
+                        soulMode: "blue",
+                        renderType: "bill_angry",
+                        speech: ["¡ESTOY\nHARTODE TI!", "¡TE CONVERTIRÉ\nEN CENIZAS!", "¡EL JUEGO\nSE ACABÓ!"]
+                    }
+                ],
+                phaseHP: [5000, 6000, 7300],
+                karmaEnabled: false,
+                jitterEnabled: true,
+                damagePos: new Vect(370, 260, 0),
+                damageVel: 120,
+                bubbleOff: 30,
+                mercyHP: 100,
+                xpReward: 5000,
+                goldReward: 3000,
+            })
+        ];
         enemies[0].bubblePos = enemies[0].damagePos.getAdd(new Vect(60, -160, 0));
         mercies = ["Spare", "Flee"];
         defends = [];

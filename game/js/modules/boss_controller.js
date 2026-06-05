@@ -162,6 +162,28 @@ var BossController = (function() {
             "prismStrobe": function(cfg) { return new PrismStrobePattern(cfg || { damVal: 8, duration: 6.5 }); },
             "glassRain": function(cfg) { return new GlassRainPattern(cfg || { damVal: 8, duration: 7.0 }); },
             "crystallineRay": function(cfg) { return new CrystallineRayPattern(cfg || { damVal: 8, duration: 7.0 }); },
+            // --- Custom Bill Cipher Attacks ---
+            "billEyeLasers": function(cfg) { return new BillEyeLasersPattern(cfg || { damVal: 8, duration: 7.5 }); },
+            "billCipherWheel": function(cfg) { return new BillCipherWheelPattern(cfg || { damVal: 8, duration: 7.5 }); },
+            "billDealBlueFire": function(cfg) { return new BillDealBlueFirePattern(cfg || { damVal: 8, duration: 7.5 }); },
+            "billHatDrop": function(cfg) { return new BillHatDropPattern(cfg || { damVal: 8, duration: 7.5 }); },
+            "billCaneSwack": function(cfg) { return new BillCaneSwackPattern(cfg || { damVal: 8, duration: 7.5 }); },
+            "billTriangleBeams": function(cfg) { return new BillTriangleBeamsPattern(cfg || { damVal: 8, duration: 7.5 }); },
+            "billPyramidTrap": function(cfg) { return new BillPyramidTrapPattern(cfg || { damVal: 8, duration: 7.5 }); },
+            "billMadnessBubbles": function(cfg) { return new BillMadnessBubblesPattern(cfg || { damVal: 9, duration: 7.5 }); },
+            "billTimeGlitch": function(cfg) { return new BillTimeGlitchPattern(cfg || { damVal: 8, duration: 7.5 }); },
+            "billDimensionalRift": function(cfg) { return new BillDimensionalRiftPattern(cfg || { damVal: 8, duration: 7.5 }); },
+            "billWeirdmageddonRain": function(cfg) { return new BillWeirdmageddonRainPattern(cfg || { damVal: 8, duration: 7.5 }); },
+            "billFloatingPyramids": function(cfg) { return new BillFloatingPyramidsPattern(cfg || { damVal: 9, duration: 7.5 }); },
+            "billShadowClones": function(cfg) { return new BillShadowClonesPattern(cfg || { damVal: 8, duration: 7.5 }); },
+            "billTeleportSlam": function(cfg) { return new BillTeleportSlamPattern(cfg || { damVal: 9, duration: 7.5 }); },
+            "billAngryRedNova": function(cfg) { return new BillAngryRedNovaPattern(cfg || { damVal: 9, duration: 7.5 }); },
+            "billFistSlam": function(cfg) { return new BillFistSlamPattern(cfg || { damVal: 10, duration: 7.5 }); },
+            "billTeethChirp": function(cfg) { return new BillTeethChirpPattern(cfg || { damVal: 9, duration: 7.5 }); },
+            "billCataclysmRays": function(cfg) { return new BillCataclysmRaysPattern(cfg || { damVal: 9, duration: 7.5 }); },
+            "billGravityChaos": function(cfg) { return new BillGravityChaosPattern(cfg || { damVal: 9, duration: 7.5 }); },
+            "billNightmareVortex": function(cfg) { return new BillNightmareVortexPattern(cfg || { damVal: 9, duration: 7.5 }); },
+            "billArmageddon": function(cfg) { return new BillArmageddonPattern(cfg || { damVal: 12, duration: 8.0 }); },
         };
     }
 
@@ -376,7 +398,18 @@ var BossController = (function() {
                    patternName === "voidTentacleFlurry" || patternName === "voidCorrosiveSpit" || patternName === "voidShatteredCorePulse" || patternName === "voidSingularityOrbits" || patternName === "voidCosmicCollapse" ||
                    patternName === "voidEldritchCross" || patternName === "voidInventoryPurge" || patternName === "voidWormholeJump" || patternName === "voidBlackHoleNova") {
             w = 320; h = 320;
+        } else if (patternName === "billEyeLasers" || patternName === "billDimensionalRift" || patternName === "billCaneSwack") {
+            w = 320; h = 240;
+        } else if (patternName === "billHatDrop") {
+            w = 320; h = 250;
+        } else if (patternName === "billFistSlam") {
+            w = 350; h = 260;
+        } else if (patternName === "billArmageddon") {
+            w = 340; h = 340;
+        } else if (patternName.indexOf("bill") === 0) {
+            w = 320; h = 320;
         }
+
 
         return { patternName: patternName, width: w, height: h };
     }

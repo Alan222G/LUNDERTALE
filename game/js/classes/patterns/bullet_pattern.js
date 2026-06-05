@@ -56,11 +56,23 @@ BulletPattern.prototype.clear = function() {
 BulletPattern.prototype.checkCollision = function(sx, sy, sw, sh) {
     for (var i = 0; i < this.bullets.length; i++) {
         var b = this.bullets[i];
-        if (b && typeof b.collidesWith === "function") {
-            if (b.collidesWith(sx, sy, sw, sh)) {
-                return b.damVal;
+        if (b) {
+            if (typeof b.collidesWith === "function") {
+                if (b.collidesWith(sx, sy, sw, sh)) {
+                    return b.damVal;
+                }
+            } else if (b.active !== false) {
+                // Support plain object collision check
+                var bw = b.width || b.w || 10;
+                var bh = b.height || b.h || 10;
+                var bx = b.x - bw / 2;
+                var by = b.y - bh / 2;
+                if (rectsOverlap(bx, by, bw, bh, sx, sy, sw, sh)) {
+                    return b.damVal || this.damVal || 4;
+                }
             }
         }
     }
     return 0;
 };
+

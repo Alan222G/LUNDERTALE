@@ -238,6 +238,43 @@ var main = {
         return 1 / fps;
     },
 
+    calculateRoute: function() {
+        if (typeof Overworld === "undefined" || !Overworld.getTriggerList) return "NEUTRAL";
+        var triggers = Overworld.getTriggerList();
+        
+        var spareableCount = 0;
+        var sparedCount = 0;
+        var killedCount = 0;
+        
+        for (var i = 0; i < triggers.length; i++) {
+            var t = triggers[i];
+            if (t.triggered) {
+                if (t.bossId === "singularity" || t.bossId === "seraphina" || t.bossId === "paradox" || 
+                    t.bossId === "prism" || t.bossId === "glitch" || t.bossId === "void_maw" || t.bossId === "bill") {
+                    spareableCount++;
+                    if (t.defeatStatus === "spared") {
+                        sparedCount++;
+                    } else {
+                        killedCount++;
+                    }
+                } else {
+                    // Un-spareable boss was killed
+                    killedCount++;
+                }
+            }
+        }
+        
+        // Pacifist: all 7 spareable bosses are spared (sparedCount === 7)
+        if (sparedCount === 7) {
+            return "PACIFISTA";
+        }
+        // Genocide: all 11 bosses are killed (killedCount === 11)
+        if (killedCount === 11) {
+            return "GENOCIDA";
+        }
+        return "NEUTRAL";
+    },
+
     drawSuperWin: function(ctx) {
         ctx.save();
 
@@ -276,41 +313,65 @@ var main = {
         ctx.fillStyle = "rgba(20, 20, 20, 0.85)";
         ctx.strokeStyle = "#FFD700";
         ctx.lineWidth = 2.0;
-        ctx.fillRect(this.WIDTH / 2 - 210, 215, 420, 245);
-        ctx.strokeRect(this.WIDTH / 2 - 210, 215, 420, 245);
+        ctx.fillRect(this.WIDTH / 2 - 210, 210, 420, 240);
+        ctx.strokeRect(this.WIDTH / 2 - 210, 210, 420, 240);
 
         var bosses = [
-            "Anti-gravity (Singularity)", "Seraphina Vex", "RAMIEL", "PARADOJA",
-            "SACHIEL", "COLOSO DE ESPEJOS", "GODZILLA", "DARTH VADER",
-            "ERROR 404", "EL HAMBRE CÓSMICA"
+            "Anti-gravity", "Seraphina Vex", "RAMIEL", "PARADOJA",
+            "SACHIEL", "GODZILLA", "DARTH VADER", "ERROR 404",
+            "COLOSO DE ESPEJOS", "EL HAMBRE CÓSMICA", "Bill Cipher"
         ];
+
+        var triggers = (typeof Overworld !== "undefined" && Overworld.getTriggerList) ? Overworld.getTriggerList() : [];
 
         ctx.font = "12pt Determination Mono";
         ctx.textAlign = "left";
         for (var b = 0; b < bosses.length; b++) {
-            var bx = this.WIDTH / 2 - 190 + (b % 2) * 200;
-            var by = 245 + Math.floor(b / 2) * 42;
+            var bx = this.WIDTH / 2 - 190 + (b % 2) * 205;
+            var by = 238 + Math.floor(b / 2) * 33;
             
-            // Defeated checkmark
-            ctx.fillStyle = "#00E676";
-            ctx.fillText("✔", bx, by);
+            // Find corresponding trigger to get its status
+            var tStatus = "killed";
+            if (triggers[b]) {
+                tStatus = triggers[b].defeatStatus || "killed";
+            }
+            
+            if (tStatus === "spared") {
+                ctx.fillStyle = "#FFD700"; // Gold
+                ctx.fillText("💛", bx, by);
+            } else {
+                ctx.fillStyle = "#FF3333"; // Red
+                ctx.fillText("💔", bx, by);
+            }
             
             ctx.fillStyle = "#CCC";
             ctx.fillText(bosses[b], bx + 22, by);
         }
 
-        // 4. Statistics (Deaths)
-        ctx.font = "16pt Determination Mono";
+        // Route Result
+        var activeRoute = this.calculateRoute();
+        ctx.font = "18pt Determination Mono";
         ctx.textAlign = "center";
-        ctx.fillStyle = "#FF5555";
-        ctx.fillText("MUERTES TOTALES: " + deaths, this.WIDTH / 2, 475);
+        if (activeRoute === "PACIFISTA") {
+            ctx.fillStyle = "#FFD700"; // Gold
+        } else if (activeRoute === "GENOCIDA") {
+            ctx.fillStyle = "#FF3333"; // Red
+        } else {
+            ctx.fillStyle = "#FFF"; // White
+        }
+        ctx.fillText("RUTA FINAL: " + activeRoute, this.WIDTH / 2, 470);
+
+        // 4. Statistics (Deaths)
+        ctx.font = "14pt Determination Mono";
+        ctx.fillStyle = "#FF8888";
+        ctx.fillText("MUERTES TOTALES: " + deaths, this.WIDTH / 2, 495);
 
         // 5. Prompt to return
         var alpha = Math.sin(time * 4) * 0.45 + 0.55;
         ctx.globalAlpha = alpha;
         ctx.font = "15pt Determination Mono";
         ctx.fillStyle = "#FFF";
-        ctx.fillText("Presiona Z o Enter para volver al Menú", this.WIDTH / 2, 520);
+        ctx.fillText("Presiona Z o Enter para volver al Menú", this.WIDTH / 2, 530);
 
         ctx.restore();
     },

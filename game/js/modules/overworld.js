@@ -222,6 +222,23 @@ var Overworld = (function() {
                 });
             }
         });
+
+        // Bill Cipher battle trigger
+        triggerList.push({
+            x: 320, y: 220, w: 26, h: 26,
+            triggered: false,
+            bossId: "bill",
+            label: "Bill Cipher",
+            color: "rgba(255, 255, 0, 0.6)",
+            action: function() {
+                var self = this;
+                Transition.start(function() {
+                    main.gameState = main.GAME_STATE.COMBAT;
+                    Combat.init(self.bossId);
+                    Combat.setup(main.ctx);
+                });
+            }
+        });
         
         // Load boss animations
         singFrames = [
@@ -382,23 +399,7 @@ var Overworld = (function() {
             ctx.fillRect(0, 0, main.WIDTH, main.HEIGHT);
         }
 
-        // Draw category headers with drop shadows
-        ctx.font = "14pt 'Determination Mono', monospace";
-        ctx.textAlign = "center";
-        
-        // Originales shadow
-        ctx.fillStyle = "#332700";
-        ctx.fillText("— ORIGINALES —", 157, 122);
-        // Originales main text
-        ctx.fillStyle = "#FFD700";
-        ctx.fillText("— ORIGINALES —", 155, 120);
-
-        // Invitados shadow
-        ctx.fillStyle = "#330033";
-        ctx.fillText("— INVITADOS —", 482, 122);
-        // Invitados main text
-        ctx.fillStyle = "#FF00FF";
-        ctx.fillText("— INVITADOS —", 480, 120);
+        // Category headers removed per user request
 
         // Draw triggers with visual markers
         for (var i = 0; i < triggerList.length; i++) {
@@ -903,6 +904,82 @@ var Overworld = (function() {
                     
                     ctx.restore();
                     ctx.shadowBlur = 0;
+                } else if (t.bossId === "bill") {
+                    // Procedural Overworld Bill Cipher
+                    var bTime = animTimer;
+                    var bSize = 16;
+                    ctx.save();
+                    ctx.translate(gcx, gcy - 5 + Math.sin(bTime * 3) * 3); // floating
+
+                    // Yellow glow aura
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = "rgba(255, 255, 0, 0.8)";
+                    
+                    // Draw Triangle body (facing up)
+                    ctx.fillStyle = "#FFD700"; // Gold
+                    ctx.beginPath();
+                    ctx.moveTo(0, -bSize * 0.8);
+                    ctx.lineTo(bSize * 0.8, bSize * 0.6);
+                    ctx.lineTo(-bSize * 0.8, bSize * 0.6);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Draw black outline
+                    ctx.strokeStyle = "#000000";
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+                    
+                    // Draw black top hat
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = "#000000";
+                    // Brim
+                    ctx.fillRect(-bSize * 0.5, -bSize * 0.8 - 2, bSize * 1.0, 2);
+                    // Hat body
+                    ctx.fillRect(-bSize * 0.25, -bSize * 0.8 - 14, bSize * 0.5, 12);
+                    
+                    // Draw bow tie
+                    ctx.beginPath();
+                    ctx.moveTo(-4, bSize * 0.6);
+                    ctx.lineTo(4, bSize * 0.6 + 4);
+                    ctx.lineTo(4, bSize * 0.6 - 4);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.moveTo(4, bSize * 0.6);
+                    ctx.lineTo(-4, bSize * 0.6 + 4);
+                    ctx.lineTo(-4, bSize * 0.6 - 4);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Draw single centered eye (white with black pupil)
+                    ctx.fillStyle = "#FFFFFF";
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, 4, 3, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+                    
+                    ctx.fillStyle = "#000000";
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 1.2, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Tiny black arms and legs
+                    ctx.strokeStyle = "#000000";
+                    ctx.lineWidth = 1.2;
+                    // Arms
+                    ctx.beginPath();
+                    ctx.moveTo(-bSize * 0.4, bSize * 0.1);
+                    ctx.lineTo(-bSize * 0.8, bSize * 0.2);
+                    ctx.moveTo(bSize * 0.4, bSize * 0.1);
+                    ctx.lineTo(bSize * 0.8, bSize * 0.2);
+                    // Legs
+                    ctx.moveTo(-bSize * 0.3, bSize * 0.6);
+                    ctx.lineTo(-bSize * 0.4, bSize * 1.0);
+                    ctx.moveTo(bSize * 0.3, bSize * 0.6);
+                    ctx.lineTo(bSize * 0.4, bSize * 1.0);
+                    ctx.stroke();
+                    
+                    ctx.restore();
                 } else if (img && img.complete) {
                     ctx.drawImage(img, t.x, t.y, t.w, t.h);
                 } else {
@@ -1962,5 +2039,5 @@ var Overworld = (function() {
         activeBossTriggerIndex = -1;
     }
 
-    return { init: init, setup: setup, update: update, draw: draw, markBossDefeated: markBossDefeated, resetBossTrigger: resetBossTrigger };
+    return { init: init, setup: setup, update: update, draw: draw, markBossDefeated: markBossDefeated, resetBossTrigger: resetBossTrigger, getTriggerList: function() { return triggerList; } };
 }());
