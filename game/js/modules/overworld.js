@@ -42,22 +42,127 @@ var Overworld = (function() {
     var activeBossTriggerIndex = -1; // Track which boss trigger is in combat    
     function loadImg(src) { var i = new Image(); i.src = src; return i; }
 
+    var currentSubWorld = 0; // 0 = Main, 1 = Originals, 2 = Guests
+    var signpostActive = false;
+    var tutorialText = 
+        "* BIENVENIDO A LUNDERTALE — GUÍA DEL VACÍO\n" +
+        "* CONTROLES:\n" +
+        "  [WASD / Flechas] : Moverse y navegar menús.\n" +
+        "  [Z / Enter]      : Confirmar o interactuar con el Catálogo y postes.\n" +
+        "  [X]              : Cancelar o volver atrás.\n\n" +
+        "* COMBATE Y MERCY:\n" +
+        "  - Puedes luchar o intentar perdonar (SPARE) a los bosses.\n" +
+        "  - El SPARE solo funciona en la Fase 1.\n" +
+        "  - Ciertas acciones de ACT aumentan la barra amarilla de SPARE.\n" +
+        "  - Se requieren al menos 10 acciones para poder perdonar.\n" +
+        "  - Bosses invitados (Godzilla, Vader, Ramiel, Sachiel) son inmunes al perdonar.\n\n" +
+        "* ALMAS Y OBJETOS:\n" +
+        "  - Usa la estrella amarilla (Catálogo) en el mapa principal para equipar almas y pociones.\n" +
+        "  - Cada alma otorga diferentes habilidades y estadísticas.\n" +
+        "  - Puedes equipar hasta 8 pociones para usar en combate.\n\n" +
+        "* PORTALES Y HUIDAS:\n" +
+        "  - Usa los portales del nexo para viajar a los submundos de originales o invitados.\n" +
+        "  - Huye de combates (FLEE) para regresar al overworld sin perder tu progreso de derrota.";
+
     function init() {
         player = new OverworldPlayer();
+        currentSubWorld = 0;
+        signpostActive = false;
+        npcList = [];
+        triggerList = [];
 
         // Create Catalog Interactable (floating star/heart area)
         npcList.push({
-            x: 370, y: 80, w: 40, h: 40, color: "rgba(255, 255, 0, 0.8)",
-            isCatalog: true
+            x: 370, y: 120, w: 40, h: 40, color: "rgba(255, 255, 0, 0.8)",
+            isCatalog: true,
+            subWorld: 0
         });
 
-        // --- ORIGINALES ---
+        // Create Signpost NPC
+        npcList.push({
+            x: 357, y: 220, w: 26, h: 26,
+            isSignpost: true,
+            subWorld: 0
+        });
+
+        // --- SUBWORLD 0 (MAIN MAP PORTALS) ---
+        // Portal to Originals
+        triggerList.push({
+            x: 200, y: 320, w: 26, h: 26,
+            triggered: false,
+            bossId: "portal_originals",
+            label: "Originales Portal",
+            subWorld: 0,
+            action: function() {
+                Transition.start("overworld", function() {
+                    currentSubWorld = 1;
+                    player.x = 370;
+                    player.y = 390;
+                    resetNeedsExit();
+                });
+            }
+        });
+
+        // Portal to Guests
+        triggerList.push({
+            x: 540, y: 320, w: 26, h: 26,
+            triggered: false,
+            bossId: "portal_guests",
+            label: "Invitados Portal",
+            subWorld: 0,
+            action: function() {
+                Transition.start("overworld", function() {
+                    currentSubWorld = 2;
+                    player.x = 370;
+                    player.y = 390;
+                    resetNeedsExit();
+                });
+            }
+        });
+
+        // --- RETURN PORTALS ---
+        // Return to Nexus from Originals
+        triggerList.push({
+            x: 370, y: 440, w: 26, h: 26,
+            triggered: false,
+            bossId: "portal_main",
+            label: "Retornar al Nexo",
+            subWorld: 1,
+            action: function() {
+                Transition.start("overworld", function() {
+                    currentSubWorld = 0;
+                    player.x = 200;
+                    player.y = 350;
+                    resetNeedsExit();
+                });
+            }
+        });
+
+        // Return to Nexus from Guests
+        triggerList.push({
+            x: 370, y: 440, w: 26, h: 26,
+            triggered: false,
+            bossId: "portal_main",
+            label: "Retornar al Nexo",
+            subWorld: 2,
+            action: function() {
+                Transition.start("overworld", function() {
+                    currentSubWorld = 0;
+                    player.x = 540;
+                    player.y = 350;
+                    resetNeedsExit();
+                });
+            }
+        });
+
+        // --- ORIGINALES BOSSES (Subworld 1) ---
         // Singularity battle trigger
         triggerList.push({
-            x: 80, y: 160, w: 26, h: 26,
+            x: 150, y: 150, w: 26, h: 26,
             triggered: false,
             bossId: "singularity",
             label: "Anti-gravity",
+            subWorld: 1,
             color: "rgba(100, 0, 200, 0.4)",
             action: function() {
                 var self = this;
@@ -71,28 +176,12 @@ var Overworld = (function() {
 
         // Seraphina Vex battle trigger
         triggerList.push({
-            x: 80, y: 400, w: 26, h: 26,
+            x: 590, y: 150, w: 26, h: 26,
             triggered: false,
             bossId: "seraphina",
             label: "Seraphina Vex",
+            subWorld: 1,
             color: "rgba(255, 200, 0, 0.4)",
-            action: function() {
-                var self = this;
-                Transition.start(function() {
-                    main.gameState = main.GAME_STATE.COMBAT;
-                    Combat.init(self.bossId);
-                    Combat.setup(main.ctx);
-                });
-            }
-        });
-
-        // Ramiel battle trigger
-        triggerList.push({
-            x: 220, y: 160, w: 26, h: 26,
-            triggered: false,
-            bossId: "ramiel",
-            label: "RAMIEL",
-            color: "rgba(30, 100, 255, 0.5)",
             action: function() {
                 var self = this;
                 Transition.start(function() {
@@ -105,63 +194,12 @@ var Overworld = (function() {
         
         // Paradox battle trigger
         triggerList.push({
-            x: 220, y: 280, w: 26, h: 26,
+            x: 180, y: 290, w: 26, h: 26,
             triggered: false,
             bossId: "paradox",
             label: "PARADOJA",
+            subWorld: 1,
             color: "rgba(255, 200, 50, 0.5)",
-            action: function() {
-                var self = this;
-                Transition.start(function() {
-                    main.gameState = main.GAME_STATE.COMBAT;
-                    Combat.init(self.bossId);
-                    Combat.setup(main.ctx);
-                });
-            }
-        });
-        
-        // Sachiel battle trigger
-        triggerList.push({
-            x: 220, y: 400, w: 26, h: 26,
-            triggered: false,
-            bossId: "sachiel",
-            label: "SACHIEL",
-            color: "rgba(200, 0, 0, 0.5)",
-            action: function() {
-                var self = this;
-                Transition.start(function() {
-                    main.gameState = main.GAME_STATE.COMBAT;
-                    Combat.init(self.bossId);
-                    Combat.setup(main.ctx);
-                });
-            }
-        });
-
-        // --- INVITADOS ---
-        // Godzilla battle trigger
-        triggerList.push({
-            x: 420, y: 340, w: 26, h: 26,
-            triggered: false,
-            bossId: "godzilla",
-            label: "GODZILLA",
-            color: "rgba(0, 150, 255, 0.5)",
-            action: function() {
-                var self = this;
-                Transition.start(function() {
-                    main.gameState = main.GAME_STATE.COMBAT;
-                    Combat.init(self.bossId);
-                    Combat.setup(main.ctx);
-                });
-            }
-        });
-
-        // Darth Vader battle trigger
-        triggerList.push({
-            x: 540, y: 180, w: 26, h: 26,
-            triggered: false,
-            bossId: "vader",
-            label: "DARTH VADER",
-            color: "rgba(220, 0, 0, 0.6)",
             action: function() {
                 var self = this;
                 Transition.start(function() {
@@ -174,10 +212,11 @@ var Overworld = (function() {
 
         // Glitch battle trigger
         triggerList.push({
-            x: 420, y: 180, w: 26, h: 26,
+            x: 280, y: 150, w: 26, h: 26,
             triggered: false,
             bossId: "glitch",
             label: "ERROR 404",
+            subWorld: 1,
             color: "rgba(255, 0, 255, 0.6)",
             action: function() {
                 var self = this;
@@ -191,10 +230,11 @@ var Overworld = (function() {
         
         // Mirror Colossus battle trigger
         triggerList.push({
-            x: 80, y: 280, w: 26, h: 26,
+            x: 560, y: 290, w: 26, h: 26,
             triggered: false,
             bossId: "prism",
             label: "COLOSO DE ESPEJOS",
+            subWorld: 1,
             color: "rgba(0, 240, 255, 0.6)",
             action: function() {
                 var self = this;
@@ -208,10 +248,11 @@ var Overworld = (function() {
         
         // El Hambre Cósmica battle trigger
         triggerList.push({
-            x: 540, y: 340, w: 26, h: 26,
+            x: 460, y: 150, w: 26, h: 26,
             triggered: false,
             bossId: "void_maw",
             label: "EL HAMBRE CÓSMICA",
+            subWorld: 1,
             color: "rgba(148, 0, 211, 0.6)",
             action: function() {
                 var self = this;
@@ -222,13 +263,14 @@ var Overworld = (function() {
                 });
             }
         });
-
+        
         // Bill Cipher battle trigger
         triggerList.push({
-            x: 320, y: 220, w: 26, h: 26,
+            x: 370, y: 240, w: 26, h: 26,
             triggered: false,
             bossId: "bill",
             label: "Bill Cipher",
+            subWorld: 1,
             color: "rgba(255, 255, 0, 0.6)",
             action: function() {
                 var self = this;
@@ -239,8 +281,80 @@ var Overworld = (function() {
                 });
             }
         });
+
+        // --- INVITADOS BOSSES (Subworld 2) ---
+        // Ramiel battle trigger
+        triggerList.push({
+            x: 180, y: 200, w: 26, h: 26,
+            triggered: false,
+            bossId: "ramiel",
+            label: "RAMIEL",
+            subWorld: 2,
+            color: "rgba(30, 100, 255, 0.5)",
+            action: function() {
+                var self = this;
+                Transition.start(function() {
+                    main.gameState = main.GAME_STATE.COMBAT;
+                    Combat.init(self.bossId);
+                    Combat.setup(main.ctx);
+                });
+            }
+        });
         
-        // Load boss animations
+        // Sachiel battle trigger
+        triggerList.push({
+            x: 280, y: 200, w: 26, h: 26,
+            triggered: false,
+            bossId: "sachiel",
+            label: "SACHIEL",
+            subWorld: 2,
+            color: "rgba(200, 0, 0, 0.5)",
+            action: function() {
+                var self = this;
+                Transition.start(function() {
+                    main.gameState = main.GAME_STATE.COMBAT;
+                    Combat.init(self.bossId);
+                    Combat.setup(main.ctx);
+                });
+            }
+        });
+
+        // Godzilla battle trigger
+        triggerList.push({
+            x: 460, y: 200, w: 26, h: 26,
+            triggered: false,
+            bossId: "godzilla",
+            label: "GODZILLA",
+            subWorld: 2,
+            color: "rgba(0, 150, 255, 0.5)",
+            action: function() {
+                var self = this;
+                Transition.start(function() {
+                    main.gameState = main.GAME_STATE.COMBAT;
+                    Combat.init(self.bossId);
+                    Combat.setup(main.ctx);
+                });
+            }
+        });
+
+        // Darth Vader battle trigger
+        triggerList.push({
+            x: 560, y: 200, w: 26, h: 26,
+            triggered: false,
+            bossId: "vader",
+            label: "DARTH VADER",
+            subWorld: 2,
+            color: "rgba(220, 0, 0, 0.6)",
+            action: function() {
+                var self = this;
+                Transition.start(function() {
+                    main.gameState = main.GAME_STATE.COMBAT;
+                    Combat.init(self.bossId);
+                    Combat.setup(main.ctx);
+                });
+            }
+        });
+        
         singFrames = [
             loadImg("Resources/Agujero negro Boss Map 1.PNG"),
             loadImg("Resources/Agujero negro Boss Map 2.PNG"),
@@ -255,10 +369,19 @@ var Overworld = (function() {
         ];
     }
 
+    function resetNeedsExit() {
+        for (var i = 0; i < triggerList.length; i++) {
+            triggerList[i].needsExit = true;
+        }
+    }
+
     function setup(ctx) {
         // Check if all bosses are defeated (Super Victory check)
         var allDefeated = true;
         for (var i = 0; i < triggerList.length; i++) {
+            // Ignore portal teleporters in defeat validation
+            if (triggerList[i].bossId.indexOf("portal") !== -1) continue;
+            
             if (!triggerList[i].triggered) {
                 allDefeated = false;
                 break;
@@ -286,6 +409,25 @@ var Overworld = (function() {
     function update(dt) {
         if (!active || Transition.isActive()) return;
         animTimer += dt;
+        
+        if (signpostActive) {
+            Writer.update(dt);
+            if (myKeys.isConfirm()) {
+                myKeys.keydown[myKeys.KEYBOARD.KEY_Z] = false;
+                myKeys.keydown[myKeys.KEYBOARD.KEY_ENTER] = false;
+                if (Writer.isFinished()) {
+                    signpostActive = false;
+                    Sound.playSound("button", true);
+                } else {
+                    Writer.skip();
+                }
+            } else if (myKeys.isCancel()) {
+                myKeys.keydown[myKeys.KEYBOARD.KEY_X] = false;
+                signpostActive = false;
+                Sound.playSound("button", true);
+            }
+            return;
+        }
         
         if (catalogActive) {
             // Handle Catalog Input
@@ -343,6 +485,10 @@ var Overworld = (function() {
         var pbox = player.getHitbox();
         for (var i = 0; i < triggerList.length; i++) {
             var t = triggerList[i];
+            
+            // Skip triggers that don't match the current sub-world
+            if (t.subWorld !== currentSubWorld) continue;
+
             var overlapping = rectsOverlap(pbox.x, pbox.y, pbox.w, pbox.h, t.x, t.y, t.w, t.h);
             
             // Reset needsExit once player walks away from the trigger zone
@@ -351,7 +497,9 @@ var Overworld = (function() {
             }
             
             if (!t.triggered && !t.needsExit && overlapping) {
-                t.triggered = true; // Lock trigger during combat
+                if (t.bossId.indexOf("portal") === -1) {
+                    t.triggered = true; // Lock trigger during combat
+                }
                 activeBossTriggerIndex = i;
                 t.action();
             }
@@ -369,6 +517,10 @@ var Overworld = (function() {
 
             for (var i = 0; i < npcList.length; i++) {
                 var npc = npcList[i];
+                
+                // Skip NPCs that don't belong to the current sub-world
+                if (npc.subWorld !== currentSubWorld) continue;
+
                 if (rectsOverlap(interactBox.x, interactBox.y, interactBox.w, interactBox.h, npc.x, npc.y, npc.w, npc.h)) {
                     if (npc.isCatalog) {
                         catalogActive = true;
@@ -380,10 +532,58 @@ var Overworld = (function() {
                                 break;
                             }
                         }
+                    } else if (npc.isSignpost) {
+                        signpostActive = true;
+                        Writer.setupText(tutorialText);
+                        Sound.playSound("button", true);
                     }
                 }
             }
         }
+    }
+
+    function drawPortal(ctx, cx, cy, color1, color2, label) {
+        var pTime = animTimer;
+        ctx.save();
+        ctx.translate(cx, cy);
+        
+        // Swirling glowing particles
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = color1;
+        
+        ctx.fillStyle = color1;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 20, 10, pTime, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.strokeStyle = color2;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 24, 12, -pTime * 1.5, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        // Orbiting sparks
+        ctx.fillStyle = "#FFF";
+        ctx.shadowBlur = 5;
+        ctx.shadowColor = "#FFF";
+        for (var i = 0; i < 3; i++) {
+            var angle = pTime * 3 + (i * Math.PI * 2 / 3);
+            var px = Math.cos(angle) * 26;
+            var py = Math.sin(angle) * 13;
+            ctx.beginPath();
+            ctx.arc(px, py, 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        ctx.restore();
+        
+        // Portal Label
+        ctx.save();
+        ctx.font = "8pt 'Determination Mono', monospace";
+        ctx.textAlign = "center";
+        ctx.fillStyle = "#FFF";
+        ctx.fillText(label, cx, cy - 22);
+        ctx.restore();
     }
 
     function draw(ctx) {
@@ -399,11 +599,13 @@ var Overworld = (function() {
             ctx.fillRect(0, 0, main.WIDTH, main.HEIGHT);
         }
 
-        // Category headers removed per user request
-
         // Draw triggers with visual markers
         for (var i = 0; i < triggerList.length; i++) {
             var t = triggerList[i];
+            
+            // Skip triggers that don't match the current sub-world
+            if (t.subWorld !== currentSubWorld) continue;
+
             var time = Date.now() / 1000;
             
             if (!t.triggered) {
@@ -411,604 +613,571 @@ var Overworld = (function() {
                 var gcx = t.x + t.w / 2;
                 var gcy = t.y + t.h / 2;
                 
-                // Draw animated boss sprite
-                var img = null;
-                if (t.bossId === "seraphina") {
-                    var frameIdx = Math.floor(animTimer * 4) % seraFrames.length;
-                    img = seraFrames[frameIdx];
-                } else if (t.bossId === "ramiel" || t.bossId === "paradox" || t.bossId === "sachiel" || t.bossId === "vader" || t.bossId === "godzilla" || t.bossId === "glitch") {
-                    // Procedural mini crystal or colored box for new bosses
-                    img = null; 
+                if (t.bossId === "portal_originals") {
+                    drawPortal(ctx, gcx, gcy, "rgba(0, 255, 255, 0.8)", "#FFFFFF", "ORIGINALES");
+                } else if (t.bossId === "portal_guests") {
+                    drawPortal(ctx, gcx, gcy, "rgba(255, 0, 255, 0.8)", "#FF00FF", "INVITADOS");
+                } else if (t.bossId === "portal_main") {
+                    drawPortal(ctx, gcx, gcy, "rgba(255, 255, 0, 0.8)", "#FFD700", "VOLVER");
                 } else {
-                    var frameIdx = Math.floor(animTimer * 4) % singFrames.length;
-                    img = singFrames[frameIdx];
-                }
-                
-                if (t.bossId === "ramiel") {
-                    // Epic 3D Ramiel representation
-                    var rTime = animTimer;
-                    var rRot = Math.sin(rTime * 0.8) * 0.15;
-                    var rSize = 16; // Scaled down
+                    var img = null;
+                    if (t.bossId === "seraphina") {
+                        var frameIdx = Math.floor(animTimer * 4) % seraFrames.length;
+                        img = seraFrames[frameIdx];
+                    } else if (t.bossId === "ramiel" || t.bossId === "paradox" || t.bossId === "sachiel" || t.bossId === "vader" || t.bossId === "godzilla" || t.bossId === "glitch" || t.bossId === "prism" || t.bossId === "void_maw" || t.bossId === "bill") {
+                        img = null; 
+                    } else {
+                        var frameIdx = Math.floor(animTimer * 4) % singFrames.length;
+                        img = singFrames[frameIdx];
+                    }
                     
-                    ctx.save();
-                    ctx.translate(gcx, gcy - 5 + Math.sin(rTime * 2) * 5); // Floating
-                    ctx.rotate(rRot);
+                    if (t.bossId === "ramiel") {
+                        var rTime = animTimer;
+                        var rRot = Math.sin(rTime * 0.8) * 0.15;
+                        var rSize = 16; // Scaled down
+                        
+                        ctx.save();
+                        ctx.translate(gcx, gcy - 5 + Math.sin(rTime * 2) * 5); // Floating
+                        ctx.rotate(rRot);
+                        
+                        // Massive Blue Glow
+                        ctx.shadowBlur = 25;
+                        ctx.shadowColor = "rgba(100, 150, 255, 0.9)";
+                        
+                        // Main Octahedron
+                        ctx.beginPath();
+                        ctx.moveTo(0, -rSize);
+                        ctx.lineTo(rSize * 0.8, 0);
+                        ctx.lineTo(0, rSize);
+                        ctx.lineTo(-rSize * 0.8, 0);
+                        ctx.closePath();
+                        
+                        // Complex metallic blue gradient
+                        var dGrad = ctx.createLinearGradient(-rSize, -rSize, rSize, rSize);
+                        dGrad.addColorStop(0, "#88CCFF");
+                        dGrad.addColorStop(0.3, "#1155DD");
+                        dGrad.addColorStop(0.5, "#4488FF");
+                        dGrad.addColorStop(0.8, "#002288");
+                        dGrad.addColorStop(1, "#88CCFF");
+                        ctx.fillStyle = dGrad;
+                        ctx.fill();
+                        
+                        // Bright Edges
+                        ctx.shadowBlur = 5;
+                        ctx.strokeStyle = "#FFFFFF";
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+                        
+                        // Center facets line
+                        ctx.beginPath();
+                        ctx.moveTo(-rSize * 0.8, 0);
+                        ctx.lineTo(rSize * 0.8, 0);
+                        ctx.stroke();
+                        
+                        // Pulsing Red Core
+                        var coreScale = 0.5 + Math.sin(rTime * 5) * 0.5;
+                        ctx.shadowBlur = 15;
+                        ctx.shadowColor = "#FF0000";
+                        ctx.fillStyle = "rgba(255, 50, 50, 0.9)";
+                        ctx.beginPath();
+                        ctx.arc(0, 0, 4 + coreScale * 2, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        // Drill beam to the ground
+                        ctx.shadowBlur = 10;
+                        ctx.shadowColor = "rgba(200, 220, 255, 0.8)";
+                        ctx.fillStyle = "rgba(255, 255, 255, " + (0.3 + coreScale * 0.2) + ")";
+                        ctx.beginPath();
+                        ctx.moveTo(-2, rSize);
+                        ctx.lineTo(2, rSize);
+                        ctx.lineTo(0, rSize + 25);
+                        ctx.fill();
+                        
+                        ctx.restore();
+                        ctx.shadowBlur = 0;
+                    } else if (t.bossId === "paradox") {
+                        // Epic Paradox Hourglass
+                        var pTime = animTimer;
+                        var pSize = 16; // Scaled down
+                        
+                        ctx.save();
+                        ctx.translate(gcx, gcy + Math.sin(pTime * 3) * 5);
+                        ctx.rotate(Math.sin(pTime * 1.5) * 0.1);
+                        
+                        // Golden aura
+                        ctx.shadowBlur = 20;
+                        ctx.shadowColor = "rgba(255, 200, 50, 0.9)";
+                        
+                        // Hourglass Glass
+                        ctx.fillStyle = "rgba(200, 240, 255, 0.4)";
+                        ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.moveTo(-pSize * 0.6, -pSize);
+                        ctx.quadraticCurveTo(0, -pSize * 0.2, pSize * 0.6, -pSize);
+                        ctx.lineTo(pSize * 0.2, 0);
+                        ctx.lineTo(pSize * 0.6, pSize);
+                        ctx.quadraticCurveTo(0, pSize * 0.2, -pSize * 0.6, pSize);
+                        ctx.lineTo(-pSize * 0.2, 0);
+                        ctx.closePath();
+                        ctx.fill();
+                        ctx.stroke();
+                        
+                        // Golden Frame
+                        ctx.fillStyle = "#FFB800";
+                        ctx.fillRect(-pSize * 0.7, -pSize - 4, pSize * 1.4, 4);
+                        ctx.fillRect(-pSize * 0.7, pSize, pSize * 1.4, 4);
+                        ctx.fillRect(-pSize * 0.7, -pSize - 4, 4, pSize * 2 + 8);
+                        ctx.fillRect(pSize * 0.7 - 4, -pSize - 4, 4, pSize * 2 + 8);
+                        
+                        // Glowing Red Eye in Top Half
+                        var eyeBlink = Math.sin(pTime * 6) > 0.8 ? 0.2 : 1.0;
+                        ctx.shadowBlur = 10;
+                        ctx.shadowColor = "#FF0000";
+                        ctx.fillStyle = "rgba(200, 0, 0, 0.9)";
+                        ctx.beginPath();
+                        ctx.ellipse(0, -pSize * 0.5, 8, 4 * eyeBlink, 0, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.shadowBlur = 0;
+                        ctx.fillStyle = "#FFF";
+                        ctx.beginPath();
+                        ctx.arc(0, -pSize * 0.5, 2 * eyeBlink, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.fillStyle = "#000";
+                        ctx.beginPath();
+                        ctx.ellipse(0, -pSize * 0.5, 0.5 * eyeBlink, 1.5 * eyeBlink, 0, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        // Golden sand falling
+                        ctx.fillStyle = "#FFD700";
+                        for(var s=0; s<15; s++) {
+                            var sx = (Math.random()-0.5)*pSize*0.8;
+                            var sy = Math.random()*pSize;
+                            if(Math.abs(sx) < sy*0.4) {
+                                var yPos = (sy + pTime * 50) % pSize;
+                                ctx.fillRect(sx, yPos, 2, 2);
+                            }
+                        }
+                        
+                        // Magical temporal rings
+                        ctx.strokeStyle = "rgba(255, 200, 50, " + (0.3 + Math.sin(pTime*4)*0.2) + ")";
+                        ctx.lineWidth = 1.5;
+                        for (var r=1; r<=3; r++) {
+                            ctx.beginPath();
+                            ctx.ellipse(0, 0, pSize*1.5 + Math.sin(pTime*2)*5, pSize*0.5 + Math.sin(pTime*3+r)*5, pTime*(0.5*r), 0, Math.PI*2);
+                            ctx.stroke();
+                        }
+                        
+                        ctx.restore();
+                    } else if (t.bossId === "sachiel") {
+                        var sTime = animTimer;
+                        var sSize = 16; // Scaled down
+                        
+                        ctx.save();
+                        ctx.translate(gcx, gcy + Math.sin(sTime * 4) * 3);
+                        
+                        // Dark Aura
+                        ctx.shadowBlur = 20;
+                        ctx.shadowColor = "rgba(100, 0, 150, 0.8)";
+                        
+                        // Huge Dark Shoulders / Body
+                        ctx.fillStyle = "#110522";
+                        ctx.beginPath();
+                        ctx.moveTo(-sSize * 0.9, sSize * 0.2);
+                        ctx.quadraticCurveTo(-sSize * 0.8, -sSize * 0.8, 0, -sSize * 0.4);
+                        ctx.quadraticCurveTo(sSize * 0.8, -sSize * 0.8, sSize * 0.9, sSize * 0.2);
+                        ctx.quadraticCurveTo(sSize * 0.6, sSize * 0.8, 0, sSize * 0.9);
+                        ctx.quadraticCurveTo(-sSize * 0.6, sSize * 0.8, -sSize * 0.9, sSize * 0.2);
+                        ctx.fill();
+                        
+                        // Purple highlights on shoulders
+                        ctx.strokeStyle = "rgba(150, 50, 200, 0.5)";
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.moveTo(-sSize * 0.8, sSize * 0.1);
+                        ctx.quadraticCurveTo(-sSize * 0.6, -sSize * 0.6, -sSize * 0.1, -sSize * 0.3);
+                        ctx.stroke();
+                        ctx.beginPath();
+                        ctx.moveTo(sSize * 0.8, sSize * 0.1);
+                        ctx.quadraticCurveTo(sSize * 0.6, -sSize * 0.6, sSize * 0.1, -sSize * 0.3);
+                        ctx.stroke();
+                        
+                        // Throbbing Red Core
+                        var cPulse = 0.5 + Math.sin(sTime * 8) * 0.5;
+                        ctx.shadowBlur = 25;
+                        ctx.shadowColor = "#FF0000";
+                        ctx.fillStyle = "rgba(255, 0, 0, " + (0.7 + cPulse*0.3) + ")";
+                        ctx.beginPath();
+                        ctx.arc(0, sSize * 0.3, sSize * 0.25, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        // Core Inner White
+                        ctx.shadowBlur = 0;
+                        ctx.fillStyle = "rgba(255, 255, 255, " + (0.5 + cPulse*0.5) + ")";
+                        ctx.beginPath();
+                        ctx.arc(0, sSize * 0.3, sSize * 0.1, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        // White Bone Mask
+                        ctx.shadowBlur = 5;
+                        ctx.shadowColor = "rgba(255, 255, 255, 0.5)";
+                        ctx.fillStyle = "#EEEEEE";
+                        ctx.beginPath();
+                        ctx.moveTo(-sSize * 0.4, -sSize * 0.6);
+                        ctx.quadraticCurveTo(0, -sSize * 0.9, sSize * 0.4, -sSize * 0.6);
+                        ctx.quadraticCurveTo(sSize * 0.2, -sSize * 0.2, 0, 0);
+                        ctx.quadraticCurveTo(-sSize * 0.2, -sSize * 0.2, -sSize * 0.4, -sSize * 0.6);
+                        ctx.fill();
+                        
+                        // Mask details (beak lines)
+                        ctx.strokeStyle = "#888";
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(0, -sSize * 0.4);
+                        ctx.lineTo(0, -sSize * 0.1);
+                        ctx.stroke();
+                        
+                        // Creepy Black Eyes
+                        ctx.shadowBlur = 0;
+                        ctx.fillStyle = "#000";
+                        ctx.beginPath();
+                        ctx.ellipse(-sSize * 0.15, -sSize * 0.5, sSize * 0.08, sSize * 0.05, 0.2, 0, Math.PI * 2);
+                        ctx.ellipse(sSize * 0.15, -sSize * 0.5, sSize * 0.08, sSize * 0.05, -0.2, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        ctx.restore();
+                    } else if (t.bossId === "godzilla") {
+                        var gTime = animTimer;
+                        var gSize = 16; // Scaled down
+                        
+                        ctx.save();
+                        ctx.translate(gcx, gcy + Math.sin(gTime * 3.5) * 2.5);
+                        ctx.scale(-1, 1);
+                        
+                        // Radiation blue aura glow
+                        ctx.shadowBlur = 18;
+                        ctx.shadowColor = "rgba(0, 160, 255, 0.85)";
+                        
+                        // Draw tail swaying in the background
+                        ctx.strokeStyle = "#121A1A";
+                        ctx.lineWidth = 6;
+                        ctx.lineCap = "round";
+                        ctx.beginPath();
+                        ctx.moveTo(-gSize * 0.5, gSize * 0.6);
+                        ctx.quadraticCurveTo(-gSize * 1.2 - Math.sin(gTime * 4.0) * 8, gSize * 0.2 + Math.cos(gTime * 3.5) * 5, -gSize * 1.5, gSize * 0.5 + Math.sin(gTime * 4.0) * 9);
+                        ctx.stroke();
+                        
+                        // Body/Head outline
+                        ctx.fillStyle = "#162020";
+                        ctx.beginPath();
+                        ctx.moveTo(-gSize * 0.8, gSize * 0.8);
+                        ctx.quadraticCurveTo(-gSize * 0.6, -gSize * 0.4, -gSize * 0.2, -gSize * 0.6);
+                        ctx.lineTo(gSize * 0.5, -gSize * 0.4);
+                        ctx.lineTo(gSize * 0.6, -gSize * 0.1);
+                        ctx.lineTo(gSize * 0.2, -gSize * 0.0);
+                        ctx.lineTo(gSize * 0.5, gSize * 0.1);
+                        ctx.quadraticCurveTo(gSize * 0.6, gSize * 0.6, gSize * 0.8, gSize * 0.8);
+                        ctx.closePath();
+                        ctx.fill();
+                        
+                        // Spines
+                        ctx.fillStyle = "rgba(0, 190, 255, 0.95)";
+                        ctx.shadowBlur = 10;
+                        ctx.shadowColor = "#00B2FF";
+                        for (var s = 0; s < 4; s++) {
+                            var sx = -gSize * 0.65 + s * 7.5;
+                            var sy = -gSize * 0.25 + s * 5.5;
+                            ctx.beginPath();
+                            ctx.moveTo(sx - 2, sy);
+                            ctx.lineTo(sx - 7, sy - 8 - Math.sin(gTime * 4.5 + s) * 2);
+                            ctx.lineTo(sx + 1, sy + 3);
+                            ctx.closePath();
+                            ctx.fill();
+                        }
+                        
+                        // Glowing eye
+                        ctx.fillStyle = "#00FFFF";
+                        ctx.shadowBlur = 8;
+                        ctx.shadowColor = "#00FFFF";
+                        ctx.beginPath();
+                        ctx.arc(gSize * 0.15, -gSize * 0.38, 1.8, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        ctx.restore();
+                        ctx.shadowBlur = 0;
+                    } else if (t.bossId === "vader") {
+                        var vTime = animTimer;
+                        var vSize = 16;
+                        ctx.save();
+                        ctx.translate(gcx, gcy - 5 + Math.sin(vTime * 3) * 2);
+                        
+                        // Cape
+                        ctx.fillStyle = "#0A0A0A";
+                        ctx.beginPath();
+                        ctx.moveTo(-vSize * 0.6, vSize * 0.8);
+                        ctx.lineTo(-vSize * 0.8, vSize * 0.2);
+                        ctx.quadraticCurveTo(-vSize * 0.4, -vSize * 0.2, 0, -vSize * 0.3);
+                        ctx.quadraticCurveTo(vSize * 0.4, -vSize * 0.2, vSize * 0.8, vSize * 0.2);
+                        ctx.lineTo(vSize * 0.6, vSize * 0.8);
+                        ctx.closePath();
+                        ctx.fill();
+                        
+                        // Helmet
+                        ctx.fillStyle = "#151515";
+                        ctx.beginPath();
+                        ctx.arc(0, -vSize * 0.1, vSize * 0.45, Math.PI, 0, false);
+                        ctx.fill();
+                        ctx.beginPath();
+                        ctx.moveTo(-vSize * 0.45, -vSize * 0.1);
+                        ctx.lineTo(-vSize * 0.6, vSize * 0.3);
+                        ctx.lineTo(-vSize * 0.2, vSize * 0.25);
+                        ctx.lineTo(0, vSize * 0.1);
+                        ctx.lineTo(vSize * 0.2, vSize * 0.25);
+                        ctx.lineTo(vSize * 0.6, vSize * 0.3);
+                        ctx.lineTo(vSize * 0.45, -vSize * 0.1);
+                        ctx.closePath();
+                        ctx.fill();
+                        
+                        // Face
+                        ctx.fillStyle = "#090909";
+                        ctx.beginPath();
+                        ctx.moveTo(-vSize * 0.25, vSize * 0.05);
+                        ctx.lineTo(vSize * 0.25, vSize * 0.05);
+                        ctx.lineTo(vSize * 0.15, vSize * 0.35);
+                        ctx.lineTo(-vSize * 0.15, vSize * 0.35);
+                        ctx.closePath();
+                        ctx.fill();
+                        
+                        // Red eyes
+                        ctx.fillStyle = "rgba(255, 0, 0, 0.85)";
+                        ctx.shadowBlur = 6;
+                        ctx.shadowColor = "#FF0000";
+                        ctx.beginPath();
+                        ctx.arc(-vSize * 0.12, vSize * 0.1, 2, 0, Math.PI * 2);
+                        ctx.arc(vSize * 0.12, vSize * 0.1, 2, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        // Grille
+                        ctx.strokeStyle = "#555";
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(0, vSize * 0.2);
+                        ctx.lineTo(0, vSize * 0.35);
+                        ctx.moveTo(-3, vSize * 0.25);
+                        ctx.lineTo(3, vSize * 0.25);
+                        ctx.stroke();
+                        
+                        // Chest control plate
+                        ctx.fillStyle = "#222";
+                        ctx.fillRect(-vSize * 0.25, vSize * 0.45, vSize * 0.5, vSize * 0.35);
+                        ctx.shadowBlur = 4;
+                        ctx.fillStyle = "#FF0000"; ctx.shadowColor = "#FF0000";
+                        ctx.fillRect(-vSize * 0.15, vSize * 0.52, 3, 3);
+                        ctx.fillStyle = "#0000FF"; ctx.shadowColor = "#0000FF";
+                        ctx.fillRect(vSize * 0.05, vSize * 0.52, 3, 3);
+                        
+                        // Lightsaber
+                        ctx.shadowBlur = 15;
+                        ctx.shadowColor = "#FF0000";
+                        ctx.strokeStyle = "#FFFFFF";
+                        ctx.lineWidth = 2.5;
+                        ctx.beginPath();
+                        ctx.moveTo(-vSize * 0.4, vSize * 0.5);
+                        ctx.lineTo(-vSize * 0.8, -vSize * 0.1);
+                        ctx.stroke();
+                        
+                        ctx.restore();
+                    } else if (t.bossId === "glitch") {
+                        var tTime = animTimer;
+                        var tSize = 13;
+                        ctx.save();
+                        ctx.translate(gcx, gcy + Math.sin(tTime * 5.0) * 3.0);
+                        
+                        var pulse = Math.sin(tTime * 12.0) * 0.15 + 0.85;
+                        ctx.fillStyle = "rgba(255, 0, 255, " + pulse.toFixed(2) + ")";
+                        ctx.shadowBlur = 12;
+                        ctx.shadowColor = "#FF00FF";
+                        
+                        for (var dx = -tSize; dx < tSize; dx += 6) {
+                            for (var dy = -tSize; dy < tSize; dy += 6) {
+                                ctx.fillStyle = ((dx + dy) % 12 === 0) ? "#FF00FF" : "#000000";
+                                var jitterX = (Math.random() - 0.5) * 1.5;
+                                var jitterY = (Math.random() - 0.5) * 1.5;
+                                ctx.fillRect(dx + jitterX, dy + jitterY, 6, 6);
+                            }
+                        }
+                        
+                        ctx.strokeStyle = "#00FF66";
+                        ctx.lineWidth = 1.5;
+                        ctx.strokeRect(-tSize - 2, -tSize - 2, tSize * 2 + 4, tSize * 2 + 4);
+                        
+                        if (Math.random() < 0.35) {
+                            ctx.strokeStyle = "rgba(0, 255, 255, 0.7)";
+                            ctx.strokeRect(-tSize - 4, -tSize - 3, tSize * 2 + 8, tSize * 2 + 6);
+                            ctx.strokeStyle = "rgba(255, 0, 255, 0.7)";
+                            ctx.strokeRect(-tSize + 2, -tSize + 3, tSize * 2 - 4, tSize * 2 - 6);
+                        }
+                        
+                        ctx.restore();
+                        ctx.shadowBlur = 0;
+                    } else if (t.bossId === "prism") {
+                        var pTime = animTimer;
+                        var pSize = 16;
+                        ctx.save();
+                        ctx.translate(gcx, gcy - 5 + Math.sin(pTime * 2.5) * 3);
+                        
+                        var rot = pTime * 0.8;
+                        ctx.shadowBlur = 15;
+                        ctx.shadowColor = "#00FFFF";
+                        ctx.strokeStyle = "#FFFFFF";
+                        ctx.lineWidth = 1.0;
+                        
+                        for (var f = 0; f < 3; f++) {
+                            var fAngle = rot + (f * Math.PI * 2 / 3);
+                            ctx.fillStyle = "rgba(0, 220, 255, 0.4)";
+                            ctx.beginPath();
+                            ctx.moveTo(0, -pSize);
+                            ctx.lineTo(Math.cos(fAngle) * pSize, Math.sin(fAngle) * (pSize * 0.5));
+                            ctx.lineTo(Math.cos(fAngle + Math.PI*2/3) * pSize, Math.sin(fAngle + Math.PI*2/3) * (pSize * 0.5));
+                            ctx.closePath();
+                            ctx.fill();
+                            ctx.stroke();
+                        }
+                        
+                        ctx.fillStyle = "#FFFFFF";
+                        ctx.beginPath();
+                        ctx.moveTo(0, -pSize * 0.4);
+                        ctx.lineTo(pSize * 0.3, 0);
+                        ctx.lineTo(0, pSize * 0.4);
+                        ctx.lineTo(-pSize * 0.3, 0);
+                        ctx.closePath();
+                        ctx.fill();
+                        
+                        ctx.restore();
+                        ctx.shadowBlur = 0;
+                    } else if (t.bossId === "void_maw") {
+                        var vTime = animTimer;
+                        var vSize = 18 + Math.sin(vTime * 3.5) * 3;
+                        ctx.save();
+                        ctx.translate(gcx, gcy);
+                        ctx.rotate(-vTime * 1.5);
+                        
+                        var pGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, vSize);
+                        pGrad.addColorStop(0, "#000000");
+                        pGrad.addColorStop(0.4, "#4B0082");
+                        pGrad.addColorStop(0.8, "#9400D3");
+                        pGrad.addColorStop(1, "rgba(0,0,0,0)");
+                        
+                        ctx.fillStyle = pGrad;
+                        ctx.shadowBlur = 20;
+                        ctx.shadowColor = "#FF00FF";
+                        ctx.beginPath();
+                        ctx.arc(0, 0, vSize, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        ctx.fillStyle = "#FFFFFF";
+                        ctx.shadowBlur = 5;
+                        ctx.shadowColor = "#FFFFFF";
+                        for (var d = 0; d < 4; d++) {
+                            var dAngle = vTime * 2.5 + (d * Math.PI / 2);
+                            var dx = Math.cos(dAngle) * (vSize * 0.7);
+                            var dy = Math.sin(dAngle) * (vSize * 0.7);
+                            ctx.fillRect(dx - 1.5, dy - 1.5, 3, 3);
+                        }
+                        
+                        ctx.restore();
+                        ctx.shadowBlur = 0;
+                    } else if (t.bossId === "bill") {
+                        var bTime = animTimer;
+                        var bSize = 16;
+                        ctx.save();
+                        ctx.translate(gcx, gcy - 5 + Math.sin(bTime * 3) * 3);
+                        
+                        ctx.shadowBlur = 15;
+                        ctx.shadowColor = "rgba(255, 255, 0, 0.8)";
+                        
+                        ctx.fillStyle = "#FFD700";
+                        ctx.beginPath();
+                        ctx.moveTo(0, -bSize * 0.8);
+                        ctx.lineTo(bSize * 0.8, bSize * 0.6);
+                        ctx.lineTo(-bSize * 0.8, bSize * 0.6);
+                        ctx.closePath();
+                        ctx.fill();
+                        
+                        ctx.strokeStyle = "#000000";
+                        ctx.lineWidth = 1.5;
+                        ctx.stroke();
+                        
+                        ctx.shadowBlur = 0;
+                        ctx.fillStyle = "#000000";
+                        ctx.fillRect(-bSize * 0.5, -bSize * 0.8 - 2, bSize * 1.0, 2);
+                        ctx.fillRect(-bSize * 0.25, -bSize * 0.8 - 14, bSize * 0.5, 12);
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(-4, bSize * 0.6);
+                        ctx.lineTo(4, bSize * 0.6 + 4);
+                        ctx.lineTo(4, bSize * 0.6 - 4);
+                        ctx.closePath();
+                        ctx.fill();
+                        ctx.beginPath();
+                        ctx.moveTo(4, bSize * 0.6);
+                        ctx.lineTo(-4, bSize * 0.6 + 4);
+                        ctx.lineTo(-4, bSize * 0.6 - 4);
+                        ctx.closePath();
+                        ctx.fill();
+                        
+                        ctx.fillStyle = "#FFFFFF";
+                        ctx.beginPath();
+                        ctx.ellipse(0, 0, 4, 3, 0, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.stroke();
+                        
+                        ctx.fillStyle = "#000000";
+                        ctx.beginPath();
+                        ctx.arc(0, 0, 1.2, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        ctx.strokeStyle = "#000000";
+                        ctx.lineWidth = 1.2;
+                        ctx.beginPath();
+                        ctx.moveTo(-bSize * 0.4, bSize * 0.1);
+                        ctx.lineTo(-bSize * 0.8, bSize * 0.2);
+                        ctx.moveTo(bSize * 0.4, bSize * 0.1);
+                        ctx.lineTo(bSize * 0.8, bSize * 0.2);
+                        ctx.moveTo(-bSize * 0.3, bSize * 0.6);
+                        ctx.lineTo(-bSize * 0.4, bSize * 1.0);
+                        ctx.moveTo(bSize * 0.3, bSize * 0.6);
+                        ctx.lineTo(bSize * 0.4, bSize * 1.0);
+                        ctx.stroke();
+                        
+                        ctx.restore();
+                    } else if (img && img.complete) {
+                        ctx.drawImage(img, t.x, t.y, t.w, t.h);
+                    } else {
+                        var pulse = Math.sin(time * 3 + i * 2) * 0.15 + 0.85;
+                        ctx.globalAlpha = pulse;
+                        var glowGrad = ctx.createRadialGradient(gcx, gcy, 5, gcx, gcy, 35);
+                        glowGrad.addColorStop(0, t.color);
+                        glowGrad.addColorStop(1, "rgba(0,0,0,0)");
+                        ctx.fillStyle = glowGrad;
+                        ctx.beginPath();
+                        ctx.arc(gcx, gcy, 35, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.fillStyle = t.bossId === "seraphina" ? "#FFD700" : "#8800FF";
+                        ctx.beginPath();
+                        ctx.arc(gcx, gcy, 8, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
                     
-                    // Massive Blue Glow
-                    ctx.shadowBlur = 25;
-                    ctx.shadowColor = "rgba(100, 150, 255, 0.9)";
-                    
-                    // Main Octahedron
-                    ctx.beginPath();
-                    ctx.moveTo(0, -rSize);
-                    ctx.lineTo(rSize * 0.8, 0);
-                    ctx.lineTo(0, rSize);
-                    ctx.lineTo(-rSize * 0.8, 0);
-                    ctx.closePath();
-                    
-                    // Complex metallic blue gradient
-                    var dGrad = ctx.createLinearGradient(-rSize, -rSize, rSize, rSize);
-                    dGrad.addColorStop(0, "#88CCFF");
-                    dGrad.addColorStop(0.3, "#1155DD");
-                    dGrad.addColorStop(0.5, "#4488FF");
-                    dGrad.addColorStop(0.8, "#002288");
-                    dGrad.addColorStop(1, "#88CCFF");
-                    ctx.fillStyle = dGrad;
-                    ctx.fill();
-                    
-                    // Bright Edges
-                    ctx.shadowBlur = 5;
-                    ctx.strokeStyle = "#FFFFFF";
-                    ctx.lineWidth = 2;
-                    ctx.stroke();
-                    
-                    // Center facets line
-                    ctx.beginPath();
-                    ctx.moveTo(-rSize * 0.8, 0);
-                    ctx.lineTo(rSize * 0.8, 0);
-                    ctx.stroke();
-                    
-                    // Pulsing Red Core
-                    var coreScale = 0.5 + Math.sin(rTime * 5) * 0.5;
-                    ctx.shadowBlur = 15;
-                    ctx.shadowColor = "#FF0000";
-                    ctx.fillStyle = "rgba(255, 50, 50, 0.9)";
-                    ctx.beginPath();
-                    ctx.arc(0, 0, 4 + coreScale * 2, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    // Drill beam to the ground
-                    ctx.shadowBlur = 10;
-                    ctx.shadowColor = "rgba(200, 220, 255, 0.8)";
-                    ctx.fillStyle = "rgba(255, 255, 255, " + (0.3 + coreScale * 0.2) + ")";
-                    ctx.beginPath();
-                    ctx.moveTo(-2, rSize);
-                    ctx.lineTo(2, rSize);
-                    ctx.lineTo(0, rSize + 25);
-                    ctx.fill();
-                    
-                    ctx.restore();
-                    ctx.shadowBlur = 0;
-                } else if (t.bossId === "paradox") {
-                    // Epic Paradox Hourglass
-                    var pTime = animTimer;
-                    var pSize = 16; // Scaled down
-                    
-                    ctx.save();
-                    ctx.translate(gcx, gcy + Math.sin(pTime * 3) * 5);
-                    ctx.rotate(Math.sin(pTime * 1.5) * 0.1);
-                    
-                    // Golden aura
-                    ctx.shadowBlur = 20;
-                    ctx.shadowColor = "rgba(255, 200, 50, 0.9)";
-                    
-                    // Hourglass Glass
-                    ctx.fillStyle = "rgba(200, 240, 255, 0.4)";
-                    ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.moveTo(-pSize * 0.6, -pSize);
-                    ctx.quadraticCurveTo(0, -pSize * 0.2, pSize * 0.6, -pSize);
-                    ctx.lineTo(pSize * 0.2, 0);
-                    ctx.lineTo(pSize * 0.6, pSize);
-                    ctx.quadraticCurveTo(0, pSize * 0.2, -pSize * 0.6, pSize);
-                    ctx.lineTo(-pSize * 0.2, 0);
-                    ctx.closePath();
-                    ctx.fill();
-                    ctx.stroke();
-                    
-                    // Golden Frame
-                    ctx.fillStyle = "#FFB800";
-                    ctx.fillRect(-pSize * 0.7, -pSize - 4, pSize * 1.4, 4);
-                    ctx.fillRect(-pSize * 0.7, pSize, pSize * 1.4, 4);
-                    ctx.fillRect(-pSize * 0.7, -pSize - 4, 4, pSize * 2 + 8);
-                    ctx.fillRect(pSize * 0.7 - 4, -pSize - 4, 4, pSize * 2 + 8);
-                    
-                    // Glowing Red Eye in Top Half
-                    var eyeBlink = Math.sin(pTime * 6) > 0.8 ? 0.2 : 1.0;
-                    ctx.shadowBlur = 10;
-                    ctx.shadowColor = "#FF0000";
-                    ctx.fillStyle = "rgba(200, 0, 0, 0.9)";
-                    ctx.beginPath();
-                    ctx.ellipse(0, -pSize * 0.5, 8, 4 * eyeBlink, 0, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.shadowBlur = 0;
+                    ctx.font = "8pt Determination Mono";
+                    ctx.textAlign = "center";
                     ctx.fillStyle = "#FFF";
-                    ctx.beginPath();
-                    ctx.arc(0, -pSize * 0.5, 2 * eyeBlink, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.fillStyle = "#000";
-                    ctx.beginPath();
-                    ctx.ellipse(0, -pSize * 0.5, 0.5 * eyeBlink, 1.5 * eyeBlink, 0, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    // Golden sand falling
-                    ctx.fillStyle = "#FFD700";
-                    for(var s=0; s<15; s++) {
-                        var sx = (Math.random()-0.5)*pSize*0.8;
-                        var sy = Math.random()*pSize;
-                        if(Math.abs(sx) < sy*0.4) {
-                            var yPos = (sy + pTime * 50) % pSize;
-                            ctx.fillRect(sx, yPos, 2, 2);
-                        }
-                    }
-                    
-                    // Magical temporal rings
-                    ctx.strokeStyle = "rgba(255, 200, 50, " + (0.3 + Math.sin(pTime*4)*0.2) + ")";
-                    ctx.lineWidth = 1.5;
-                    for (var r=1; r<=3; r++) {
-                        ctx.beginPath();
-                        ctx.ellipse(0, 0, pSize*1.5 + Math.sin(pTime*2)*5, pSize*0.5 + Math.sin(pTime*3+r)*5, pTime*(0.5*r), 0, Math.PI*2);
-                        ctx.stroke();
-                    }
+                    ctx.fillText(t.label, gcx, t.y - 5);
                     
                     ctx.restore();
-                } else if (t.bossId === "sachiel") {
-                    // Epic Sachiel Representation
-                    var sTime = animTimer;
-                    var sSize = 16; // Scaled down
-                    
-                    ctx.save();
-                    ctx.translate(gcx, gcy + Math.sin(sTime * 4) * 3);
-                    
-                    // Dark Aura
-                    ctx.shadowBlur = 20;
-                    ctx.shadowColor = "rgba(100, 0, 150, 0.8)";
-                    
-                    // Huge Dark Shoulders / Body
-                    ctx.fillStyle = "#110522";
-                    ctx.beginPath();
-                    ctx.moveTo(-sSize * 0.9, sSize * 0.2);
-                    ctx.quadraticCurveTo(-sSize * 0.8, -sSize * 0.8, 0, -sSize * 0.4);
-                    ctx.quadraticCurveTo(sSize * 0.8, -sSize * 0.8, sSize * 0.9, sSize * 0.2);
-                    ctx.quadraticCurveTo(sSize * 0.6, sSize * 0.8, 0, sSize * 0.9);
-                    ctx.quadraticCurveTo(-sSize * 0.6, sSize * 0.8, -sSize * 0.9, sSize * 0.2);
-                    ctx.fill();
-                    
-                    // Purple highlights on shoulders
-                    ctx.strokeStyle = "rgba(150, 50, 200, 0.5)";
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.moveTo(-sSize * 0.8, sSize * 0.1);
-                    ctx.quadraticCurveTo(-sSize * 0.6, -sSize * 0.6, -sSize * 0.1, -sSize * 0.3);
-                    ctx.stroke();
-                    ctx.beginPath();
-                    ctx.moveTo(sSize * 0.8, sSize * 0.1);
-                    ctx.quadraticCurveTo(sSize * 0.6, -sSize * 0.6, sSize * 0.1, -sSize * 0.3);
-                    ctx.stroke();
-                    
-                    // Throbbing Red Core
-                    var cPulse = 0.5 + Math.sin(sTime * 8) * 0.5;
-                    ctx.shadowBlur = 25;
-                    ctx.shadowColor = "#FF0000";
-                    ctx.fillStyle = "rgba(255, 0, 0, " + (0.7 + cPulse*0.3) + ")";
-                    ctx.beginPath();
-                    ctx.arc(0, sSize * 0.3, sSize * 0.25, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    // Core Inner White
-                    ctx.shadowBlur = 0;
-                    ctx.fillStyle = "rgba(255, 255, 255, " + (0.5 + cPulse*0.5) + ")";
-                    ctx.beginPath();
-                    ctx.arc(0, sSize * 0.3, sSize * 0.1, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    // White Bone Mask
-                    ctx.shadowBlur = 5;
-                    ctx.shadowColor = "rgba(255, 255, 255, 0.5)";
-                    ctx.fillStyle = "#EEEEEE";
-                    ctx.beginPath();
-                    ctx.moveTo(-sSize * 0.4, -sSize * 0.6);
-                    ctx.quadraticCurveTo(0, -sSize * 0.9, sSize * 0.4, -sSize * 0.6);
-                    ctx.quadraticCurveTo(sSize * 0.2, -sSize * 0.2, 0, 0);
-                    ctx.quadraticCurveTo(-sSize * 0.2, -sSize * 0.2, -sSize * 0.4, -sSize * 0.6);
-                    ctx.fill();
-                    
-                    // Mask details (beak lines)
-                    ctx.strokeStyle = "#888";
-                    ctx.lineWidth = 1;
-                    ctx.beginPath();
-                    ctx.moveTo(0, -sSize * 0.4);
-                    ctx.lineTo(0, -sSize * 0.1);
-                    ctx.stroke();
-                    
-                    // Creepy Black Eyes
-                    ctx.shadowBlur = 0;
-                    ctx.fillStyle = "#000";
-                    ctx.beginPath();
-                    ctx.ellipse(-sSize * 0.15, -sSize * 0.5, sSize * 0.08, sSize * 0.05, 0.2, 0, Math.PI * 2);
-                    ctx.ellipse(sSize * 0.15, -sSize * 0.5, sSize * 0.08, sSize * 0.05, -0.2, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    ctx.restore();
-                } else if (t.bossId === "godzilla") {
-                    // Epic Godzilla representation in Overworld (Side-profile facing Left/Center)
-                    var gTime = animTimer;
-                    var gSize = 16; // Scaled down
-                    
-                    ctx.save();
-                    // Shift center slightly to align with overworld grid
-                    ctx.translate(gcx, gcy + Math.sin(gTime * 3.5) * 2.5);
-                    
-                    // SCALE -1 on X so the right-facing path is flipped to face LEFT (towards the center/player spawn)
-                    ctx.scale(-1, 1);
-                    
-                    // Radiation blue aura glow
-                    ctx.shadowBlur = 18;
-                    ctx.shadowColor = "rgba(0, 160, 255, 0.85)";
-                    
-                    // Draw tail swaying in the background (rendered on the right side under scale(-1, 1))
-                    ctx.strokeStyle = "#121A1A";
-                    ctx.lineWidth = 6;
-                    ctx.lineCap = "round";
-                    ctx.beginPath();
-                    ctx.moveTo(-gSize * 0.5, gSize * 0.6);
-                    ctx.quadraticCurveTo(-gSize * 1.2 - Math.sin(gTime * 4.0) * 8, gSize * 0.2 + Math.cos(gTime * 3.5) * 5, -gSize * 1.5, gSize * 0.5 + Math.sin(gTime * 4.0) * 9);
-                    ctx.stroke();
-                    
-                    // Body/Head outline (dark charcoal)
-                    ctx.fillStyle = "#162020";
-                    ctx.beginPath();
-                    ctx.moveTo(-gSize * 0.8, gSize * 0.8);
-                    ctx.quadraticCurveTo(-gSize * 0.6, -gSize * 0.4, -gSize * 0.2, -gSize * 0.6); // Head/Neck back
-                    ctx.lineTo(gSize * 0.5, -gSize * 0.4); // snout top
-                    ctx.lineTo(gSize * 0.6, -gSize * 0.1); // nose
-                    ctx.lineTo(gSize * 0.2, -gSize * 0.0); // mouth top
-                    ctx.lineTo(gSize * 0.5, gSize * 0.1); // jaw bottom
-                    ctx.quadraticCurveTo(gSize * 0.6, gSize * 0.6, gSize * 0.8, gSize * 0.8); // Chest
-                    ctx.closePath();
-                    ctx.fill();
-                    
-                    // Glowing blue atomic dorsal spines on back
-                    ctx.fillStyle = "rgba(0, 190, 255, 0.95)";
-                    ctx.shadowBlur = 10;
-                    ctx.shadowColor = "#00B2FF";
-                    for (var s = 0; s < 4; s++) {
-                        var sx = -gSize * 0.65 + s * 7.5;
-                        var sy = -gSize * 0.25 + s * 5.5;
-                        ctx.beginPath();
-                        ctx.moveTo(sx - 2, sy);
-                        ctx.lineTo(sx - 7, sy - 8 - Math.sin(gTime * 4.5 + s) * 2);
-                        ctx.lineTo(sx + 1, sy + 3);
-                        ctx.closePath();
-                        ctx.fill();
-                    }
-                    
-                    // Glowing eye
-                    ctx.fillStyle = "#00FFFF";
-                    ctx.shadowBlur = 8;
-                    ctx.shadowColor = "#00FFFF";
-                    ctx.beginPath();
-                    ctx.arc(gSize * 0.15, -gSize * 0.38, 1.8, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    ctx.restore();
-                    ctx.shadowBlur = 0;
-                } else if (t.bossId === "vader") {
-                    // Epic Mini Darth Vader representation
-                    var vTime = animTimer;
-                    var vSize = 16;
-                    ctx.save();
-                    ctx.translate(gcx, gcy - 5 + Math.sin(vTime * 3) * 2); // Floating/breathing
-                    
-                    // Draw cape (flowing behind)
-                    ctx.fillStyle = "#0A0A0A";
-                    ctx.beginPath();
-                    ctx.moveTo(-vSize * 0.6, vSize * 0.8);
-                    ctx.lineTo(-vSize * 0.8, vSize * 0.2);
-                    ctx.quadraticCurveTo(-vSize * 0.4, -vSize * 0.2, 0, -vSize * 0.3);
-                    ctx.quadraticCurveTo(vSize * 0.4, -vSize * 0.2, vSize * 0.8, vSize * 0.2);
-                    ctx.lineTo(vSize * 0.6, vSize * 0.8);
-                    ctx.closePath();
-                    ctx.fill();
-                    
-                    // Helmet Dome (Top curved part)
-                    ctx.fillStyle = "#151515";
-                    ctx.beginPath();
-                    ctx.arc(0, -vSize * 0.1, vSize * 0.45, Math.PI, 0, false);
-                    ctx.fill();
-                    
-                    // Helmet Flare (sides of mask)
-                    ctx.beginPath();
-                    ctx.moveTo(-vSize * 0.45, -vSize * 0.1);
-                    ctx.lineTo(-vSize * 0.6, vSize * 0.3);
-                    ctx.lineTo(-vSize * 0.2, vSize * 0.25);
-                    ctx.lineTo(0, vSize * 0.1);
-                    ctx.lineTo(vSize * 0.2, vSize * 0.25);
-                    ctx.lineTo(vSize * 0.6, vSize * 0.3);
-                    ctx.lineTo(vSize * 0.45, -vSize * 0.1);
-                    ctx.closePath();
-                    ctx.fill();
-                    
-                    // Mask Face (eyes and grille)
-                    ctx.fillStyle = "#090909";
-                    ctx.beginPath();
-                    ctx.moveTo(-vSize * 0.25, vSize * 0.05);
-                    ctx.lineTo(vSize * 0.25, vSize * 0.05);
-                    ctx.lineTo(vSize * 0.15, vSize * 0.35);
-                    ctx.lineTo(-vSize * 0.15, vSize * 0.35);
-                    ctx.closePath();
-                    ctx.fill();
-                    
-                    // Eyes (red glowing dots)
-                    ctx.fillStyle = "rgba(255, 0, 0, 0.85)";
-                    ctx.shadowBlur = 6;
-                    ctx.shadowColor = "#FF0000";
-                    ctx.beginPath();
-                    ctx.arc(-vSize * 0.12, vTime * 0 + vSize * 0.1, 2, 0, Math.PI * 2);
-                    ctx.arc(vSize * 0.12, vTime * 0 + vSize * 0.1, 2, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    // Grille detail
-                    ctx.strokeStyle = "#555";
-                    ctx.lineWidth = 1;
-                    ctx.beginPath();
-                    ctx.moveTo(0, vSize * 0.2);
-                    ctx.lineTo(0, vSize * 0.35);
-                    ctx.moveTo(-3, vSize * 0.25);
-                    ctx.lineTo(3, vSize * 0.25);
-                    ctx.stroke();
-                    
-                    // Chest control plate
-                    ctx.fillStyle = "#222";
-                    ctx.fillRect(-vSize * 0.25, vSize * 0.45, vSize * 0.5, vSize * 0.35);
-                    
-                    ctx.shadowBlur = 4;
-                    ctx.fillStyle = "#FF0000"; ctx.shadowColor = "#FF0000";
-                    ctx.fillRect(-vSize * 0.15, vSize * 0.52, 3, 3);
-                    ctx.fillStyle = "#0000FF"; ctx.shadowColor = "#0000FF";
-                    ctx.fillRect(vSize * 0.05, vSize * 0.52, 3, 3);
-                    
-                    // Glowing Red Lightsaber
-                    ctx.shadowBlur = 15;
-                    ctx.shadowColor = "#FF0000";
-                    ctx.strokeStyle = "#FFFFFF"; // White core
-                    ctx.lineWidth = 2.5;
-                    ctx.beginPath();
-                    ctx.moveTo(-vSize * 0.4, vSize * 0.5);
-                    ctx.lineTo(-vSize * 0.8, -vSize * 0.1);
-                    ctx.stroke();
-                    
-                    ctx.restore();
-                   } else if (t.bossId === "glitch") {
-                    // Epic Glitch (Error 404) representation
-                    var tTime = animTimer;
-                    var tSize = 13;
-                    ctx.save();
-                    ctx.translate(gcx, gcy + Math.sin(tTime * 5.0) * 3.0); // Floating nervously
-                    
-                    // 1. Draw a flickering checkered magenta and black cube (Missing Texture)
-                    var pulse = Math.sin(tTime * 12.0) * 0.15 + 0.85;
-                    ctx.fillStyle = "rgba(255, 0, 255, " + pulse.toFixed(2) + ")";
-                    ctx.shadowBlur = 12;
-                    ctx.shadowColor = "#FF00FF";
-                    
-                    for (var dx = -tSize; dx < tSize; dx += 6) {
-                        for (var dy = -tSize; dy < tSize; dy += 6) {
-                            ctx.fillStyle = ((dx + dy) % 12 === 0) ? "#FF00FF" : "#000000";
-                            var jitterX = (Math.random() - 0.5) * 1.5;
-                            var jitterY = (Math.random() - 0.5) * 1.5;
-                            ctx.fillRect(dx + jitterX, dy + jitterY, 6, 6);
-                        }
-                    }
-                    
-                    // 2. Draw flashing green cybernetic code outline or lines floating around it
-                    ctx.strokeStyle = "#00FF66";
-                    ctx.lineWidth = 1.5;
-                    ctx.strokeRect(-tSize - 2, -tSize - 2, tSize * 2 + 4, tSize * 2 + 4);
-                    
-                    // 3. Chromatic aberration splits (extra ghost lines)
-                    if (Math.random() < 0.35) {
-                        ctx.strokeStyle = "rgba(0, 255, 255, 0.7)";
-                        ctx.strokeRect(-tSize - 4, -tSize - 3, tSize * 2 + 8, tSize * 2 + 6);
-                        ctx.strokeStyle = "rgba(255, 0, 255, 0.7)";
-                        ctx.strokeRect(-tSize + 2, -tSize + 3, tSize * 2 - 4, tSize * 2 - 6);
-                    }
-                    
-                    ctx.restore();
-                    ctx.shadowBlur = 0;
-                } else if (t.bossId === "prism") {
-                    // Crystalline Coloso de Espejos representation
-                    var pTime = animTimer;
-                    var pSize = 16;
-                    ctx.save();
-                    ctx.translate(gcx, gcy - 5 + Math.sin(pTime * 2.5) * 3); // floating gently
-                    
-                    // Rotate over time
-                    var rot = pTime * 0.8;
-                    
-                    ctx.shadowBlur = 15;
-                    ctx.shadowColor = "#00FFFF";
-                    ctx.strokeStyle = "#FFFFFF";
-                    ctx.lineWidth = 1.0;
-                    
-                    // Draw outer crystal structure (overlapping glowing triangles)
-                    for (var f = 0; f < 3; f++) {
-                        var fAngle = rot + (f * Math.PI * 2 / 3);
-                        ctx.fillStyle = "rgba(0, 220, 255, 0.4)";
-                        ctx.beginPath();
-                        ctx.moveTo(0, -pSize);
-                        ctx.lineTo(Math.cos(fAngle) * pSize, Math.sin(fAngle) * (pSize * 0.5));
-                        ctx.lineTo(Math.cos(fAngle + Math.PI*2/3) * pSize, Math.sin(fAngle + Math.PI*2/3) * (pSize * 0.5));
-                        ctx.closePath();
-                        ctx.fill();
-                        ctx.stroke();
-                    }
-                    
-                    // Core diamond
-                    ctx.fillStyle = "#FFFFFF";
-                    ctx.beginPath();
-                    ctx.moveTo(0, -pSize * 0.4);
-                    ctx.lineTo(pSize * 0.3, 0);
-                    ctx.lineTo(0, pSize * 0.4);
-                    ctx.lineTo(-pSize * 0.3, 0);
-                    ctx.closePath();
-                    ctx.fill();
-                    
-                    ctx.restore();
-                    ctx.shadowBlur = 0;
-                } else if (t.bossId === "void_maw") {
-                    // Pulsing purple void portal for El Hambre Cósmica
-                    var vTime = animTimer;
-                    var vSize = 18 + Math.sin(vTime * 3.5) * 3;
-                    ctx.save();
-                    ctx.translate(gcx, gcy);
-                    
-                    // Rotate opposite to pulse
-                    ctx.rotate(-vTime * 1.5);
-                    
-                    // Radial gradient glow
-                    var pGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, vSize);
-                    pGrad.addColorStop(0, "#000000");
-                    pGrad.addColorStop(0.4, "#4B0082"); // Indigo
-                    pGrad.addColorStop(0.8, "#9400D3"); // Violet
-                    pGrad.addColorStop(1, "rgba(0,0,0,0)");
-                    
-                    ctx.fillStyle = pGrad;
-                    ctx.shadowBlur = 20;
-                    ctx.shadowColor = "#FF00FF";
-                    ctx.beginPath();
-                    ctx.arc(0, 0, vSize, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    // Draw mini orbiting matter/debris
-                    ctx.fillStyle = "#FFFFFF";
-                    ctx.shadowBlur = 5;
-                    ctx.shadowColor = "#FFFFFF";
-                    for (var d = 0; d < 4; d++) {
-                        var dAngle = vTime * 2.5 + (d * Math.PI / 2);
-                        var dx = Math.cos(dAngle) * (vSize * 0.7);
-                        var dy = Math.sin(dAngle) * (vSize * 0.7);
-                        ctx.fillRect(dx - 1.5, dy - 1.5, 3, 3);
-                    }
-                    
-                    ctx.restore();
-                    ctx.shadowBlur = 0;
-                } else if (t.bossId === "bill") {
-                    // Procedural Overworld Bill Cipher
-                    var bTime = animTimer;
-                    var bSize = 16;
-                    ctx.save();
-                    ctx.translate(gcx, gcy - 5 + Math.sin(bTime * 3) * 3); // floating
-
-                    // Yellow glow aura
-                    ctx.shadowBlur = 15;
-                    ctx.shadowColor = "rgba(255, 255, 0, 0.8)";
-                    
-                    // Draw Triangle body (facing up)
-                    ctx.fillStyle = "#FFD700"; // Gold
-                    ctx.beginPath();
-                    ctx.moveTo(0, -bSize * 0.8);
-                    ctx.lineTo(bSize * 0.8, bSize * 0.6);
-                    ctx.lineTo(-bSize * 0.8, bSize * 0.6);
-                    ctx.closePath();
-                    ctx.fill();
-                    
-                    // Draw black outline
-                    ctx.strokeStyle = "#000000";
-                    ctx.lineWidth = 1.5;
-                    ctx.stroke();
-                    
-                    // Draw black top hat
-                    ctx.shadowBlur = 0;
-                    ctx.fillStyle = "#000000";
-                    // Brim
-                    ctx.fillRect(-bSize * 0.5, -bSize * 0.8 - 2, bSize * 1.0, 2);
-                    // Hat body
-                    ctx.fillRect(-bSize * 0.25, -bSize * 0.8 - 14, bSize * 0.5, 12);
-                    
-                    // Draw bow tie
-                    ctx.beginPath();
-                    ctx.moveTo(-4, bSize * 0.6);
-                    ctx.lineTo(4, bSize * 0.6 + 4);
-                    ctx.lineTo(4, bSize * 0.6 - 4);
-                    ctx.closePath();
-                    ctx.fill();
-                    ctx.beginPath();
-                    ctx.moveTo(4, bSize * 0.6);
-                    ctx.lineTo(-4, bSize * 0.6 + 4);
-                    ctx.lineTo(-4, bSize * 0.6 - 4);
-                    ctx.closePath();
-                    ctx.fill();
-                    
-                    // Draw single centered eye (white with black pupil)
-                    ctx.fillStyle = "#FFFFFF";
-                    ctx.beginPath();
-                    ctx.ellipse(0, 0, 4, 3, 0, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.stroke();
-                    
-                    ctx.fillStyle = "#000000";
-                    ctx.beginPath();
-                    ctx.arc(0, 0, 1.2, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    // Tiny black arms and legs
-                    ctx.strokeStyle = "#000000";
-                    ctx.lineWidth = 1.2;
-                    // Arms
-                    ctx.beginPath();
-                    ctx.moveTo(-bSize * 0.4, bSize * 0.1);
-                    ctx.lineTo(-bSize * 0.8, bSize * 0.2);
-                    ctx.moveTo(bSize * 0.4, bSize * 0.1);
-                    ctx.lineTo(bSize * 0.8, bSize * 0.2);
-                    // Legs
-                    ctx.moveTo(-bSize * 0.3, bSize * 0.6);
-                    ctx.lineTo(-bSize * 0.4, bSize * 1.0);
-                    ctx.moveTo(bSize * 0.3, bSize * 0.6);
-                    ctx.lineTo(bSize * 0.4, bSize * 1.0);
-                    ctx.stroke();
-                    
-                    ctx.restore();
-                } else if (img && img.complete) {
-                    ctx.drawImage(img, t.x, t.y, t.w, t.h);
-                } else {
-                    // Fallback to glowing circle if images aren't loaded yet
-                    var pulse = Math.sin(time * 3 + i * 2) * 0.15 + 0.85;
-                    ctx.globalAlpha = pulse;
-                    var glowGrad = ctx.createRadialGradient(gcx, gcy, 5, gcx, gcy, 35);
-                    glowGrad.addColorStop(0, t.color);
-                    glowGrad.addColorStop(1, "rgba(0,0,0,0)");
-                    ctx.fillStyle = glowGrad;
-                    ctx.beginPath();
-                    ctx.arc(gcx, gcy, 35, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.fillStyle = t.bossId === "seraphina" ? "#FFD700" : "#8800FF";
-                    ctx.beginPath();
-                    ctx.arc(gcx, gcy, 8, 0, Math.PI * 2);
-                    ctx.fill();
                 }
-                
-                // Label
-                ctx.font = "8pt Determination Mono";
-                ctx.textAlign = "center";
-                ctx.fillStyle = "#FFF";
-                ctx.fillText(t.label, gcx, t.y - 5);
-                
-                ctx.restore();
             }
             
-            // Debug rectangles
             if (main.debug) {
                 ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
                 ctx.fillRect(t.x, t.y, t.w, t.h);
@@ -1018,6 +1187,9 @@ var Overworld = (function() {
         // Draw NPCs
         for (var i = 0; i < npcList.length; i++) {
             var npc = npcList[i];
+            
+            if (npc.subWorld !== currentSubWorld) continue;
+
             if (npc.isCatalog) {
                 var scx = npc.x + npc.w / 2;
                 var scy = npc.y + npc.h / 2;
@@ -1135,6 +1307,48 @@ var Overworld = (function() {
                 ctx.font = "10pt Determination Mono";
                 ctx.textAlign = "center";
                 ctx.fillText("SOUL CATALOG", scx, npc.y + npc.h + 18);
+                ctx.restore();
+            } else if (npc.isSignpost) {
+                var ncx = npc.x + npc.w / 2;
+                var ncy = npc.y + npc.h / 2;
+                ctx.save();
+                
+                // Draw wooden post
+                ctx.fillStyle = "#8B4513"; // SaddleBrown
+                ctx.fillRect(ncx - 3, ncy - 2, 6, 15);
+                
+                // Post details/shading
+                ctx.fillStyle = "#5C2E0B";
+                ctx.fillRect(ncx - 3, ncy - 2, 2, 15);
+                
+                // Draw wooden board
+                ctx.fillStyle = "#CD853F"; // Peru wood color
+                ctx.fillRect(ncx - 13, ncy - 12, 26, 12);
+                
+                // Board border
+                ctx.strokeStyle = "#5C2E0B";
+                ctx.lineWidth = 1.5;
+                ctx.strokeRect(ncx - 13, ncy - 12, 26, 12);
+                
+                // Board wood lines
+                ctx.fillStyle = "#8B4513";
+                ctx.fillRect(ncx - 10, ncy - 8, 20, 1);
+                ctx.fillRect(ncx - 8, ncy - 5, 16, 1);
+                
+                // Little screw
+                ctx.fillStyle = "#A9A9A9"; // DarkGray
+                ctx.fillRect(ncx - 1, ncy - 9, 2, 2);
+                
+                // Signpost Label/Hint if player is close
+                var pbox = player.getHitbox();
+                var dist = Math.hypot((pbox.x + pbox.w/2) - ncx, (pbox.y + pbox.h/2) - ncy);
+                if (dist < 45) {
+                    ctx.font = "8pt 'Determination Mono', monospace";
+                    ctx.textAlign = "center";
+                    ctx.fillStyle = "#FFD700";
+                    ctx.fillText("[Z/ENTER] LEER", ncx, npc.y - 18);
+                }
+                
                 ctx.restore();
             } else {
                 ctx.fillStyle = npc.color;
@@ -2016,6 +2230,20 @@ var Overworld = (function() {
                 if (catalogScrollOffset > 0) ctx.fillText("\u25B2", 470, 45);
                 if (endIdx < potionCount) ctx.fillText("\u25BC", 470, 275);
             }
+        }
+
+        // Draw Signpost Tutorial Dialogue Box Overlay
+        if (signpostActive) {
+            ctx.save();
+            // Draw classic black box with white border
+            ctx.fillStyle = "#FFF";
+            ctx.fillRect(83, 335, 574, 140);
+            ctx.fillStyle = "#000";
+            ctx.fillRect(88, 340, 564, 130);
+            ctx.restore();
+            
+            // Draw the typed scrolled tutorial/controls text
+            Writer.drawText(ctx);
         }
 
         ctx.restore();

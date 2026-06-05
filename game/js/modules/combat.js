@@ -411,7 +411,7 @@ var Combat = (function() {
                 Cbbox.draw(ctx);
                 Chp.draw(ctx, Player.getHPCur(), Player.getHPMax());
                 Cmenu.draw(ctx, 0, MENU_STATE);
-                Writer.drawMenu(ctx, Cgroup.getActs(selectStateEnemy), menuState, MENU_STATE);
+                Writer.drawMenu(ctx, Cgroup.getActs(selectStateEnemy), menuState, MENU_STATE, selectStateOther);
                 Soul.drawAt(ctx, Writer.getSoulPos(selectStateOther, 0));
                 break;
 
@@ -419,7 +419,7 @@ var Combat = (function() {
                 Cbbox.draw(ctx);
                 Chp.draw(ctx, Player.getHPCur(), Player.getHPMax());
                 Cmenu.draw(ctx, 0, MENU_STATE);
-                Writer.drawMenu(ctx, Inventory.getNames(), menuState, MENU_STATE);
+                Writer.drawMenu(ctx, Inventory.getNames(), menuState, MENU_STATE, selectStateOther);
                 Soul.drawAt(ctx, Writer.getSoulPos(selectStateOther, 0));
                 break;
 
@@ -427,7 +427,7 @@ var Combat = (function() {
                 Cbbox.draw(ctx);
                 Chp.draw(ctx, Player.getHPCur(), Player.getHPMax());
                 Cmenu.draw(ctx, 0, MENU_STATE);
-                Writer.drawMenu(ctx, Cgroup.getMercies(), menuState, MENU_STATE);
+                Writer.drawMenu(ctx, Cgroup.getMercies(), menuState, MENU_STATE, selectStateOther);
                 Soul.drawAt(ctx, Writer.getSoulPos(selectStateOther, 1));
                 break;
 
