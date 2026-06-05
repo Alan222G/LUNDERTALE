@@ -1105,13 +1105,6 @@ VoidInventoryDevourAttemptPattern.prototype.checkCollision = function(sx, sy, sw
     var rad = 14;
     var dist = Math.sqrt(Math.pow((sx+sw/2) - this.tongueX, 2) + Math.pow((sy+sh/2) - this.tongueY, 2));
     if (dist < rad + sw/2) {
-        if (!this.stealTriggered) {
-            this.stealTriggered = true;
-            var enemy = Cgroup.getEnemy(0);
-            if (enemy && typeof enemy.onHitPlayer === "function") {
-                enemy.onHitPlayer(this.damVal);
-            }
-        }
         return this.damVal;
     }
     return 0;

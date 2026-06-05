@@ -38,8 +38,8 @@ var Cgroup = (function() {
             new Enemy({
                 name: "Anti-gravity",
                 checkText: "A collapsed star... its pull is inescapable.",
-                maxHP: 3600,
-                curHP: 3600,
+                maxHP: 5100,
+                curHP: 5100,
                 renderType: "blackhole",
                 atk: 12,
                 def: 8,
@@ -82,7 +82,7 @@ var Cgroup = (function() {
                     { patterns: ["bulletRain", "wallsOBullet", "gravityWell"], soulMode: "red", renderType: "blackhole" },
                     { patterns: ["spiralShot", "gasterBlaster", "pulsarBeam", "eventHorizon", "accretionSpiral"], soulMode: "red", renderType: "supermassive_blackhole" }
                 ],
-                phaseHP: [3600, 4200],
+                phaseHP: [5100, 5700],
                 karmaEnabled: false,
                 jitterEnabled: true,
                 damagePos: new Vect(370, 320, 0),
@@ -103,8 +103,8 @@ var Cgroup = (function() {
             new Enemy({
                 name: "Seraphina Vex",
                 checkText: "A divine being with many eyes... watching you.",
-                maxHP: 2800,
-                curHP: 2800,
+                maxHP: 4300,
+                curHP: 4300,
                 renderType: "seraph",
                 atk: 10,
                 def: 7,
@@ -163,7 +163,7 @@ var Cgroup = (function() {
                     { patterns: ["heavenlyRays", "divinePillars", "holyLance", "judgmentRings", "celestialJudgment"], soulMode: "red", renderType: "throne",
                       speech: ["ENOUGH!", "FEEL THE\nWRATH OF\nTHE DIVINE!", "YOU WILL\nBURN!", "NO MERCY\nFOR THE\nWICKED!"] }
                 ],
-                phaseHP: [2800, 3500, 4500],
+                phaseHP: [4300, 5000, 6000],
                 karmaEnabled: false,
                 jitterEnabled: false,
                 damagePos: new Vect(370, 320, 0),
@@ -184,8 +184,8 @@ var Cgroup = (function() {
             new Enemy({
                 name: "RAMIEL",
                 checkText: "A perfect geometric form... it hums with annihilating energy.",
-                maxHP: 3200,
-                curHP: 3200,
+                maxHP: 4700,
+                curHP: 4700,
                 renderType: "ramiel_crystal",
                 atk: 14,
                 def: 10,
@@ -239,7 +239,7 @@ var Cgroup = (function() {
                     { patterns: ["geometricDrill", "atField", "particleBeam", "crystalStorm", "annihilationGrid", "fractureExplosion"], soulMode: "red", renderType: "ramiel_berserk",
                       speech: ["ENOUGH.", "ANNIHILATION\nPROTOCOL.", "THE DRILL\nWILL PIERCE\nALL.", "NO BARRIER\nCAN SAVE\nYOU."] }
                 ],
-                phaseHP: [3200, 4000, 5000],
+                phaseHP: [4700, 5500, 9250],
                 karmaEnabled: false,
                 jitterEnabled: false,
                 damagePos: new Vect(370, 320, 0),
@@ -260,8 +260,8 @@ var Cgroup = (function() {
             new Enemy({
                 name: "Sachiel",
                 checkText: "The Third Angel. Its core glows with a terrible light.",
-                maxHP: 3000,
-                curHP: 3000,
+                maxHP: 4500,
+                curHP: 4500,
                 renderType: "sachiel",
                 atk: 15,
                 def: 12,
@@ -315,7 +315,7 @@ var Cgroup = (function() {
                     { patterns: ["causalLightBeam", "bonePiercers", "coreEruption", "bloodBoil", "sachielAtField", "sachielLonginus", "sachielCoreLaser", "sachielRegeneration", "sachielBloodRain"], soulMode: "red", renderType: "sachiel",
                       speech: ["RAAAGH!", "I WILL\nDEVOUR\nYOU.", "BLOOD\nBOILS."] }
                 ],
-                phaseHP: [3000, 3500, 9000],
+                phaseHP: [4500, 5000, 10500],
                 karmaEnabled: false,
                 jitterEnabled: true,
                 damagePos: new Vect(370, 320, 0),
@@ -336,8 +336,8 @@ var Cgroup = (function() {
             new Enemy({
                 name: "Paradoja",
                 checkText: "Una anomalía temporal con forma de reloj. Contiene toda la arena del tiempo.",
-                maxHP: 4000,
-                curHP: 4000,
+                maxHP: 5500,
+                curHP: 5500,
                 renderType: "hourglass",
                 atk: 11,
                 def: 8,
@@ -387,7 +387,7 @@ var Cgroup = (function() {
                     { patterns: ["temporalCollapse", "sandStream", "timeReverse", "pendulumSwing", "clockworkGears", "shatteredGlass", "glitchWalls", "entropyVortex"], soulMode: "red", renderType: "hourglass_shattered",
                       speech: ["YO HE VISTO\nTU FINAL.", "EL CICLO\nSE ROMPE.", "NO HAY\nFUTURO."] }
                 ],
-                phaseHP: [4000, 4700, 5500],
+                phaseHP: [5500, 6200, 7000],
                 karmaEnabled: false,
                 jitterEnabled: false,
                 damagePos: new Vect(370, 320, 0),
@@ -408,8 +408,8 @@ var Cgroup = (function() {
             new Enemy({
                 name: "Godzilla",
                 checkText: "El Rey de los Monstruos. La radiación a su alrededor es palpable.",
-                maxHP: 3200,
-                curHP: 3200,
+                maxHP: 4700,
+                curHP: 4700,
                 renderType: "godzilla_head",
                 atk: 18,
                 def: 15,
@@ -461,7 +461,7 @@ var Cgroup = (function() {
                     { patterns: ["godzillaTailWhip", "godzillaAtomicBreath", "godzillaBurningRain", "godzillaMeltdownSpikes"], soulMode: "red", renderType: "godzilla_meltdown",
                       speech: ["SKREEEONNK!", "MELTDOWN\nPROTOCOL.", "TODO SERA\nCENIZAS."] }
                 ],
-                phaseHP: [3200, 4700, 6700],
+                phaseHP: [4700, 6200, 10950],
                 karmaEnabled: false,
                 jitterEnabled: true,
                 damagePos: new Vect(370, 290, 0),
@@ -482,8 +482,8 @@ var Cgroup = (function() {
             new Enemy({
                 name: "Darth Vader",
                 checkText: "El Lord Sith. Su respiración pesada resuena en la Fuerza.",
-                maxHP: 3000,
-                curHP: 3000,
+                maxHP: 4500,
+                curHP: 4500,
                 renderType: "vader_normal",
                 atk: 22,
                 def: 18,
@@ -531,7 +531,7 @@ var Cgroup = (function() {
                     { patterns: ["vaderForceCrush", "vaderRedemptionShock", "vaderDarkPresence", "vaderForcePull", "vaderDeathStarLaser", "vaderLethalStrike", "vaderTIEStrike"], soulMode: "red", renderType: "vader_rage",
                       speech: ["¡ES INUTIL\nRESISTIRSE!", "¡SIENTE LA IRA\nDEL LORD SITH!", "¡VILLANO!\nNO ME\nVENCERAS."] }
                 ],
-                phaseHP: [3000, 3800, 4800],
+                phaseHP: [4500, 5300, 6300],
                 karmaEnabled: false,
                 jitterEnabled: false,
                 damagePos: new Vect(370, 290, 0),
@@ -552,8 +552,8 @@ var Cgroup = (function() {
             new Enemy({
                 name: "Error 404",
                 checkText: "Una falla crítica en el espacio-tiempo de LUNDERTALE. Nada tiene sentido.",
-                maxHP: 4000,
-                curHP: 4000,
+                maxHP: 5500,
+                curHP: 5500,
                 renderType: "glitch_minor",
                 atk: 32,
                 def: 30,
@@ -622,7 +622,7 @@ var Cgroup = (function() {
                         speech: ["BSOD!", "FORMATTING_C...", "FATAL_EXCEPTION!"] 
                     }
                 ],
-                phaseHP: [4000, 5200, 7200],
+                phaseHP: [5500, 6700, 8700],
                 karmaEnabled: false,
                 jitterEnabled: true,
                 damagePos: new Vect(370, 290, 0),
@@ -643,8 +643,8 @@ var Cgroup = (function() {
             new Enemy({
                 name: "Coloso de Espejos",
                 checkText: "Un gigante de cristal y reflejos. Sus facetas brillan con luz espectral.",
-                maxHP: 4500,
-                curHP: 4500,
+                maxHP: 6000,
+                curHP: 6000,
                 renderType: "prism_phase1",
                 atk: 25,
                 def: 24,
@@ -710,7 +710,7 @@ var Cgroup = (function() {
                         speech: ["TODO SE\nFRACTURA.", "EL ABISMO\nREFLEJA TU\nALMA.", "CRISTALIZATE!"] 
                     }
                 ],
-                phaseHP: [4500, 5800, 7800],
+                phaseHP: [6000, 7300, 12050],
                 karmaEnabled: false,
                 jitterEnabled: false,
                 damagePos: new Vect(370, 290, 0),
@@ -770,8 +770,8 @@ var Cgroup = (function() {
             new Enemy({
                 name: "El Hambre Cósmica",
                 checkText: "Una anomalía gravitatoria hambrienta. Devora tu inventario.",
-                maxHP: 5200,
-                curHP: 5200,
+                maxHP: 6700,
+                curHP: 6700,
                 renderType: "void_maw",
                 atk: 28,
                 def: 22,
@@ -881,7 +881,7 @@ var Cgroup = (function() {
                         speech: ["¡TODO SE\nCOLAPSA!", "EL FINAL\nCÓSMICO...", "¡CONSUMO\nABSOLUTO!"]
                     }
                 ],
-                phaseHP: [5200, 6400, 7900],
+                phaseHP: [6700, 7900, 12150],
                 karmaEnabled: false,
                 jitterEnabled: true,
                 damagePos: new Vect(370, 260, 0),

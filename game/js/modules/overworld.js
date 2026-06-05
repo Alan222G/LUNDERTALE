@@ -51,9 +51,10 @@ var Overworld = (function() {
             isCatalog: true
         });
 
-        // Singularity battle trigger (Anomalies Group)
+        // --- ORIGINALES ---
+        // Singularity battle trigger
         triggerList.push({
-            x: 127, y: 157, w: 26, h: 26,
+            x: 80, y: 160, w: 26, h: 26,
             triggered: false,
             bossId: "singularity",
             label: "Anti-gravity",
@@ -68,9 +69,9 @@ var Overworld = (function() {
             }
         });
 
-        // Seraphina Vex battle trigger (Anomalies Group)
+        // Seraphina Vex battle trigger
         triggerList.push({
-            x: 127, y: 417, w: 26, h: 26,
+            x: 80, y: 400, w: 26, h: 26,
             triggered: false,
             bossId: "seraphina",
             label: "Seraphina Vex",
@@ -85,9 +86,9 @@ var Overworld = (function() {
             }
         });
 
-        // Ramiel battle trigger (Guest Group)
+        // Ramiel battle trigger
         triggerList.push({
-            x: 627, y: 157, w: 26, h: 26,
+            x: 220, y: 160, w: 26, h: 26,
             triggered: false,
             bossId: "ramiel",
             label: "RAMIEL",
@@ -102,9 +103,9 @@ var Overworld = (function() {
             }
         });
         
-        // Paradox battle trigger (Anomalies Group)
+        // Paradox battle trigger
         triggerList.push({
-            x: 237, y: 297, w: 26, h: 26,
+            x: 220, y: 280, w: 26, h: 26,
             triggered: false,
             bossId: "paradox",
             label: "PARADOJA",
@@ -119,9 +120,9 @@ var Overworld = (function() {
             }
         });
         
-        // Sachiel battle trigger (Guest Group)
+        // Sachiel battle trigger
         triggerList.push({
-            x: 627, y: 417, w: 26, h: 26,
+            x: 220, y: 400, w: 26, h: 26,
             triggered: false,
             bossId: "sachiel",
             label: "SACHIEL",
@@ -136,9 +137,10 @@ var Overworld = (function() {
             }
         });
 
-        // Godzilla battle trigger (Guest Group)
+        // --- INVITADOS ---
+        // Godzilla battle trigger
         triggerList.push({
-            x: 377, y: 477, w: 26, h: 26,
+            x: 420, y: 340, w: 26, h: 26,
             triggered: false,
             bossId: "godzilla",
             label: "GODZILLA",
@@ -153,9 +155,9 @@ var Overworld = (function() {
             }
         });
 
-        // Darth Vader battle trigger (Guest Group)
+        // Darth Vader battle trigger
         triggerList.push({
-            x: 517, y: 297, w: 26, h: 26,
+            x: 540, y: 180, w: 26, h: 26,
             triggered: false,
             bossId: "vader",
             label: "DARTH VADER",
@@ -170,9 +172,9 @@ var Overworld = (function() {
             }
         });
 
-        // Glitch battle trigger (Anomalies Group)
+        // Glitch battle trigger
         triggerList.push({
-            x: 377, y: 207, w: 26, h: 26,
+            x: 420, y: 180, w: 26, h: 26,
             triggered: false,
             bossId: "glitch",
             label: "ERROR 404",
@@ -187,9 +189,9 @@ var Overworld = (function() {
             }
         });
         
-        // Mirror Colossus battle trigger (Anomalies Group)
+        // Mirror Colossus battle trigger
         triggerList.push({
-            x: 127, y: 297, w: 26, h: 26,
+            x: 80, y: 280, w: 26, h: 26,
             triggered: false,
             bossId: "prism",
             label: "COLOSO DE ESPEJOS",
@@ -204,9 +206,9 @@ var Overworld = (function() {
             }
         });
         
-        // El Hambre Cósmica battle trigger (Anomalies Group)
+        // El Hambre Cósmica battle trigger
         triggerList.push({
-            x: 627, y: 297, w: 26, h: 26,
+            x: 540, y: 340, w: 26, h: 26,
             triggered: false,
             bossId: "void_maw",
             label: "EL HAMBRE CÓSMICA",
@@ -379,6 +381,24 @@ var Overworld = (function() {
             ctx.fillStyle = "#111";
             ctx.fillRect(0, 0, main.WIDTH, main.HEIGHT);
         }
+
+        // Draw category headers with drop shadows
+        ctx.font = "14pt 'Determination Mono', monospace";
+        ctx.textAlign = "center";
+        
+        // Originales shadow
+        ctx.fillStyle = "#332700";
+        ctx.fillText("— ORIGINALES —", 157, 122);
+        // Originales main text
+        ctx.fillStyle = "#FFD700";
+        ctx.fillText("— ORIGINALES —", 155, 120);
+
+        // Invitados shadow
+        ctx.fillStyle = "#330033";
+        ctx.fillText("— INVITADOS —", 482, 122);
+        // Invitados main text
+        ctx.fillStyle = "#FF00FF";
+        ctx.fillText("— INVITADOS —", 480, 120);
 
         // Draw triggers with visual markers
         for (var i = 0; i < triggerList.length; i++) {

@@ -276,19 +276,20 @@ var main = {
         ctx.fillStyle = "rgba(20, 20, 20, 0.85)";
         ctx.strokeStyle = "#FFD700";
         ctx.lineWidth = 2.0;
-        ctx.fillRect(this.WIDTH / 2 - 210, 220, 420, 220);
-        ctx.strokeRect(this.WIDTH / 2 - 210, 220, 420, 220);
+        ctx.fillRect(this.WIDTH / 2 - 210, 215, 420, 245);
+        ctx.strokeRect(this.WIDTH / 2 - 210, 215, 420, 245);
 
         var bosses = [
             "Anti-gravity (Singularity)", "Seraphina Vex", "RAMIEL", "PARADOJA",
-            "SACHIEL", "GODZILLA", "DARTH VADER", "ERROR 404"
+            "SACHIEL", "COLOSO DE ESPEJOS", "GODZILLA", "DARTH VADER",
+            "ERROR 404", "EL HAMBRE CÓSMICA"
         ];
 
         ctx.font = "12pt Determination Mono";
         ctx.textAlign = "left";
         for (var b = 0; b < bosses.length; b++) {
             var bx = this.WIDTH / 2 - 190 + (b % 2) * 200;
-            var by = 255 + Math.floor(b / 2) * 45;
+            var by = 245 + Math.floor(b / 2) * 42;
             
             // Defeated checkmark
             ctx.fillStyle = "#00E676";

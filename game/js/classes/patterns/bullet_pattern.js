@@ -23,7 +23,10 @@ BulletPattern.prototype.generateBullets = function(battleBox) {
 // Update all bullets
 BulletPattern.prototype.update = function(dt) {
     for (var i = this.bullets.length - 1; i >= 0; i--) {
-        this.bullets[i].progressMovement(dt);
+        var b = this.bullets[i];
+        if (b && typeof b.progressMovement === "function") {
+            b.progressMovement(dt);
+        }
     }
     this.finished = this.isOver();
 };
@@ -31,7 +34,10 @@ BulletPattern.prototype.update = function(dt) {
 // Draw all bullets
 BulletPattern.prototype.draw = function(ctx) {
     for (var i = 0; i < this.bullets.length; i++) {
-        this.bullets[i].draw(ctx);
+        var b = this.bullets[i];
+        if (b && typeof b.draw === "function") {
+            b.draw(ctx);
+        }
     }
 };
 
@@ -49,8 +55,11 @@ BulletPattern.prototype.clear = function() {
 // Check collision with soul at position (sx, sy) with size (sw, sh)
 BulletPattern.prototype.checkCollision = function(sx, sy, sw, sh) {
     for (var i = 0; i < this.bullets.length; i++) {
-        if (this.bullets[i].collidesWith(sx, sy, sw, sh)) {
-            return this.bullets[i].damVal;
+        var b = this.bullets[i];
+        if (b && typeof b.collidesWith === "function") {
+            if (b.collidesWith(sx, sy, sw, sh)) {
+                return b.damVal;
+            }
         }
     }
     return 0;

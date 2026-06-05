@@ -36,7 +36,7 @@ GodzillaAtomicSpitPattern.prototype.update = function(dt) {
         
         // Spawn fireball at the top-center (Godzilla's mouth coordinate)
         var startX = bb[0] + boxW / 2;
-        var startY = bb[1] - 10;
+        var startY = bb[1] + 10;
         
         // Aim generally towards the player soul
         var soulX = 370, soulY = 400;
@@ -91,12 +91,22 @@ GodzillaAtomicSpitPattern.prototype.update = function(dt) {
             var hitWall = false;
             
             // Horizontal bounds bounce
-            if (nextX <= bb[0] || nextX + b.width >= bb[2]) {
+            if (nextX <= bb[0]) {
+                b.x = bb[0];
+                b.vx = -b.vx;
+                hitWall = true;
+            } else if (nextX + b.width >= bb[2]) {
+                b.x = bb[2] - b.width;
                 b.vx = -b.vx;
                 hitWall = true;
             }
             // Vertical bounds bounce
-            if (nextY <= bb[1] || nextY + b.height >= bb[3]) {
+            if (nextY <= bb[1]) {
+                b.y = bb[1];
+                b.vy = -b.vy;
+                hitWall = true;
+            } else if (nextY + b.height >= bb[3]) {
+                b.y = bb[3] - b.height;
                 b.vy = -b.vy;
                 hitWall = true;
             }
