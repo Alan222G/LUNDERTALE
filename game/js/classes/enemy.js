@@ -5252,18 +5252,74 @@ Enemy.prototype.drawBillCipher = function(ctx) {
     var time = Date.now() / 1000;
     ctx.save();
     
+    var isP1 = (this.renderType === "bill_normal");
+    var isP2 = (this.renderType === "bill_madness");
+    var isP3 = (this.renderType === "bill_angry");
+    
+    // Jitter/shake effect when angry
+    var shakeX = isP3 ? (Math.random() - 0.5) * 4 : (isP2 ? (Math.random() - 0.5) * 1.5 : 0);
+    var shakeY = isP3 ? (Math.random() - 0.5) * 4 : (isP2 ? (Math.random() - 0.5) * 1.5 : 0);
+    
     // Floating movement
     var floatOffset = Math.sin(time * 3) * 6;
-    ctx.translate(370, 150 + floatOffset);
+    ctx.translate(370 + shakeX, 150 + floatOffset + shakeY);
+    
+    // 0. Draw Background Aura / Cipher Wheel / Magical Effects
+    if (isP1) {
+        ctx.save();
+        // Rotating golden Cipher Wheel behind Bill
+        ctx.strokeStyle = "rgba(255, 215, 0, 0.25)";
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.arc(0, 0, 68, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        ctx.rotate(-time * 0.4);
+        ctx.setLineDash([]);
+        ctx.strokeStyle = "rgba(255, 215, 0, 0.15)";
+        // Draw spokes
+        for (var sp = 0; sp < 8; sp++) {
+            var sa = sp * Math.PI / 4;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(Math.cos(sa) * 68, Math.sin(sa) * 68);
+            ctx.stroke();
+        }
+        ctx.restore();
+    } else if (isP2) {
+        ctx.save();
+        // Shifting neon magenta/cyan halo
+        var madnessHue = (time * 90) % 360;
+        ctx.shadowBlur = 35;
+        ctx.shadowColor = "hsl(" + madnessHue + ", 100%, 50%)";
+        ctx.fillStyle = "rgba(255, 255, 255, 0.05)";
+        ctx.beginPath();
+        ctx.arc(0, 0, 60, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    } else if (isP3) {
+        ctx.save();
+        // Fiery red energy tendrils discharging from back
+        ctx.shadowBlur = 30;
+        ctx.shadowColor = "#FF0000";
+        ctx.strokeStyle = "rgba(255, 0, 0, 0.45)";
+        ctx.lineWidth = 2;
+        for (var l = 0; l < 6; l++) {
+            var la = l * Math.PI / 3 + time * 1.5;
+            var lLen = 60 + Math.sin(time * 8 + l) * 20;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.quadraticCurveTo(Math.cos(la + 0.3) * (lLen * 0.5), Math.sin(la + 0.3) * (lLen * 0.5), Math.cos(la) * lLen, Math.sin(la) * lLen);
+            ctx.stroke();
+        }
+        ctx.restore();
+    }
     
     // 1. Draw limbs (behind body)
     ctx.strokeStyle = "#000000";
     ctx.lineWidth = 3;
     ctx.lineCap = "round";
-    
-    var isP1 = (this.renderType === "bill_normal");
-    var isP2 = (this.renderType === "bill_madness");
-    var isP3 = (this.renderType === "bill_angry");
     
     // Left Leg
     ctx.beginPath();
@@ -5314,7 +5370,7 @@ Enemy.prototype.drawBillCipher = function(ctx) {
         ctx.lineTo(45, -5 + Math.cos(time * 2.5) * 8); // Floating arms
     }
     ctx.stroke();
-
+ 
     // 2. Draw Triangle Body
     ctx.beginPath();
     ctx.moveTo(0, -45); // Apex
@@ -5326,52 +5382,91 @@ Enemy.prototype.drawBillCipher = function(ctx) {
         ctx.fillStyle = "#FFD700"; // Gold/Yellow
         ctx.shadowBlur = 15;
         ctx.shadowColor = "#FFD700";
+        ctx.fill();
     } else if (isP2) {
-        // Shifting madness colors
-        var red = Math.floor(180 + Math.sin(time * 6) * 75);
-        var green = Math.floor(40 + Math.cos(time * 6) * 40);
-        var blue = Math.floor(180 + Math.sin(time * 6 + Math.PI) * 75);
-        ctx.fillStyle = "rgb(" + red + "," + green + "," + blue + ")";
+        // Shifting madness cosmic space texture mapped inside body
+        ctx.save();
+        ctx.fillStyle = "#0D001A";
+        ctx.fill();
+        ctx.clip();
+        
+        // Draw rotating stars/nebula inside triangle
+        ctx.fillStyle = "rgba(255, 0, 255, 0.15)";
+        ctx.beginPath();
+        ctx.arc(Math.sin(time) * 15, Math.cos(time) * 15, 30, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "rgba(0, 255, 255, 0.15)";
+        ctx.beginPath();
+        ctx.arc(Math.cos(time * 1.5) * 20, Math.sin(time * 1.5) * 20, 25, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Stars drifting
+        for (var s = 0; s < 15; s++) {
+            var sa = time * 0.8 + s * (Math.PI * 2 / 15);
+            var sd = 15 + ((s * 4) % 25);
+            var sx = Math.cos(sa) * sd;
+            var sy = Math.sin(sa) * sd;
+            ctx.fillStyle = s % 2 === 0 ? "#FF00FF" : "#00FFFF";
+            ctx.fillRect(sx, sy, 2.5, 2.5);
+        }
+        ctx.restore();
+        
         ctx.shadowBlur = 20;
-        ctx.shadowColor = "rgba(" + red + "," + green + "," + blue + ", 0.8)";
+        var rRed = Math.floor(180 + Math.sin(time * 6) * 75);
+        var rBlue = Math.floor(180 + Math.sin(time * 6 + Math.PI) * 75);
+        ctx.shadowColor = "rgba(" + rRed + ",0," + rBlue + ",0.8)";
     } else {
+        // Fiery red body with licking outer flames
         ctx.fillStyle = "#FF0000"; // Angry Red
         ctx.shadowBlur = 25;
         ctx.shadowColor = "#FF0000";
+        ctx.fill();
+        
+        // Draw fire details on chest
+        ctx.fillStyle = "#B30000";
+        ctx.beginPath();
+        ctx.moveTo(0, 10);
+        ctx.quadraticCurveTo(-15, 25, -25, 40);
+        ctx.lineTo(25, 40);
+        ctx.quadraticCurveTo(15, 25, 0, 10);
+        ctx.closePath();
+        ctx.fill();
     }
-    ctx.fill();
+    
     ctx.shadowBlur = 0; // reset shadow for body outline
     ctx.strokeStyle = "#000000";
     ctx.lineWidth = 3.5;
     ctx.stroke();
     
     // Brick pattern lines inside Bill's body (Gravity Falls style)
-    ctx.save();
-    ctx.strokeStyle = "rgba(0, 0, 0, 0.15)";
-    ctx.lineWidth = 1.5;
-    // Horizontal lines
-    for (var ly = -20; ly < 40; ly += 15) {
-        // Calculate horizontal bounds of the triangle at this height
-        var t = (ly + 45) / 85; // 0 at apex (-45), 1 at bottom (40)
-        var halfW = t * 45;
-        ctx.beginPath();
-        ctx.moveTo(-halfW, ly);
-        ctx.lineTo(halfW, ly);
-        ctx.stroke();
-        
-        // Vertical lines (bricks staggered)
-        var numSegments = Math.floor(halfW / 12) + 1;
-        for (var s = -numSegments; s <= numSegments; s++) {
-            var sx = s * 16 + (Math.floor(ly / 15) % 2 === 0 ? 8 : 0);
-            if (Math.abs(sx) < halfW - 2) {
-                ctx.beginPath();
-                ctx.moveTo(sx, ly);
-                ctx.lineTo(sx, ly + 15);
-                ctx.stroke();
+    if (!isP2) { // Skip bricks for P2 cosmic body
+        ctx.save();
+        ctx.strokeStyle = isP3 ? "rgba(0, 0, 0, 0.22)" : "rgba(0, 0, 0, 0.15)";
+        ctx.lineWidth = 1.5;
+        // Horizontal lines
+        for (var ly = -20; ly < 40; ly += 15) {
+            // Calculate horizontal bounds of the triangle at this height
+            var t = (ly + 45) / 85; // 0 at apex (-45), 1 at bottom (40)
+            var halfW = t * 45;
+            ctx.beginPath();
+            ctx.moveTo(-halfW, ly);
+            ctx.lineTo(halfW, ly);
+            ctx.stroke();
+            
+            // Vertical lines (bricks staggered)
+            var numSegments = Math.floor(halfW / 12) + 1;
+            for (var s = -numSegments; s <= numSegments; s++) {
+                var sx = s * 16 + (Math.floor(ly / 15) % 2 === 0 ? 8 : 0);
+                if (Math.abs(sx) < halfW - 2) {
+                    ctx.beginPath();
+                    ctx.moveTo(sx, ly);
+                    ctx.lineTo(sx, ly + 15);
+                    ctx.stroke();
+                }
             }
         }
+        ctx.restore();
     }
-    ctx.restore();
     
     // 3. Draw Bow Tie (overlapping body slightly at base)
     ctx.save();

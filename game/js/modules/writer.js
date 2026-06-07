@@ -2,7 +2,7 @@
 // Ported from Under-Ground-Engine
 var Writer = (function() {
     var timeCheck = 0;
-    var timeAsterisk = 0.75, timePeriod = 0.33, timeComma = 0.21, timeStandard = 0.033;
+    var timeAsterisk = 0.428, timePeriod = 0.188, timeComma = 0.120, timeStandard = 0.0188;
     var text, charCounter, timeCounter;
     var horizontalPositions, verticalPositions;
 

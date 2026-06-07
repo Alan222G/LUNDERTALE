@@ -67,7 +67,7 @@ var Combat = (function() {
 
     function setup(ctx) {
         Soul.getCollision(ctx);
-        Writer.setupTimes(0.50, 0.33, 0.21, 0.033);
+        Writer.setupTimes(0.285, 0.188, 0.12, 0.0188);
         Writer.setupText(Cgroup.getText());
         Cattack.setup();
     }

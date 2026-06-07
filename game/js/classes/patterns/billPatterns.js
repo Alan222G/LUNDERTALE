@@ -1,4 +1,4 @@
-// billPatterns.js — 21 Unique Bill Cipher themed patterns for LUNDERTALE
+﻿// billPatterns.js â€” 21 Unique Bill Cipher themed patterns for LUNDERTALE
 
 // Helper function to draw warning lines or simple shapes if needed
 var billParticles = [];
@@ -154,99 +154,411 @@ BillEyeLasersPattern.prototype.isOver = function() {
     return this.elapsed >= this.duration && this.lasers.length === 0;
 };
 
-// 2. billCipherWheel: Rotating symbols that shoot inwards
+// 2. billCipherWheel: Zodiac Wheel Attack â€” 10 cipher wheel symbols orbit and fire laser beams
 var BillCipherWheelPattern = function(config) {
     BulletPattern.call(this, config);
-    this.duration = config.duration || 7.5;
+    this.duration = config.duration || 9.0;
     this.elapsed = 0;
-    this.shootTimer = 0;
     this.damVal = config.damVal || 8;
+    this.wheelAngle = 0;
+    this.wheelRadius = 0;
+    this.symbols = []; // { index, angle, glowing, fireTimer, laserActive, laserAlpha }
+    this.activeSymbol = -1;
+    this.switchTimer = 0;
+    this.switchInterval = 0.7;
+    this.laserWarning = 0.45;
+    this.laserDuration = 0.35;
 };
 BillCipherWheelPattern.prototype = Object.create(BulletPattern.prototype);
 BillCipherWheelPattern.prototype.generateBullets = function(battleBox) {
     BulletPattern.prototype.generateBullets.call(this, battleBox);
     this.elapsed = 0;
-    this.shootTimer = 0;
+    this.wheelAngle = 0;
     billParticles = [];
+    var bb = Cbbox.getBound();
+    var boxW = bb[2] - bb[0];
+    var boxH = bb[3] - bb[1];
+    this.wheelRadius = Math.min(boxW, boxH) * 0.42;
+    this.symbols = [];
+    var names = ["star", "crescent", "hand", "glasses", "icebag", "llama", "shootingstar", "heart", "pinetree", "question"];
+    for (var i = 0; i < 10; i++) {
+        this.symbols.push({
+            index: i,
+            name: names[i],
+            baseAngle: (Math.PI * 2 / 10) * i,
+            glowing: false,
+            fireTimer: 0,
+            laserActive: 0,
+            laserAlpha: 0
+        });
+    }
+    this.activeSymbol = -1;
+    this.switchTimer = 0.3;
 };
 BillCipherWheelPattern.prototype.update = function(dt) {
     this.elapsed += dt;
-    this.shootTimer += dt;
     updateBillParticles(dt);
     var bb = Cbbox.getBound();
     var cx = (bb[0] + bb[2]) / 2;
     var cy = (bb[1] + bb[3]) / 2;
-    
-    if (this.shootTimer >= 0.40 && this.elapsed < this.duration - 1.2) {
-        this.shootTimer = 0;
-        var r = 160;
-        var angle = (this.elapsed * 1.5) + (Math.random() * 0.5);
-        // Shoot inward
-        var sx = cx + Math.cos(angle) * r;
-        var sy = cy + Math.sin(angle) * r;
-        
-        var targetX = cx + (Math.random() - 0.5) * 40;
-        var targetY = cy + (Math.random() - 0.5) * 40;
-        var shootAngle = Math.atan2(targetY - sy, targetX - sx);
-        
-        this.bullets.push({
-            x: sx,
-            y: sy,
-            vx: Math.cos(shootAngle) * 130,
-            vy: Math.sin(shootAngle) * 130,
-            width: 12, height: 12,
-            active: true
-        });
-        Sound.playSound("hit_1", true);
-        
-        for (var p = 0; p < 3; p++) {
-            spawnBillParticle(sx, sy, (Math.random() - 0.5) * 40, (Math.random() - 0.5) * 40, 2, 0.3, "#00FFFF", 5);
+    // Slowly rotate the whole wheel
+    this.wheelAngle += 0.35 * dt;
+    // Handle symbol activation cycle
+    if (this.elapsed < this.duration - 1.5) {
+        this.switchTimer -= dt;
+        if (this.switchTimer <= 0) {
+            this.switchTimer = this.switchInterval;
+            // Pick a new symbol to activate (avoid same twice in a row)
+            var prev = this.activeSymbol;
+            var tries = 0;
+            do {
+                this.activeSymbol = Math.floor(Math.random() * 10);
+                tries++;
+            } while (this.activeSymbol === prev && tries < 5);
+            var sym = this.symbols[this.activeSymbol];
+            sym.glowing = true;
+            sym.fireTimer = this.laserWarning;
+            sym.laserActive = 0;
+            sym.laserAlpha = 1.0;
+            Sound.playSound("ting", true);
         }
     }
-    
-    for (var i = this.bullets.length - 1; i >= 0; i--) {
-        var b = this.bullets[i];
-        b.x += b.vx * dt;
-        b.y += b.vy * dt;
-        
-        if (b.x < bb[0] - 15 || b.x > bb[2] + 15 || b.y < bb[1] - 15 || b.y > bb[3] + 15) {
-            this.bullets.splice(i, 1);
+    // Update each symbol
+    for (var i = 0; i < this.symbols.length; i++) {
+        var s = this.symbols[i];
+        if (s.glowing) {
+            if (s.fireTimer > 0) {
+                s.fireTimer -= dt;
+                if (s.fireTimer <= 0) {
+                    // Fire the laser
+                    s.laserActive = this.laserDuration;
+                    Sound.playSound("laser", true);
+                    if (typeof triggerShake !== "undefined") triggerShake(3, 80);
+                    // Spawn particles at symbol position
+                    var sAngle = s.baseAngle + this.wheelAngle;
+                    var sx = cx + Math.cos(sAngle) * this.wheelRadius;
+                    var sy = cy + Math.sin(sAngle) * this.wheelRadius;
+                    for (var p = 0; p < 6; p++) {
+                        spawnBillParticle(sx, sy, (Math.random() - 0.5) * 60, (Math.random() - 0.5) * 60, 3, 0.5, "#FF4444", 10);
+                    }
+                }
+            } else if (s.laserActive > 0) {
+                s.laserActive -= dt;
+                s.laserAlpha = s.laserActive / this.laserDuration;
+                if (s.laserActive <= 0) {
+                    s.glowing = false;
+                    s.laserAlpha = 0;
+                }
+            }
         }
     }
+    // Ambient particles along the wheel rim
+    if (this.elapsed < this.duration - 1.0 && Math.random() < 0.3) {
+        var rAngle = Math.random() * Math.PI * 2;
+        var rx = cx + Math.cos(rAngle) * this.wheelRadius;
+        var ry = cy + Math.sin(rAngle) * this.wheelRadius;
+        spawnBillParticle(rx, ry, (Math.random() - 0.5) * 15, (Math.random() - 0.5) * 15, 2, 0.6, "#00FFFF", 4);
+    }
+};
+BillCipherWheelPattern.prototype._drawSymbol = function(ctx, name, x, y, size) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.lineWidth = 2;
+    var s = size;
+    if (name === "star") {
+        // Six-pointed star
+        ctx.beginPath();
+        for (var i = 0; i < 6; i++) {
+            var a = (Math.PI * 2 / 6) * i - Math.PI / 2;
+            var r = (i % 2 === 0) ? s : s * 0.45;
+            if (i === 0) ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r);
+            else ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+    } else if (name === "crescent") {
+        ctx.beginPath();
+        ctx.arc(0, 0, s * 0.8, 0.4, Math.PI * 2 - 0.4);
+        ctx.arc(-s * 0.3, 0, s * 0.55, Math.PI * 2 - 0.6, 0.6, true);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+    } else if (name === "hand") {
+        // Open hand / fist icon (simplified)
+        ctx.beginPath();
+        ctx.moveTo(-s * 0.5, s * 0.3);
+        ctx.lineTo(-s * 0.5, -s * 0.1);
+        ctx.lineTo(-s * 0.3, -s * 0.6);
+        ctx.lineTo(-s * 0.1, -s * 0.7);
+        ctx.lineTo(0, -s * 0.5);
+        ctx.lineTo(s * 0.1, -s * 0.75);
+        ctx.lineTo(s * 0.25, -s * 0.55);
+        ctx.lineTo(s * 0.35, -s * 0.7);
+        ctx.lineTo(s * 0.5, -s * 0.45);
+        ctx.lineTo(s * 0.5, s * 0.3);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+    } else if (name === "glasses") {
+        // Spectacles
+        ctx.beginPath();
+        ctx.arc(-s * 0.35, 0, s * 0.3, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(s * 0.35, 0, s * 0.3, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(-s * 0.05, 0);
+        ctx.lineTo(s * 0.05, 0);
+        ctx.stroke();
+    } else if (name === "icebag") {
+        // Bag shape
+        ctx.beginPath();
+        ctx.moveTo(-s * 0.3, -s * 0.5);
+        ctx.lineTo(s * 0.3, -s * 0.5);
+        ctx.lineTo(s * 0.45, s * 0.5);
+        ctx.lineTo(-s * 0.45, s * 0.5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        // Tie at top
+        ctx.beginPath();
+        ctx.moveTo(0, -s * 0.5);
+        ctx.lineTo(0, -s * 0.7);
+        ctx.stroke();
+    } else if (name === "llama") {
+        // Simplified llama head
+        ctx.beginPath();
+        ctx.moveTo(-s * 0.2, s * 0.4);
+        ctx.lineTo(-s * 0.3, -s * 0.1);
+        ctx.lineTo(-s * 0.35, -s * 0.65);
+        ctx.lineTo(-s * 0.15, -s * 0.45);
+        ctx.lineTo(0, -s * 0.2);
+        ctx.lineTo(s * 0.15, -s * 0.45);
+        ctx.lineTo(s * 0.35, -s * 0.65);
+        ctx.lineTo(s * 0.3, -s * 0.1);
+        ctx.lineTo(s * 0.2, s * 0.4);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+    } else if (name === "shootingstar") {
+        // Star with trail
+        ctx.beginPath();
+        for (var i = 0; i < 5; i++) {
+            var a = (Math.PI * 2 / 5) * i - Math.PI / 2;
+            var r = (i % 2 === 0) ? s * 0.55 : s * 0.25;
+            if (i === 0) ctx.moveTo(Math.cos(a) * r + s * 0.15, Math.sin(a) * r);
+            else ctx.lineTo(Math.cos(a) * r + s * 0.15, Math.sin(a) * r);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        // Trail
+        ctx.beginPath();
+        ctx.moveTo(-s * 0.1, s * 0.1);
+        ctx.lineTo(-s * 0.7, s * 0.35);
+        ctx.stroke();
+    } else if (name === "heart") {
+        // Stitched heart
+        ctx.beginPath();
+        ctx.moveTo(0, s * 0.5);
+        ctx.bezierCurveTo(-s * 0.6, s * 0.1, -s * 0.6, -s * 0.5, 0, -s * 0.2);
+        ctx.bezierCurveTo(s * 0.6, -s * 0.5, s * 0.6, s * 0.1, 0, s * 0.5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        // Stitch line
+        ctx.beginPath();
+        ctx.setLineDash([2, 3]);
+        ctx.moveTo(0, -s * 0.3);
+        ctx.lineTo(0, s * 0.45);
+        ctx.stroke();
+        ctx.setLineDash([]);
+    } else if (name === "pinetree") {
+        // Pine tree
+        ctx.beginPath();
+        ctx.moveTo(0, -s * 0.7);
+        ctx.lineTo(s * 0.45, s * 0.3);
+        ctx.lineTo(-s * 0.45, s * 0.3);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        // Trunk
+        ctx.fillRect(-s * 0.1, s * 0.3, s * 0.2, s * 0.25);
+    } else if (name === "question") {
+        // Question mark
+        ctx.font = "bold " + Math.round(s * 1.4) + "px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("?", 0, 0);
+        ctx.strokeText("?", 0, 0);
+    }
+    ctx.restore();
+};
+BillCipherWheelPattern.prototype.checkCollision = function(sx, sy, sw, sh) {
+    var scx = sx + sw / 2;
+    var scy = sy + sh / 2;
+    var bb = Cbbox.getBound();
+    var cx = (bb[0] + bb[2]) / 2;
+    var cy = (bb[1] + bb[3]) / 2;
+    for (var i = 0; i < this.symbols.length; i++) {
+        var s = this.symbols[i];
+        if (s.laserActive > 0) {
+            // Laser goes from symbol position toward center and beyond
+            var sAngle = s.baseAngle + this.wheelAngle;
+            var sx1 = cx + Math.cos(sAngle) * this.wheelRadius;
+            var sy1 = cy + Math.sin(sAngle) * this.wheelRadius;
+            // Endpoint is on the opposite side of the wheel
+            var sx2 = cx - Math.cos(sAngle) * this.wheelRadius;
+            var sy2 = cy - Math.sin(sAngle) * this.wheelRadius;
+            // Distance from player center to the laser line
+            var num = Math.abs((sy2 - sy1) * scx - (sx2 - sx1) * scy + sx2 * sy1 - sy2 * sx1);
+            var den = Math.sqrt(Math.pow(sy2 - sy1, 2) + Math.pow(sx2 - sx1, 2));
+            var dist = num / (den || 1);
+            if (dist < 10 + sw * 0.3) {
+                return this.damVal;
+            }
+        }
+        // Also check collision with the symbol orbs themselves
+        var symAngle = s.baseAngle + this.wheelAngle;
+        var symX = cx + Math.cos(symAngle) * this.wheelRadius;
+        var symY = cy + Math.sin(symAngle) * this.wheelRadius;
+        var distToSym = Math.sqrt(Math.pow(scx - symX, 2) + Math.pow(scy - symY, 2));
+        if (distToSym < 10 + sw * 0.3) {
+            return Math.max(1, Math.floor(this.damVal * 0.5));
+        }
+    }
+    return 0;
 };
 BillCipherWheelPattern.prototype.draw = function(ctx) {
     var bb = Cbbox.getBound();
     var cx = (bb[0] + bb[2]) / 2;
     var cy = (bb[1] + bb[3]) / 2;
+    var r = this.wheelRadius;
     ctx.save();
-    // Draw rotating outline of the cipher wheel
-    ctx.strokeStyle = "rgba(0, 255, 255, 0.15)";
-    ctx.lineWidth = 3;
+    // Draw faint cipher wheel background â€” outer ring
+    ctx.save();
+    ctx.globalAlpha = 0.08;
+    ctx.strokeStyle = "#FFFF00";
+    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(cx, cy, 160, 0, Math.PI * 2);
+    ctx.arc(cx, cy, r + 12, 0, Math.PI * 2);
     ctx.stroke();
-    
-    // Draw central eye glow
-    ctx.fillStyle = "rgba(255, 255, 255, 0.05)";
     ctx.beginPath();
-    ctx.arc(cx, cy, 30, 0, Math.PI * 2);
-    ctx.fill();
-    
-    for (var i = 0; i < this.bullets.length; i++) {
-        var b = this.bullets[i];
-        if (!b.active) continue;
+    ctx.arc(cx, cy, r - 12, 0, Math.PI * 2);
+    ctx.stroke();
+    // Spoke lines for each symbol slot
+    for (var i = 0; i < 10; i++) {
+        var a = (Math.PI * 2 / 10) * i + this.wheelAngle;
+        ctx.beginPath();
+        ctx.moveTo(cx + Math.cos(a) * (r - 12), cy + Math.sin(a) * (r - 12));
+        ctx.lineTo(cx + Math.cos(a) * (r + 12), cy + Math.sin(a) * (r + 12));
+        ctx.stroke();
+    }
+    // Central eye triangle (Bill's form)
+    ctx.strokeStyle = "#FFFF00";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - 18);
+    ctx.lineTo(cx + 16, cy + 12);
+    ctx.lineTo(cx - 16, cy + 12);
+    ctx.closePath();
+    ctx.stroke();
+    // Eye circle
+    ctx.beginPath();
+    ctx.arc(cx, cy + 2, 5, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+    // Draw active cipher wheel ring with glow
+    ctx.save();
+    ctx.strokeStyle = "rgba(0, 255, 255, 0.2)";
+    ctx.shadowBlur = 6;
+    ctx.shadowColor = "#00FFFF";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+    // Draw laser beams (behind symbols)
+    for (var i = 0; i < this.symbols.length; i++) {
+        var s = this.symbols[i];
+        var sAngle = s.baseAngle + this.wheelAngle;
+        var sx = cx + Math.cos(sAngle) * r;
+        var sy = cy + Math.sin(sAngle) * r;
+        if (s.glowing && s.fireTimer > 0) {
+            // Warning line: thin red dashed line from symbol through center
+            ctx.save();
+            ctx.strokeStyle = "rgba(255, 0, 0, " + (0.3 + 0.3 * Math.sin(this.elapsed * 20)) + ")";
+            ctx.lineWidth = 2;
+            ctx.setLineDash([4, 6]);
+            ctx.beginPath();
+            ctx.moveTo(sx, sy);
+            ctx.lineTo(cx - Math.cos(sAngle) * r, cy - Math.sin(sAngle) * r);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.restore();
+        } else if (s.laserActive > 0) {
+            // Active laser beam
+            var endX = cx - Math.cos(sAngle) * r;
+            var endY = cy - Math.sin(sAngle) * r;
+            var alpha = s.laserAlpha;
+            ctx.save();
+            ctx.strokeStyle = "rgba(255, 50, 50, " + alpha + ")";
+            ctx.shadowBlur = 14;
+            ctx.shadowColor = "#FF0000";
+            ctx.lineWidth = 12 * alpha;
+            ctx.beginPath();
+            ctx.moveTo(sx, sy);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+            // White core
+            ctx.strokeStyle = "rgba(255, 255, 255, " + (alpha * 0.8) + ")";
+            ctx.lineWidth = 4 * alpha;
+            ctx.shadowBlur = 0;
+            ctx.beginPath();
+            ctx.moveTo(sx, sy);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+            ctx.restore();
+        }
+    }
+    // Draw symbols on the wheel
+    for (var i = 0; i < this.symbols.length; i++) {
+        var s = this.symbols[i];
+        var sAngle = s.baseAngle + this.wheelAngle;
+        var sx = cx + Math.cos(sAngle) * r;
+        var sy = cy + Math.sin(sAngle) * r;
         ctx.save();
-        ctx.fillStyle = "#00FFFF";
-        ctx.shadowBlur = 6;
-        ctx.shadowColor = "#00FFFF";
-        ctx.fillRect(b.x - 6, b.y - 6, 12, 12);
+        if (s.glowing) {
+            ctx.fillStyle = "#FF3333";
+            ctx.strokeStyle = "#FF6666";
+            ctx.shadowBlur = 12;
+            ctx.shadowColor = "#FF0000";
+        } else {
+            ctx.fillStyle = "#00DDDD";
+            ctx.strokeStyle = "#00FFFF";
+            ctx.shadowBlur = 6;
+            ctx.shadowColor = "#00FFFF";
+        }
+        // Draw a small circle backdrop behind symbol
+        ctx.globalAlpha = 0.25;
+        ctx.beginPath();
+        ctx.arc(sx, sy, 12, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1.0;
+        this._drawSymbol(ctx, s.name, sx, sy, 9);
         ctx.restore();
     }
     ctx.restore();
     drawBillParticles(ctx);
 };
 BillCipherWheelPattern.prototype.isOver = function() {
-    return this.elapsed >= this.duration && this.bullets.length === 0;
+    if (this.elapsed < this.duration) return false;
+    for (var i = 0; i < this.symbols.length; i++) {
+        if (this.symbols[i].laserActive > 0) return false;
+    }
+    return true;
 };
 
 // 3. billDealBlueFire: Spawn warning zones, followed by blue fire walls closing in
@@ -776,11 +1088,20 @@ BillMadnessBubblesPattern.prototype.update = function(dt) {
         b.x += b.vx * dt;
         b.y += b.vy * dt;
         
-        // Bounce on sides
-        if (b.x < bb[0] + 10) { b.x = bb[0] + 10; b.vx = -b.vx; }
-        if (b.x > bb[2] - 10) { b.x = bb[2] - 10; b.vx = -b.vx; }
-        if (b.y < bb[1] + 10) { b.y = bb[1] + 10; b.vy = -b.vy; }
-        if (b.y > bb[3] - 10) { b.y = bb[3] - 10; b.vy = -b.vy; }
+        var outOfBounds = (b.x < bb[0] - 25 || b.x > bb[2] + 25 || b.y < bb[1] - 25 || b.y > bb[3] + 25);
+        if (this.elapsed >= this.duration) {
+            // Stop bouncing and let them fly off-screen to clear
+            if (outOfBounds) {
+                this.bullets.splice(i, 1);
+                continue;
+            }
+        } else {
+            // Bounce on sides
+            if (b.x < bb[0] + 10) { b.x = bb[0] + 10; b.vx = -b.vx; }
+            if (b.x > bb[2] - 10) { b.x = bb[2] - 10; b.vx = -b.vx; }
+            if (b.y < bb[1] + 10) { b.y = bb[1] + 10; b.vy = -b.vy; }
+            if (b.y > bb[3] - 10) { b.y = bb[3] - 10; b.vy = -b.vy; }
+        }
         
         if (Math.random() < 0.15) {
             spawnBillParticle(b.x, b.y, (Math.random() - 0.5) * 15, (Math.random() - 0.5) * 15, 2, 0.25, b.color, 4);
@@ -900,183 +1221,551 @@ BillTimeGlitchPattern.prototype.isOver = function() {
     return this.elapsed >= this.duration && this.bullets.length === 0;
 };
 
-// 10. billDimensionalRift: Cracked rift across box firing shards horizontally
+// 10. billDimensionalRift: Ford's Portal â€” gravitational vortex with rotating hazard arms
 var BillDimensionalRiftPattern = function(config) {
     BulletPattern.call(this, config);
-    this.duration = config.duration || 7.5;
+    this.duration = config.duration || 8.0;
     this.elapsed = 0;
-    this.spawnTimer = 0;
     this.damVal = config.damVal || 8;
+    this.portalAngle = 0;
+    this.portalRadius = 0;
+    this.portalPulse = 0;
+    this.armCount = 3;
+    this.armWidth = 12;
+    this.coreRadius = 18;
+    this.pullStrength = 0;
+    this.debris = [];
+    this.debrisTimer = 0;
+    this.portalOpen = false;
+    this.fadeAlpha = 0;
 };
 BillDimensionalRiftPattern.prototype = Object.create(BulletPattern.prototype);
 BillDimensionalRiftPattern.prototype.generateBullets = function(battleBox) {
     BulletPattern.prototype.generateBullets.call(this, battleBox);
     this.elapsed = 0;
-    this.spawnTimer = 0;
+    this.portalAngle = 0;
+    this.portalRadius = 0;
+    this.portalPulse = 0;
+    this.pullStrength = 0;
+    this.debris = [];
+    this.debrisTimer = 0;
+    this.portalOpen = false;
+    this.fadeAlpha = 0;
     billParticles = [];
 };
 BillDimensionalRiftPattern.prototype.update = function(dt) {
     this.elapsed += dt;
-    this.spawnTimer += dt;
     updateBillParticles(dt);
     var bb = Cbbox.getBound();
+    var cx = (bb[0] + bb[2]) / 2;
     var cy = (bb[1] + bb[3]) / 2;
-    
-    if (this.spawnTimer >= 0.28 && this.elapsed < this.duration - 1.2) {
-        this.spawnTimer = 0;
-        var dir = Math.random() > 0.5; // Left or right
-        this.bullets.push({
-            x: dir ? bb[0] - 10 : bb[2] + 10,
-            y: cy + (Math.random() - 0.5) * 50,
-            vx: dir ? 160 : -160,
-            vy: (Math.random() - 0.5) * 30,
-            width: 14, height: 8,
-            active: true
+    var boxW = bb[2] - bb[0];
+    var maxRadius = boxW * 0.38;
+
+    // Phase: open portal (0-1s), active (1-6.5s), close (6.5-8s)
+    if (this.elapsed < 1.0) {
+        // Opening phase
+        this.portalRadius = maxRadius * (this.elapsed / 1.0);
+        this.fadeAlpha = this.elapsed / 1.0;
+        this.pullStrength = 30 * (this.elapsed / 1.0);
+        if (!this.portalOpen) {
+            this.portalOpen = true;
+            Sound.playSound("laser", true);
+            triggerShake(4, 400);
+        }
+    } else if (this.elapsed < this.duration - 1.5) {
+        // Active phase
+        this.portalRadius = maxRadius;
+        this.fadeAlpha = 1.0;
+        this.pullStrength = 55;
+    } else {
+        // Closing phase
+        var closeT = (this.elapsed - (this.duration - 1.5)) / 1.5;
+        closeT = Math.min(closeT, 1.0);
+        this.portalRadius = maxRadius * (1.0 - closeT);
+        this.fadeAlpha = 1.0 - closeT;
+        this.pullStrength = 55 * (1.0 - closeT);
+    }
+
+    // Rotate arms
+    this.portalAngle += 1.2 * dt;
+    this.portalPulse += dt * 4.0;
+
+    // Apply gravitational pull on soul toward portal center
+    if (this.pullStrength > 0 && typeof Soul !== "undefined") {
+        var sPos = Soul.getPos();
+        var sdx = cx - (sPos.x + Soul.getWidth() / 2);
+        var sdy = cy - (sPos.y + Soul.getHeight() / 2);
+        var sDist = Math.sqrt(sdx * sdx + sdy * sdy);
+        if (sDist > 1) {
+            var pullFactor = this.pullStrength * dt / Math.max(sDist * 0.4, 20);
+            var newX = sPos.x + sdx * pullFactor;
+            var newY = sPos.y + sdy * pullFactor;
+            newX = Math.max(bb[0] + 2, Math.min(bb[2] - Soul.getWidth() - 2, newX));
+            newY = Math.max(bb[1] + 2, Math.min(bb[3] - Soul.getHeight() - 2, newY));
+            Soul.setPos(newX, newY);
+        }
+    }
+
+    // Spawn interdimensional debris orbiting the portal
+    this.debrisTimer += dt;
+    if (this.debrisTimer >= 0.35 && this.elapsed > 0.5 && this.elapsed < this.duration - 1.5) {
+        this.debrisTimer = 0;
+        var dAngle = Math.random() * Math.PI * 2;
+        var dRadius = this.portalRadius * (0.5 + Math.random() * 0.5);
+        var dSpeed = 1.5 + Math.random() * 1.0;
+        var debrisColors = ["#FF00FF", "#00FFFF", "#8B00FF", "#FF1493", "#7B68EE"];
+        this.debris.push({
+            angle: dAngle,
+            radius: dRadius,
+            speed: dSpeed * (Math.random() > 0.5 ? 1 : -1),
+            size: 5 + Math.random() * 6,
+            color: debrisColors[Math.floor(Math.random() * debrisColors.length)],
+            life: 3.5 + Math.random() * 2.0
         });
         Sound.playSound("hit_1", true);
     }
-    
-    for (var i = this.bullets.length - 1; i >= 0; i--) {
-        var b = this.bullets[i];
-        b.x += b.vx * dt;
-        b.y += b.vy * dt;
-        if (b.x < bb[0] - 20 || b.x > bb[2] + 20) {
-            this.bullets.splice(i, 1);
+
+    // Update debris
+    for (var i = this.debris.length - 1; i >= 0; i--) {
+        var d = this.debris[i];
+        d.angle += d.speed * dt;
+        d.life -= dt;
+        // Slowly spiral inward
+        d.radius -= 8 * dt;
+        if (d.life <= 0 || d.radius < 5) {
+            spawnBillParticle(
+                cx + Math.cos(d.angle) * d.radius,
+                cy + Math.sin(d.angle) * d.radius,
+                (Math.random() - 0.5) * 40, (Math.random() - 0.5) * 40,
+                2, 0.3, d.color, 6
+            );
+            this.debris.splice(i, 1);
         }
     }
+
+    // Ambient particles near portal
+    if (Math.random() < 0.25 && this.fadeAlpha > 0.2) {
+        var pAngle = Math.random() * Math.PI * 2;
+        var pR = this.portalRadius * (0.8 + Math.random() * 0.6);
+        spawnBillParticle(
+            cx + Math.cos(pAngle) * pR, cy + Math.sin(pAngle) * pR,
+            -Math.cos(pAngle) * 30, -Math.sin(pAngle) * 30,
+            2, 0.5, "#9B59FF", 8
+        );
+    }
+};
+BillDimensionalRiftPattern.prototype.checkCollision = function(sx, sy, sw, sh) {
+    if (this.fadeAlpha < 0.15) return 0;
+    var bb = Cbbox.getBound();
+    var cx = (bb[0] + bb[2]) / 2;
+    var cy = (bb[1] + bb[3]) / 2;
+    var scx = sx + sw / 2;
+    var scy = sy + sh / 2;
+    var dist = Math.sqrt(Math.pow(scx - cx, 2) + Math.pow(scy - cy, 2));
+
+    // Damage from portal core
+    if (dist < this.coreRadius) {
+        return this.damVal;
+    }
+
+    // Damage from rotating arms
+    for (var a = 0; a < this.armCount; a++) {
+        var armAngle = this.portalAngle + (a * Math.PI * 2 / this.armCount);
+        var armLen = this.portalRadius * 0.95;
+        // Point-to-segment distance for the arm line
+        var ax1 = cx;
+        var ay1 = cy;
+        var ax2 = cx + Math.cos(armAngle) * armLen;
+        var ay2 = cy + Math.sin(armAngle) * armLen;
+        // Vector math for point-to-segment
+        var dx = ax2 - ax1;
+        var dy = ay2 - ay1;
+        var segLen2 = dx * dx + dy * dy;
+        if (segLen2 > 0) {
+            var t = ((scx - ax1) * dx + (scy - ay1) * dy) / segLen2;
+            t = Math.max(0, Math.min(1, t));
+            var closestX = ax1 + t * dx;
+            var closestY = ay1 + t * dy;
+            var armDist = Math.sqrt(Math.pow(scx - closestX, 2) + Math.pow(scy - closestY, 2));
+            if (armDist < this.armWidth * 0.6 + sw * 0.3) {
+                return this.damVal;
+            }
+        }
+    }
+
+    // Damage from debris
+    for (var i = 0; i < this.debris.length; i++) {
+        var d = this.debris[i];
+        var dex = cx + Math.cos(d.angle) * d.radius;
+        var dey = cy + Math.sin(d.angle) * d.radius;
+        var deDist = Math.sqrt(Math.pow(scx - dex, 2) + Math.pow(scy - dey, 2));
+        if (deDist < d.size * 0.5 + sw * 0.4) {
+            return this.damVal;
+        }
+    }
+
+    return 0;
 };
 BillDimensionalRiftPattern.prototype.draw = function(ctx) {
     var bb = Cbbox.getBound();
+    var cx = (bb[0] + bb[2]) / 2;
     var cy = (bb[1] + bb[3]) / 2;
     ctx.save();
-    
-    // Draw the central rift crack
-    ctx.strokeStyle = "rgba(255, 0, 255, 0.4)";
-    ctx.lineWidth = 4;
+    ctx.globalAlpha = this.fadeAlpha;
+
+    // Draw outer distortion ring
+    var pulse = Math.sin(this.portalPulse) * 4;
+    ctx.save();
+    ctx.strokeStyle = "#8B00FF";
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = "#8B00FF";
+    ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.moveTo(bb[0], cy + Math.sin(Date.now()/100) * 10);
-    ctx.lineTo(bb[2], cy - Math.sin(Date.now()/100) * 10);
+    ctx.arc(cx, cy, this.portalRadius + pulse, 0, Math.PI * 2);
     ctx.stroke();
-    
-    for (var i = 0; i < this.bullets.length; i++) {
-        var b = this.bullets[i];
-        if (!b.active) continue;
+    ctx.restore();
+
+    // Draw inner swirl gradient
+    ctx.save();
+    var grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, this.portalRadius);
+    grad.addColorStop(0, "rgba(139, 0, 255, 0.5)");
+    grad.addColorStop(0.4, "rgba(75, 0, 130, 0.25)");
+    grad.addColorStop(0.8, "rgba(30, 0, 60, 0.1)");
+    grad.addColorStop(1, "rgba(0, 0, 0, 0)");
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(cx, cy, this.portalRadius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // Draw rotating hazard arms
+    for (var a = 0; a < this.armCount; a++) {
+        var armAngle = this.portalAngle + (a * Math.PI * 2 / this.armCount);
+        var armLen = this.portalRadius * 0.95;
+        var endX = cx + Math.cos(armAngle) * armLen;
+        var endY = cy + Math.sin(armAngle) * armLen;
+
         ctx.save();
-        ctx.fillStyle = "#FF00FF";
-        ctx.shadowBlur = 8;
+        ctx.strokeStyle = "#FF00FF";
+        ctx.shadowBlur = 12;
         ctx.shadowColor = "#FF00FF";
-        // Draw triangular shard pointing in direction
-        ctx.translate(b.x, b.y);
+        ctx.lineWidth = this.armWidth;
+        ctx.lineCap = "round";
+        ctx.globalAlpha = this.fadeAlpha * 0.7;
         ctx.beginPath();
-        ctx.moveTo(b.vx > 0 ? 8 : -8, 0);
-        ctx.lineTo(b.vx > 0 ? -8 : 8, -4);
-        ctx.lineTo(b.vx > 0 ? -8 : 8, 4);
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+
+        // Bright core line
+        ctx.strokeStyle = "#FFFFFF";
+        ctx.lineWidth = 3;
+        ctx.globalAlpha = this.fadeAlpha * 0.5;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    // Draw glowing core
+    ctx.save();
+    ctx.fillStyle = "#FFFFFF";
+    ctx.shadowBlur = 20;
+    ctx.shadowColor = "#FF00FF";
+    ctx.beginPath();
+    ctx.arc(cx, cy, this.coreRadius + Math.sin(this.portalPulse * 1.5) * 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#CC00FF";
+    ctx.beginPath();
+    ctx.arc(cx, cy, this.coreRadius * 0.55, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // Draw orbiting debris
+    for (var i = 0; i < this.debris.length; i++) {
+        var d = this.debris[i];
+        var dx = cx + Math.cos(d.angle) * d.radius;
+        var dy = cy + Math.sin(d.angle) * d.radius;
+        ctx.save();
+        ctx.fillStyle = d.color;
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = d.color;
+        ctx.translate(dx, dy);
+        ctx.rotate(d.angle * 2);
+        // Draw jagged shard shape
+        ctx.beginPath();
+        ctx.moveTo(0, -d.size * 0.5);
+        ctx.lineTo(d.size * 0.4, d.size * 0.3);
+        ctx.lineTo(-d.size * 0.4, d.size * 0.3);
         ctx.closePath();
         ctx.fill();
         ctx.restore();
     }
+
     ctx.restore();
     drawBillParticles(ctx);
 };
 BillDimensionalRiftPattern.prototype.isOver = function() {
-    return this.elapsed >= this.duration && this.bullets.length === 0;
+    return this.elapsed >= this.duration && this.debris.length === 0 && this.fadeAlpha <= 0.01;
 };
 
-// 11. billWeirdmageddonRain: Rain of keys, eyeballs and teeth dropping from top
+// 11. billWeirdmageddonRain: Weirdmageddon Sky Tear â€” damaging zigzag cracks sweep across the box
 var BillWeirdmageddonRainPattern = function(config) {
     BulletPattern.call(this, config);
-    this.duration = config.duration || 7.5;
+    this.duration = config.duration || 8.0;
     this.elapsed = 0;
-    this.spawnTimer = 0;
     this.damVal = config.damVal || 8;
+    this.crackTimer = 0;
+    this.cracks = []; // { points[], sweepX, sweepSpeed, warning, active, width, color }
+    this.invertTimer = 0;
+    this.invertActive = false;
+    this.invertAlpha = 0;
 };
 BillWeirdmageddonRainPattern.prototype = Object.create(BulletPattern.prototype);
 BillWeirdmageddonRainPattern.prototype.generateBullets = function(battleBox) {
     BulletPattern.prototype.generateBullets.call(this, battleBox);
     this.elapsed = 0;
-    this.spawnTimer = 0;
+    this.crackTimer = 0;
+    this.cracks = [];
+    this.invertTimer = 0;
+    this.invertActive = false;
+    this.invertAlpha = 0;
     billParticles = [];
+};
+BillWeirdmageddonRainPattern.prototype._buildCrack = function(bb, startX, isVertical) {
+    var points = [];
+    var segCount = 8 + Math.floor(Math.random() * 5);
+    if (isVertical) {
+        var step = (bb[3] - bb[1]) / segCount;
+        for (var s = 0; s <= segCount; s++) {
+            points.push({
+                x: startX + (Math.random() - 0.5) * 20,
+                y: bb[1] + s * step
+            });
+        }
+    } else {
+        var stepH = (bb[2] - bb[0]) / segCount;
+        for (var s = 0; s <= segCount; s++) {
+            points.push({
+                x: bb[0] + s * stepH,
+                y: bb[1] + (Math.random() - 0.5) * 20 + (bb[3] - bb[1]) * (0.2 + Math.random() * 0.6)
+            });
+        }
+    }
+    return points;
 };
 BillWeirdmageddonRainPattern.prototype.update = function(dt) {
     this.elapsed += dt;
-    this.spawnTimer += dt;
+    this.crackTimer += dt;
     updateBillParticles(dt);
     var bb = Cbbox.getBound();
-    
-    if (this.spawnTimer >= 0.24 && this.elapsed < this.duration - 1.0) {
-        this.spawnTimer = 0;
-        var rx = bb[0] + 15 + Math.random() * (bb[2] - bb[0] - 30);
-        var rainTypes = ["eye", "teeth", "key"];
-        this.bullets.push({
-            x: rx,
-            y: bb[1] - 15,
-            vy: 110 + Math.random() * 40,
-            width: 12, height: 12,
-            type: rainTypes[Math.floor(Math.random() * rainTypes.length)],
-            angle: Math.random() * Math.PI * 2,
-            rotSpeed: -2 + Math.random() * 4,
-            active: true
+    var boxW = bb[2] - bb[0];
+    var boxH = bb[3] - bb[1];
+
+    // Spawn new cracks periodically
+    if (this.crackTimer >= 1.2 && this.elapsed < this.duration - 1.5) {
+        this.crackTimer = 0;
+        var isVertical = Math.random() > 0.4;
+        var startX;
+        var sweepSpeed;
+        var crackColors = ["#FF4500", "#FF0044", "#FF6600", "#CC0000"];
+
+        if (isVertical) {
+            // Vertical crack that sweeps horizontally
+            var fromLeft = Math.random() > 0.5;
+            startX = fromLeft ? bb[0] : bb[2];
+            sweepSpeed = fromLeft ? (60 + Math.random() * 40) : -(60 + Math.random() * 40);
+        } else {
+            // Horizontal crack that sweeps vertically
+            startX = bb[1] + Math.random() * boxH * 0.6;
+            sweepSpeed = 50 + Math.random() * 30;
+        }
+
+        var pts = this._buildCrack(bb, isVertical ? startX : (bb[0] + boxW * 0.5), isVertical);
+        this.cracks.push({
+            points: pts,
+            sweepOffset: 0,
+            sweepSpeed: sweepSpeed,
+            isVertical: isVertical,
+            warning: 0.6,
+            active: 2.5,
+            width: 6 + Math.random() * 4,
+            color: crackColors[Math.floor(Math.random() * crackColors.length)]
         });
+
+        Sound.playSound("impact", true);
+        triggerShake(3, 200);
+
+        // Trigger color inversion overlay
+        this.invertActive = true;
+        this.invertAlpha = 0.3;
     }
-    
-    for (var i = this.bullets.length - 1; i >= 0; i--) {
-        var b = this.bullets[i];
-        b.y += b.vy * dt;
-        b.angle += b.rotSpeed * dt;
-        if (b.y > bb[3] + 15) {
-            this.bullets.splice(i, 1);
+
+    // Update cracks
+    for (var i = this.cracks.length - 1; i >= 0; i--) {
+        var c = this.cracks[i];
+        if (c.warning > 0) {
+            c.warning -= dt;
+            if (c.warning <= 0) {
+                Sound.playSound("laser", true);
+                triggerShake(5, 250);
+            }
+        } else {
+            c.active -= dt;
+            c.sweepOffset += c.sweepSpeed * dt;
+
+            // Spawn particles along crack
+            if (Math.random() < 0.3) {
+                var rIdx = Math.floor(Math.random() * c.points.length);
+                var rPt = c.points[rIdx];
+                var px = c.isVertical ? (rPt.x + c.sweepOffset) : rPt.x;
+                var py = c.isVertical ? rPt.y : (rPt.y + c.sweepOffset);
+                spawnBillParticle(px, py, (Math.random() - 0.5) * 60, (Math.random() - 0.5) * 60, 3, 0.35, c.color, 8);
+            }
+
+            if (c.active <= 0) {
+                this.cracks.splice(i, 1);
+            }
+        }
+    }
+
+    // Fade inversion overlay
+    if (this.invertActive) {
+        this.invertAlpha -= dt * 0.5;
+        if (this.invertAlpha <= 0) {
+            this.invertAlpha = 0;
+            this.invertActive = false;
         }
     }
 };
-BillWeirdmageddonRainPattern.prototype.draw = function(ctx) {
-    ctx.save();
-    for (var i = 0; i < this.bullets.length; i++) {
-        var b = this.bullets[i];
-        if (!b.active) continue;
-        ctx.save();
-        ctx.translate(b.x, b.y);
-        ctx.rotate(b.angle);
-        ctx.shadowBlur = 6;
-        ctx.shadowColor = "#FF4500";
-        ctx.lineWidth = 1.5;
-        ctx.strokeStyle = "#FF4500";
-        ctx.fillStyle = "#FFFFFF";
-        
-        if (b.type === "eye") {
-            ctx.beginPath();
-            ctx.arc(0, 0, 6, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.stroke();
-            ctx.fillStyle = "#FF0000";
-            ctx.beginPath();
-            ctx.arc(-1, -1, 2, 0, Math.PI * 2);
-            ctx.fill();
-        } else if (b.type === "teeth") {
-            ctx.fillStyle = "#FFFFE0";
-            ctx.beginPath();
-            ctx.moveTo(-5, -5);
-            ctx.lineTo(5, -5);
-            ctx.lineTo(3, 5);
-            ctx.lineTo(-3, 5);
-            ctx.closePath();
-            ctx.fill();
-            ctx.stroke();
-        } else { // key
-            ctx.fillStyle = "#FFD700";
-            ctx.strokeStyle = "#FFD700";
-            ctx.fillRect(-2, -6, 4, 12);
-            ctx.beginPath();
-            ctx.arc(0, -6, 4, 0, Math.PI*2);
-            ctx.stroke();
-            ctx.fillRect(-2, 4, 6, 2);
+BillWeirdmageddonRainPattern.prototype.checkCollision = function(sx, sy, sw, sh) {
+    var scx = sx + sw / 2;
+    var scy = sy + sh / 2;
+
+    for (var i = 0; i < this.cracks.length; i++) {
+        var c = this.cracks[i];
+        if (c.warning > 0) continue;
+        if (c.active <= 0) continue;
+
+        // Check distance from player to each crack segment
+        for (var j = 0; j < c.points.length - 1; j++) {
+            var p1x = c.isVertical ? (c.points[j].x + c.sweepOffset) : c.points[j].x;
+            var p1y = c.isVertical ? c.points[j].y : (c.points[j].y + c.sweepOffset);
+            var p2x = c.isVertical ? (c.points[j + 1].x + c.sweepOffset) : c.points[j + 1].x;
+            var p2y = c.isVertical ? c.points[j + 1].y : (c.points[j + 1].y + c.sweepOffset);
+
+            // Point-to-segment distance
+            var segDx = p2x - p1x;
+            var segDy = p2y - p1y;
+            var segLen2 = segDx * segDx + segDy * segDy;
+            if (segLen2 > 0) {
+                var t = ((scx - p1x) * segDx + (scy - p1y) * segDy) / segLen2;
+                t = Math.max(0, Math.min(1, t));
+                var closestX = p1x + t * segDx;
+                var closestY = p1y + t * segDy;
+                var hitDist = Math.sqrt(Math.pow(scx - closestX, 2) + Math.pow(scy - closestY, 2));
+                if (hitDist < c.width * 0.5 + sw * 0.3) {
+                    return this.damVal;
+                }
+            }
         }
+    }
+    return 0;
+};
+BillWeirdmageddonRainPattern.prototype.draw = function(ctx) {
+    var bb = Cbbox.getBound();
+    ctx.save();
+
+    // Draw reality-warp inversion overlay
+    if (this.invertActive && this.invertAlpha > 0) {
+        ctx.save();
+        ctx.globalAlpha = this.invertAlpha;
+        ctx.fillStyle = "#FF2200";
+        ctx.globalCompositeOperation = "difference";
+        ctx.fillRect(bb[0], bb[1], bb[2] - bb[0], bb[3] - bb[1]);
         ctx.restore();
     }
+
+    // Draw each crack
+    for (var i = 0; i < this.cracks.length; i++) {
+        var c = this.cracks[i];
+        var pts = c.points;
+
+        if (c.warning > 0) {
+            // Warning: flickering thin red line
+            ctx.save();
+            ctx.strokeStyle = "rgba(255, 0, 0, " + (0.3 + Math.sin(this.elapsed * 20) * 0.2) + ")";
+            ctx.lineWidth = 2;
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath();
+            for (var j = 0; j < pts.length; j++) {
+                var wx = c.isVertical ? (pts[j].x + c.sweepOffset) : pts[j].x;
+                var wy = c.isVertical ? pts[j].y : (pts[j].y + c.sweepOffset);
+                if (j === 0) { ctx.moveTo(wx, wy); } else { ctx.lineTo(wx, wy); }
+            }
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.restore();
+        } else if (c.active > 0) {
+            var fadeAlpha = Math.min(1.0, c.active / 0.5);
+
+            // Glow layer
+            ctx.save();
+            ctx.strokeStyle = c.color;
+            ctx.shadowBlur = 18;
+            ctx.shadowColor = c.color;
+            ctx.lineWidth = c.width + 6;
+            ctx.globalAlpha = fadeAlpha * 0.3;
+            ctx.beginPath();
+            for (var j = 0; j < pts.length; j++) {
+                var gx = c.isVertical ? (pts[j].x + c.sweepOffset) : pts[j].x;
+                var gy = c.isVertical ? pts[j].y : (pts[j].y + c.sweepOffset);
+                if (j === 0) { ctx.moveTo(gx, gy); } else { ctx.lineTo(gx, gy); }
+            }
+            ctx.stroke();
+            ctx.restore();
+
+            // Main crack line
+            ctx.save();
+            ctx.strokeStyle = c.color;
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = "#FFFFFF";
+            ctx.lineWidth = c.width;
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
+            ctx.globalAlpha = fadeAlpha;
+            ctx.beginPath();
+            for (var j = 0; j < pts.length; j++) {
+                var mx = c.isVertical ? (pts[j].x + c.sweepOffset) : pts[j].x;
+                var my = c.isVertical ? pts[j].y : (pts[j].y + c.sweepOffset);
+                if (j === 0) { ctx.moveTo(mx, my); } else { ctx.lineTo(mx, my); }
+            }
+            ctx.stroke();
+            ctx.restore();
+
+            // White-hot core line
+            ctx.save();
+            ctx.strokeStyle = "#FFFFFF";
+            ctx.lineWidth = 2;
+            ctx.globalAlpha = fadeAlpha * 0.8;
+            ctx.beginPath();
+            for (var j = 0; j < pts.length; j++) {
+                var hx = c.isVertical ? (pts[j].x + c.sweepOffset) : pts[j].x;
+                var hy = c.isVertical ? pts[j].y : (pts[j].y + c.sweepOffset);
+                if (j === 0) { ctx.moveTo(hx, hy); } else { ctx.lineTo(hx, hy); }
+            }
+            ctx.stroke();
+            ctx.restore();
+        }
+    }
+
     ctx.restore();
     drawBillParticles(ctx);
 };
 BillWeirdmageddonRainPattern.prototype.isOver = function() {
-    return this.elapsed >= this.duration && this.bullets.length === 0;
+    return this.elapsed >= this.duration && this.cracks.length === 0;
 };
 
 // 12. billFloatingPyramids: Giant floating red pyramids that explode
@@ -1182,134 +1871,293 @@ BillFloatingPyramidsPattern.prototype.isOver = function() {
     return this.elapsed >= this.duration && this.bullets.length === 0;
 };
 
-// 13. billShadowClones: Intersecting yellow clone blasts from margins
+// 13. billShadowClones: Mabel's Prison Bubble â€” shrinking/expanding colorful bubble with candy hazards
 var BillShadowClonesPattern = function(config) {
     BulletPattern.call(this, config);
-    this.duration = config.duration || 7.5;
+    this.duration = config.duration || 8.5;
     this.elapsed = 0;
-    this.blastTimer = 0;
     this.damVal = config.damVal || 8;
-    this.clones = []; // { x, y, side, timer, active }
+    this.bubbleRadius = 0;
+    this.bubbleTargetRadius = 0;
+    this.bubblePhase = 0; // 0=expand, 1=shrink1, 2=expand, 3=shrink2, etc.
+    this.bubbleTimer = 0;
+    this.bubbleHue = 0;
+    this.candyZones = []; // { x, y, radius, pulsePhase, color, life, growing }
+    this.candyTimer = 0;
+    this.sparkleTimer = 0;
+    this.fadeAlpha = 0;
 };
 BillShadowClonesPattern.prototype = Object.create(BulletPattern.prototype);
 BillShadowClonesPattern.prototype.generateBullets = function(battleBox) {
     BulletPattern.prototype.generateBullets.call(this, battleBox);
     this.elapsed = 0;
-    this.blastTimer = 0.5;
-    this.clones = [];
+    this.bubblePhase = 0;
+    this.bubbleTimer = 0;
+    this.bubbleHue = 0;
+    this.candyZones = [];
+    this.candyTimer = 0;
+    this.sparkleTimer = 0;
+    this.fadeAlpha = 0;
+    var bb = Cbbox.getBound();
+    var boxW = bb[2] - bb[0];
+    this.bubbleRadius = boxW * 0.48;
+    this.bubbleTargetRadius = boxW * 0.48;
     billParticles = [];
 };
 BillShadowClonesPattern.prototype.update = function(dt) {
     this.elapsed += dt;
-    this.blastTimer += dt;
+    this.bubbleTimer += dt;
+    this.candyTimer += dt;
+    this.sparkleTimer += dt;
+    this.bubbleHue += dt * 40;
+    if (this.bubbleHue > 360) this.bubbleHue -= 360;
     updateBillParticles(dt);
     var bb = Cbbox.getBound();
-    
-    if (this.blastTimer >= 1.5 && this.elapsed < this.duration - 1.5) {
-        this.blastTimer = 0;
-        var side = Math.random() > 0.5; // Left or right edge
-        var ry = bb[1] + 30 + Math.random() * (bb[3] - bb[1] - 60);
-        this.clones.push({
-            x: side ? bb[0] + 15 : bb[2] - 15,
-            y: ry,
-            side: side,
-            warning: 0.8,
-            active: 0.5
-        });
-        Sound.playSound("button", true); // Clone spawns
-    }
-    
-    for (var i = this.clones.length - 1; i >= 0; i--) {
-        var c = this.clones[i];
-        if (c.warning > 0) {
-            c.warning -= dt;
-            if (c.warning <= 0) {
-                // Shoot a blast of sparks horizontally
-                Sound.playSound("laser", true);
-                var speedX = c.side ? 180 : -180;
-                for (var k = 0; k < 5; k++) {
-                    this.bullets.push({
-                        x: c.x,
-                        y: c.y,
-                        vx: speedX,
-                        vy: -40 + k * 20,
-                        width: 8, height: 8,
-                        active: true
-                    });
-                }
-            }
+    var cx = (bb[0] + bb[2]) / 2;
+    var cy = (bb[1] + bb[3]) / 2;
+    var boxW = bb[2] - bb[0];
+    var maxR = boxW * 0.48;
+    var minR = boxW * 0.18;
+
+    // Phase: intro (0-0.8s), active (0.8-7s), outro (7-8.5s)
+    if (this.elapsed < 0.8) {
+        // Intro: bubble appears
+        this.fadeAlpha = this.elapsed / 0.8;
+        this.bubbleTargetRadius = maxR;
+    } else if (this.elapsed < this.duration - 1.5) {
+        // Active phase: cycle between shrinking and expanding
+        this.fadeAlpha = 1.0;
+        var cycleTime = 2.2;
+        var cycleProg = ((this.elapsed - 0.8) % cycleTime) / cycleTime;
+
+        if (cycleProg < 0.5) {
+            // Shrinking
+            var shrinkT = cycleProg / 0.5;
+            this.bubbleTargetRadius = maxR - (maxR - minR) * shrinkT;
         } else {
-            c.active -= dt;
-            if (c.active <= 0) {
-                this.clones.splice(i, 1);
+            // Expanding
+            var expandT = (cycleProg - 0.5) / 0.5;
+            this.bubbleTargetRadius = minR + (maxR - minR) * expandT;
+        }
+    } else {
+        // Outro: bubble expands and fades
+        var outT = (this.elapsed - (this.duration - 1.5)) / 1.5;
+        outT = Math.min(outT, 1.0);
+        this.fadeAlpha = 1.0 - outT;
+        this.bubbleTargetRadius = maxR + outT * 40;
+    }
+
+    // Smoothly lerp bubble radius
+    this.bubbleRadius += (this.bubbleTargetRadius - this.bubbleRadius) * 4.0 * dt;
+
+    // Spawn candy hazard zones inside the bubble
+    if (this.candyTimer >= 1.0 && this.elapsed > 0.8 && this.elapsed < this.duration - 1.5) {
+        this.candyTimer = 0;
+        var candyColors = ["#FF69B4", "#FF1493", "#FF6347", "#FFD700", "#00FF7F", "#7B68EE", "#FF4500"];
+        var candyAngle = Math.random() * Math.PI * 2;
+        var candyDist = Math.random() * (this.bubbleRadius * 0.55);
+        this.candyZones.push({
+            x: cx + Math.cos(candyAngle) * candyDist,
+            y: cy + Math.sin(candyAngle) * candyDist,
+            radius: 10 + Math.random() * 10,
+            maxRadius: 18 + Math.random() * 14,
+            pulsePhase: Math.random() * Math.PI * 2,
+            color: candyColors[Math.floor(Math.random() * candyColors.length)],
+            life: 2.0 + Math.random() * 1.5,
+            growing: true,
+            moveAngle: Math.random() * Math.PI * 2,
+            moveSpeed: 15 + Math.random() * 20
+        });
+        Sound.playSound("hit_1", true);
+    }
+
+    // Update candy zones
+    for (var i = this.candyZones.length - 1; i >= 0; i--) {
+        var cz = this.candyZones[i];
+        cz.life -= dt;
+        cz.pulsePhase += dt * 5;
+
+        // Move the candy zone slowly
+        cz.x += Math.cos(cz.moveAngle) * cz.moveSpeed * dt;
+        cz.y += Math.sin(cz.moveAngle) * cz.moveSpeed * dt;
+
+        // Keep candy inside bubble
+        var dxC = cz.x - cx;
+        var dyC = cz.y - cy;
+        var distC = Math.sqrt(dxC * dxC + dyC * dyC);
+        if (distC + cz.maxRadius > this.bubbleRadius * 0.85) {
+            // Bounce direction
+            cz.moveAngle = Math.atan2(cy - cz.y, cx - cz.x) + (Math.random() - 0.5) * 1.0;
+        }
+
+        // Pulse radius
+        var pulseMod = Math.sin(cz.pulsePhase) * 5;
+        cz.radius = cz.maxRadius + pulseMod;
+
+        if (cz.life <= 0) {
+            // Burst particles on candy pop
+            for (var p = 0; p < 6; p++) {
+                spawnBillParticle(cz.x, cz.y, (Math.random() - 0.5) * 50, (Math.random() - 0.5) * 50, 3, 0.3, cz.color, 6);
             }
+            Sound.playSound("ting", true);
+            this.candyZones.splice(i, 1);
         }
     }
-    
-    for (var i = this.bullets.length - 1; i >= 0; i--) {
-        var b = this.bullets[i];
-        b.x += b.vx * dt;
-        b.y += b.vy * dt;
-        if (b.x < bb[0] - 15 || b.x > bb[2] + 15) {
-            this.bullets.splice(i, 1);
+
+    // Push player inside bubble boundary (cannot exit)
+    if (this.fadeAlpha > 0.3 && typeof Soul !== "undefined") {
+        var sPos = Soul.getPos();
+        var sw = Soul.getWidth();
+        var sh = Soul.getHeight();
+        var soulCX = sPos.x + sw / 2;
+        var soulCY = sPos.y + sh / 2;
+        var soulDist = Math.sqrt(Math.pow(soulCX - cx, 2) + Math.pow(soulCY - cy, 2));
+        var safeR = this.bubbleRadius - 8;
+        if (soulDist > safeR && safeR > 10) {
+            var pushAngle = Math.atan2(soulCY - cy, soulCX - cx);
+            var newSX = cx + Math.cos(pushAngle) * safeR - sw / 2;
+            var newSY = cy + Math.sin(pushAngle) * safeR - sh / 2;
+            newSX = Math.max(bb[0] + 2, Math.min(bb[2] - sw - 2, newSX));
+            newSY = Math.max(bb[1] + 2, Math.min(bb[3] - sh - 2, newSY));
+            Soul.setPos(newSX, newSY);
         }
+    }
+
+    // Sparkle particles on bubble boundary
+    if (this.sparkleTimer >= 0.08 && this.fadeAlpha > 0.2) {
+        this.sparkleTimer = 0;
+        var spAngle = Math.random() * Math.PI * 2;
+        var spX = cx + Math.cos(spAngle) * this.bubbleRadius;
+        var spY = cy + Math.sin(spAngle) * this.bubbleRadius;
+        var sparkColors = ["#FF69B4", "#FFD700", "#00FFFF", "#FF1493", "#7CFC00"];
+        spawnBillParticle(spX, spY, (Math.random() - 0.5) * 20, (Math.random() - 0.5) * 20, 2, 0.4, sparkColors[Math.floor(Math.random() * sparkColors.length)], 5);
     }
 };
-BillShadowClonesPattern.prototype.draw = function(ctx) {
-    ctx.save();
-    for (var i = 0; i < this.clones.length; i++) {
-        var c = this.clones[i];
-        ctx.save();
-        ctx.translate(c.x, c.y);
-        ctx.strokeStyle = "#FF00FF";
-        ctx.lineWidth = 1.5;
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = "#FF00FF";
-        if (c.warning > 0) {
-            // Draw a silhouette triangle
-            ctx.fillStyle = "rgba(255, 0, 255, 0.35)";
-            ctx.beginPath();
-            ctx.moveTo(0, -12);
-            ctx.lineTo(10, 8);
-            ctx.lineTo(-10, 8);
-            ctx.closePath();
-            ctx.fill();
-            ctx.stroke();
-            
-            // Aim line
-            ctx.strokeStyle = "rgba(255, 0, 0, 0.2)";
-            ctx.beginPath();
-            ctx.moveTo(0, 0);
-            ctx.lineTo(c.side ? 300 : -300, 0);
-            ctx.stroke();
-        } else {
-            // Fading out clone
-            ctx.fillStyle = "rgba(139, 0, 139, " + (c.active / 0.5) + ")";
-            ctx.beginPath();
-            ctx.moveTo(0, -12);
-            ctx.lineTo(10, 8);
-            ctx.lineTo(-10, 8);
-            ctx.closePath();
-            ctx.fill();
-            ctx.stroke();
+BillShadowClonesPattern.prototype.checkCollision = function(sx, sy, sw, sh) {
+    if (this.fadeAlpha < 0.2) return 0;
+    var bb = Cbbox.getBound();
+    var cx = (bb[0] + bb[2]) / 2;
+    var cy = (bb[1] + bb[3]) / 2;
+    var scx = sx + sw / 2;
+    var scy = sy + sh / 2;
+    var dist = Math.sqrt(Math.pow(scx - cx, 2) + Math.pow(scy - cy, 2));
+
+    // Damage from bubble boundary (touching the wall)
+    var wallThickness = 8;
+    if (Math.abs(dist - this.bubbleRadius) < wallThickness) {
+        return this.damVal;
+    }
+
+    // Damage from candy hazard zones
+    for (var i = 0; i < this.candyZones.length; i++) {
+        var cz = this.candyZones[i];
+        var czDist = Math.sqrt(Math.pow(scx - cz.x, 2) + Math.pow(scy - cz.y, 2));
+        if (czDist < cz.radius + sw * 0.3) {
+            return this.damVal;
         }
+    }
+
+    return 0;
+};
+BillShadowClonesPattern.prototype.draw = function(ctx) {
+    var bb = Cbbox.getBound();
+    var cx = (bb[0] + bb[2]) / 2;
+    var cy = (bb[1] + bb[3]) / 2;
+    ctx.save();
+    ctx.globalAlpha = this.fadeAlpha;
+
+    // Draw bubble outer glow
+    ctx.save();
+    var hueStr = "hsl(" + Math.floor(this.bubbleHue) + ", 80%, 60%)";
+    var hueStr2 = "hsl(" + Math.floor(this.bubbleHue + 60) + ", 80%, 70%)";
+    ctx.strokeStyle = hueStr;
+    ctx.shadowBlur = 20;
+    ctx.shadowColor = hueStr;
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.arc(cx, cy, this.bubbleRadius, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Inner rainbow border
+    ctx.strokeStyle = hueStr2;
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = hueStr2;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(cx, cy, this.bubbleRadius - 4, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+
+    // Draw semi-transparent bubble fill
+    ctx.save();
+    var grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, this.bubbleRadius);
+    grad.addColorStop(0, "rgba(255, 182, 255, 0.03)");
+    grad.addColorStop(0.7, "rgba(255, 105, 180, 0.06)");
+    grad.addColorStop(1, "rgba(255, 20, 147, 0.12)");
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(cx, cy, this.bubbleRadius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // Draw bubble highlight (the classic shine)
+    ctx.save();
+    ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
+    ctx.beginPath();
+    ctx.ellipse(cx - this.bubbleRadius * 0.3, cy - this.bubbleRadius * 0.3, this.bubbleRadius * 0.18, this.bubbleRadius * 0.12, -0.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // Draw candy hazard zones
+    for (var i = 0; i < this.candyZones.length; i++) {
+        var cz = this.candyZones[i];
+        var czAlpha = Math.min(1.0, cz.life / 0.5);
+
+        // Glow
+        ctx.save();
+        ctx.fillStyle = cz.color;
+        ctx.shadowBlur = 14;
+        ctx.shadowColor = cz.color;
+        ctx.globalAlpha = this.fadeAlpha * czAlpha * 0.4;
+        ctx.beginPath();
+        ctx.arc(cz.x, cz.y, cz.radius + 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // Main candy circle
+        ctx.save();
+        ctx.fillStyle = cz.color;
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = cz.color;
+        ctx.globalAlpha = this.fadeAlpha * czAlpha * 0.7;
+        ctx.beginPath();
+        ctx.arc(cz.x, cz.y, cz.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // Star/sparkle in center
+        ctx.save();
+        ctx.fillStyle = "#FFFFFF";
+        ctx.globalAlpha = this.fadeAlpha * czAlpha * 0.5;
+        ctx.translate(cz.x, cz.y);
+        ctx.rotate(cz.pulsePhase * 0.5);
+        ctx.beginPath();
+        for (var s = 0; s < 4; s++) {
+            var sa = s * Math.PI / 2;
+            ctx.moveTo(0, 0);
+            ctx.lineTo(Math.cos(sa) * cz.radius * 0.5, Math.sin(sa) * cz.radius * 0.5);
+        }
+        ctx.strokeStyle = "#FFFFFF";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
         ctx.restore();
     }
-    
-    // Draw sparks
-    for (var i = 0; i < this.bullets.length; i++) {
-        var b = this.bullets[i];
-        if (!b.active) continue;
-        ctx.fillStyle = "#FF00FF";
-        ctx.shadowBlur = 6;
-        ctx.shadowColor = "#FF00FF";
-        ctx.fillRect(b.x - 4, b.y - 4, 8, 8);
-    }
+
     ctx.restore();
     drawBillParticles(ctx);
 };
 BillShadowClonesPattern.prototype.isOver = function() {
-    return this.elapsed >= this.duration && this.clones.length === 0 && this.bullets.length === 0;
+    return this.elapsed >= this.duration && this.candyZones.length === 0 && this.fadeAlpha <= 0.01;
 };
 
 // 14. billTeleportSlam: Bill teleports and slams down, causing shockwaves
@@ -1841,124 +2689,315 @@ BillCataclysmRaysPattern.prototype.isOver = function() {
     return this.elapsed >= this.duration && this.rays.length === 0;
 };
 
-// 19. billGravityChaos: Gravity shifts direction every 1.5s while debris falls
+// 19. billGravityChaos: Reality Unraveling â€” tear lines rip reality, sweeping eye laser, gravity shifts
 var BillGravityChaosPattern = function(config) {
     BulletPattern.call(this, config);
     this.duration = config.duration || 7.5;
     this.elapsed = 0;
-    this.spawnTimer = 0;
+    this.tearTimer = 0;
+    this.laserTimer = 0;
     this.shiftTimer = 0;
     this.damVal = config.damVal || 9;
-    this.gravityDir = 0; // 0: Down, 1: Left, 2: Up, 3: Right
+    this.gravityDir = 0;
+    this.tears = [];
+    this.eyeLaser = null;
 };
 BillGravityChaosPattern.prototype = Object.create(BulletPattern.prototype);
 BillGravityChaosPattern.prototype.generateBullets = function(battleBox) {
     BulletPattern.prototype.generateBullets.call(this, battleBox);
     this.elapsed = 0;
-    this.spawnTimer = 0;
+    this.tearTimer = 0.3;
+    this.laserTimer = 1.5;
     this.shiftTimer = 0.5;
     this.gravityDir = 0;
+    this.tears = [];
+    this.eyeLaser = null;
     billParticles = [];
     if (typeof Soul !== "undefined") {
-        Soul.setSoulMode(Soul.SOUL_MODE.BLUE); // Starts in blue mode
+        Soul.setSoulMode(Soul.SOUL_MODE.BLUE);
     }
 };
 BillGravityChaosPattern.prototype.update = function(dt) {
     this.elapsed += dt;
-    this.spawnTimer += dt;
+    this.tearTimer += dt;
+    this.laserTimer += dt;
     this.shiftTimer += dt;
     updateBillParticles(dt);
     var bb = Cbbox.getBound();
-    
-    // Shift gravity direction
-    if (this.shiftTimer >= 1.5 && this.elapsed < this.duration - 1.0) {
+    var cx = (bb[0] + bb[2]) / 2;
+    var cy = (bb[1] + bb[3]) / 2;
+    var bw = bb[2] - bb[0];
+    var bh = bb[3] - bb[1];
+
+    // Shift gravity direction every 2s
+    if (this.shiftTimer >= 2.0 && this.elapsed < this.duration - 1.0) {
         this.shiftTimer = 0;
         this.gravityDir = (this.gravityDir + 1) % 4;
         Sound.playSound("impact", true);
         if (typeof triggerShake !== "undefined") triggerShake(5, 120);
-        
-        // Push player in new gravity direction slightly to alert them
         if (typeof Soul !== "undefined") {
             var sPos = Soul.getPos();
-            var force = 25;
+            var force = 22;
             if (this.gravityDir === 0) sPos.y += force;
             else if (this.gravityDir === 1) sPos.x -= force;
             else if (this.gravityDir === 2) sPos.y -= force;
             else sPos.x += force;
             Soul.setPos(sPos.x, sPos.y);
         }
-    }
-    
-    // Custom blue soul physics override based on gravity direction
-    if (typeof Soul !== "undefined" && typeof Soul.getSoulMode === "function" && Soul.getSoulMode() === Soul.SOUL_MODE.BLUE) {
-        // We override gravity vector
-        // Blue soul uses this.vy += gravity * dt;
-        // Let's let combat.js handle normal blue movement, but we apply a drift offset in current direction!
-        var sPos = Soul.getPos();
-        var speed = 140;
-        if (this.gravityDir === 0) {
-            // Down (standard blue soul)
-        } else if (this.gravityDir === 1) {
-            // Left: pull player left
-            sPos.x -= speed * dt;
-        } else if (this.gravityDir === 2) {
-            // Up: pull player up
-            sPos.y -= speed * dt;
-        } else {
-            // Right: pull player right
-            sPos.x += speed * dt;
+        for (var p = 0; p < 10; p++) {
+            spawnBillParticle(cx + (Math.random() - 0.5) * bw, cy + (Math.random() - 0.5) * bh,
+                (Math.random() - 0.5) * 60, (Math.random() - 0.5) * 60, 3, 0.4, "#FF3300", 8);
         }
-        Soul.setPos(sPos.x, sPos.y);
     }
-    
-    // Spawn debris falling opposite to gravity or from top
-    if (this.spawnTimer >= 0.28 && this.elapsed < this.duration - 1.0) {
-        this.spawnTimer = 0;
-        var rx = bb[0] + 15 + Math.random() * (bb[2] - bb[0] - 30);
-        this.bullets.push({
-            x: rx,
-            y: bb[1] - 10,
-            vx: 0,
-            vy: 140,
-            width: 10, height: 10,
-            active: true
+
+    // Apply gravity drift
+    if (typeof Soul !== "undefined" && typeof Soul.getSoulMode === "function" && Soul.getSoulMode() === Soul.SOUL_MODE.BLUE) {
+        var sPos2 = Soul.getPos();
+        var speed = 130;
+        if (this.gravityDir === 1) { sPos2.x -= speed * dt; }
+        else if (this.gravityDir === 2) { sPos2.y -= speed * dt; }
+        else if (this.gravityDir === 3) { sPos2.x += speed * dt; }
+        Soul.setPos(sPos2.x, sPos2.y);
+    }
+
+    // Spawn reality tear lines
+    if (this.tearTimer >= 1.1 && this.elapsed < this.duration - 1.5) {
+        this.tearTimer = 0;
+        var isH = Math.random() > 0.5;
+        var tearPos;
+        if (isH) {
+            tearPos = bb[1] + 25 + Math.random() * (bh - 50);
+        } else {
+            tearPos = bb[0] + 25 + Math.random() * (bw - 50);
+        }
+        this.tears.push({
+            pos: tearPos,
+            isHorizontal: isH,
+            warning: 0.7,
+            active: 1.2
         });
+        Sound.playSound("ting", true);
     }
-    
-    for (var i = this.bullets.length - 1; i >= 0; i--) {
-        var b = this.bullets[i];
-        b.y += b.vy * dt;
-        if (b.y > bb[3] + 15) {
-            this.bullets.splice(i, 1);
+
+    // Update tears
+    for (var i = this.tears.length - 1; i >= 0; i--) {
+        var t = this.tears[i];
+        if (t.warning > 0) {
+            t.warning -= dt;
+            if (t.warning <= 0) {
+                Sound.playSound("damage", true);
+                if (typeof triggerShake !== "undefined") triggerShake(4, 100);
+                var count = 8;
+                for (var tp = 0; tp < count; tp++) {
+                    var tpx, tpy;
+                    if (t.isHorizontal) { tpx = bb[0] + Math.random() * bw; tpy = t.pos; }
+                    else { tpx = t.pos; tpy = bb[1] + Math.random() * bh; }
+                    spawnBillParticle(tpx, tpy, (Math.random() - 0.5) * 80, (Math.random() - 0.5) * 80, 3, 0.5, "#FF2222", 10);
+                }
+            }
+        } else {
+            t.active -= dt;
+            if (Math.random() < 0.2) {
+                if (t.isHorizontal) {
+                    spawnBillParticle(bb[0] + Math.random() * bw, t.pos, (Math.random() - 0.5) * 20, (Math.random() - 0.5) * 30, 2, 0.3, "#FF4400", 6);
+                } else {
+                    spawnBillParticle(t.pos, bb[1] + Math.random() * bh, (Math.random() - 0.5) * 30, (Math.random() - 0.5) * 20, 2, 0.3, "#FF4400", 6);
+                }
+            }
+            if (t.active <= 0) {
+                this.tears.splice(i, 1);
+            }
+        }
+    }
+
+    // Eye laser sweep
+    if (this.eyeLaser === null && this.laserTimer >= 2.8 && this.elapsed < this.duration - 1.5) {
+        this.laserTimer = 0;
+        var startAngle = Math.PI * 0.3 + Math.random() * Math.PI * 0.4;
+        var sweepDir = (Math.random() > 0.5 ? 1 : -1) * (0.9 + Math.random() * 0.5);
+        this.eyeLaser = {
+            cx: cx,
+            cy: bb[1] - 10,
+            angle: startAngle,
+            speed: sweepDir / 0.7,
+            warning: 0.6,
+            active: 0.7
+        };
+        Sound.playSound("laser", true);
+    }
+
+    if (this.eyeLaser !== null) {
+        var el = this.eyeLaser;
+        if (el.warning > 0) {
+            el.warning -= dt;
+        } else {
+            el.active -= dt;
+            el.angle += el.speed * dt;
+            if (Math.random() < 0.4) {
+                var len = 50 + Math.random() * 200;
+                var lx = el.cx + Math.cos(el.angle) * len;
+                var ly = el.cy + Math.sin(el.angle) * len;
+                spawnBillParticle(lx, ly, (Math.random() - 0.5) * 30, (Math.random() - 0.5) * 30, 3, 0.35, "#FFFF00", 8);
+            }
+            if (el.active <= 0) {
+                this.eyeLaser = null;
+            }
         }
     }
 };
+BillGravityChaosPattern.prototype.checkCollision = function(sx, sy, sw, sh) {
+    var scx = sx + sw / 2;
+    var scy = sy + sh / 2;
+
+    // Check tear line collisions
+    for (var i = 0; i < this.tears.length; i++) {
+        var t = this.tears[i];
+        if (t.warning <= 0 && t.active > 0) {
+            var thickness = 8;
+            if (t.isHorizontal) {
+                if (Math.abs(scy - t.pos) < thickness + sh * 0.3) return this.damVal;
+            } else {
+                if (Math.abs(scx - t.pos) < thickness + sw * 0.3) return this.damVal;
+            }
+        }
+    }
+
+    // Check eye laser collision
+    if (this.eyeLaser !== null) {
+        var el = this.eyeLaser;
+        if (el.warning <= 0 && el.active > 0) {
+            var x2 = el.cx + Math.cos(el.angle) * 600;
+            var y2 = el.cy + Math.sin(el.angle) * 600;
+            var num = Math.abs((y2 - el.cy) * scx - (x2 - el.cx) * scy + x2 * el.cy - y2 * el.cx);
+            var den = Math.sqrt(Math.pow(y2 - el.cy, 2) + Math.pow(x2 - el.cx, 2));
+            var dist = num / (den || 1);
+            if (dist < 12) return this.damVal;
+        }
+    }
+
+    return 0;
+};
 BillGravityChaosPattern.prototype.draw = function(ctx) {
     var bb = Cbbox.getBound();
+    var bw = bb[2] - bb[0];
+    var bh = bb[3] - bb[1];
     ctx.save();
-    
-    // Draw gravity arrows indicating direction
-    ctx.fillStyle = "rgba(255, 0, 0, 0.15)";
-    ctx.font = "18px Courier New";
-    var text = "GRAVEDAD ↓";
-    if (this.gravityDir === 1) text = "GRAVEDAD ←";
-    else if (this.gravityDir === 2) text = "GRAVEDAD ↑";
-    else if (this.gravityDir === 3) text = "GRAVEDAD →";
-    ctx.fillText(text, bb[0] + 15, bb[1] + 25);
-    
-    for (var i = 0; i < this.bullets.length; i++) {
-        var b = this.bullets[i];
-        if (!b.active) continue;
-        ctx.fillStyle = "#FF3300";
-        ctx.shadowBlur = 6;
-        ctx.shadowColor = "#FF3300";
-        ctx.fillRect(b.x - 5, b.y - 5, 10, 10);
+
+    // Gravity direction indicator
+    var arrows = ["â†“", "â†", "â†‘", "â†’"];
+    ctx.fillStyle = "rgba(255, 50, 0, 0.18)";
+    ctx.font = "14px Courier New";
+    ctx.fillText("REALIDAD " + arrows[this.gravityDir], bb[0] + 8, bb[1] + 18);
+
+    // Background glitch static
+    ctx.globalAlpha = 0.05;
+    for (var g = 0; g < 10; g++) {
+        var gx = bb[0] + Math.random() * bw;
+        var gy = bb[1] + Math.random() * bh;
+        ctx.fillStyle = Math.random() > 0.5 ? "#FF0000" : "#00FFFF";
+        ctx.fillRect(gx, gy, Math.random() * 25 + 5, 2);
     }
+    ctx.globalAlpha = 1;
+
+    // Draw tear lines
+    for (var i = 0; i < this.tears.length; i++) {
+        var t = this.tears[i];
+        ctx.save();
+        if (t.warning > 0) {
+            var flash = Math.sin(this.elapsed * 25) * 0.3 + 0.5;
+            ctx.strokeStyle = "rgba(255, 0, 0, " + (flash * 0.5).toFixed(2) + ")";
+            ctx.lineWidth = 2;
+            ctx.setLineDash([6, 8]);
+            ctx.beginPath();
+            if (t.isHorizontal) {
+                ctx.moveTo(bb[0], t.pos);
+                ctx.lineTo(bb[2], t.pos);
+            } else {
+                ctx.moveTo(t.pos, bb[1]);
+                ctx.lineTo(t.pos, bb[3]);
+            }
+            ctx.stroke();
+            ctx.setLineDash([]);
+            // Warning markers
+            ctx.fillStyle = "rgba(255, 0, 0, " + (flash * 0.8).toFixed(2) + ")";
+            ctx.font = "bold 12px Arial";
+            if (t.isHorizontal) {
+                ctx.fillText("!", bb[0] + 4, t.pos - 4);
+                ctx.fillText("!", bb[2] - 12, t.pos - 4);
+            } else {
+                ctx.fillText("!", t.pos + 4, bb[1] + 14);
+                ctx.fillText("!", t.pos + 4, bb[3] - 6);
+            }
+        } else if (t.active > 0) {
+            var fadeAlpha = Math.min(1.0, t.active / 0.3);
+            ctx.shadowBlur = 14;
+            ctx.shadowColor = "#FF2200";
+            ctx.strokeStyle = "rgba(255, 60, 0, " + (fadeAlpha * 0.7).toFixed(2) + ")";
+            ctx.lineWidth = 10 * fadeAlpha;
+            ctx.beginPath();
+            if (t.isHorizontal) {
+                var x = bb[0];
+                ctx.moveTo(x, t.pos);
+                while (x < bb[2]) {
+                    x += 8 + Math.random() * 12;
+                    ctx.lineTo(x, t.pos + (Math.random() - 0.5) * 10);
+                }
+            } else {
+                var y = bb[1];
+                ctx.moveTo(t.pos, y);
+                while (y < bb[3]) {
+                    y += 8 + Math.random() * 12;
+                    ctx.lineTo(t.pos + (Math.random() - 0.5) * 10, y);
+                }
+            }
+            ctx.stroke();
+            // White-hot core
+            ctx.strokeStyle = "rgba(255, 255, 255, " + (fadeAlpha * 0.5).toFixed(2) + ")";
+            ctx.shadowBlur = 0;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+        ctx.restore();
+    }
+
+    // Draw eye laser
+    if (this.eyeLaser !== null) {
+        var el = this.eyeLaser;
+        var lx2 = el.cx + Math.cos(el.angle) * 600;
+        var ly2 = el.cy + Math.sin(el.angle) * 600;
+        ctx.save();
+        if (el.warning > 0) {
+            ctx.strokeStyle = "rgba(255, 255, 0, " + (0.2 + 0.2 * Math.sin(this.elapsed * 30)).toFixed(2) + ")";
+            ctx.lineWidth = 2;
+            ctx.setLineDash([3, 5]);
+            ctx.beginPath();
+            ctx.moveTo(el.cx, el.cy);
+            ctx.lineTo(lx2, ly2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        } else if (el.active > 0) {
+            var laserA = Math.min(1.0, el.active / 0.15);
+            ctx.strokeStyle = "#FFFF00";
+            ctx.shadowBlur = 16;
+            ctx.shadowColor = "#FFFF00";
+            ctx.lineWidth = 14 * laserA;
+            ctx.beginPath();
+            ctx.moveTo(el.cx, el.cy);
+            ctx.lineTo(lx2, ly2);
+            ctx.stroke();
+            ctx.strokeStyle = "#FFFFFF";
+            ctx.shadowBlur = 0;
+            ctx.lineWidth = 4 * laserA;
+            ctx.stroke();
+        }
+        ctx.restore();
+    }
+
     ctx.restore();
     drawBillParticles(ctx);
 };
 BillGravityChaosPattern.prototype.isOver = function() {
-    return this.elapsed >= this.duration && this.bullets.length === 0;
+    return this.elapsed >= this.duration && this.tears.length === 0 && this.eyeLaser === null;
 };
 
 // 20. billNightmareVortex: Central suction while fire lasers rotate

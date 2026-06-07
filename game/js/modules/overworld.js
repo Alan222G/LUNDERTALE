@@ -547,42 +547,85 @@ var Overworld = (function() {
         ctx.save();
         ctx.translate(cx, cy);
         
-        // Swirling glowing particles
-        ctx.shadowBlur = 15;
+        // 1. Draw a dark cosmic background backing for the portal (so it has presence)
+        var portalRadius = 26 + Math.sin(pTime * 4) * 2;
+        var gradOuter = ctx.createRadialGradient(0, 0, 2, 0, 0, portalRadius);
+        gradOuter.addColorStop(0, "#000000");
+        gradOuter.addColorStop(0.4, color2);
+        gradOuter.addColorStop(0.8, color1);
+        gradOuter.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = gradOuter;
+        ctx.beginPath();
+        ctx.arc(0, 0, portalRadius + 10, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 2. Draw multiple layered swirling ellipses for a 3D gravitational disk effect
+        ctx.shadowBlur = 20;
         ctx.shadowColor = color1;
         
-        ctx.fillStyle = color1;
-        ctx.beginPath();
-        ctx.ellipse(0, 0, 20, 10, pTime, 0, Math.PI * 2);
-        ctx.fill();
-        
-        ctx.strokeStyle = color2;
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.ellipse(0, 0, 24, 12, -pTime * 1.5, 0, Math.PI * 2);
-        ctx.stroke();
-        
-        // Orbiting sparks
-        ctx.fillStyle = "#FFF";
-        ctx.shadowBlur = 5;
-        ctx.shadowColor = "#FFF";
-        for (var i = 0; i < 3; i++) {
-            var angle = pTime * 3 + (i * Math.PI * 2 / 3);
-            var px = Math.cos(angle) * 26;
-            var py = Math.sin(angle) * 13;
+        var numLayers = 4;
+        for (var l = 0; l < numLayers; l++) {
+            ctx.save();
+            var angleScale = 1.0 + l * 0.15;
+            var rotSpeed = pTime * (1.5 + l * 0.5);
+            var w = 24 - l * 4;
+            var h = 10 - l * 1.5;
+            
+            // Add slight pulsing to scale
+            var pulse = 1.0 + Math.sin(pTime * 3 + l) * 0.08;
+            ctx.scale(pulse, pulse);
+            
+            ctx.strokeStyle = color1;
+            ctx.lineWidth = 2.5 - l * 0.4;
+            ctx.globalAlpha = 0.5 + (l / numLayers) * 0.5;
+            
             ctx.beginPath();
-            ctx.arc(px, py, 2, 0, Math.PI * 2);
+            ctx.ellipse(0, 0, w, h, rotSpeed, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        // 3. Draw a bright, glowing center core (white-hot singularity)
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = "#FFF";
+        ctx.fillStyle = "#FFF";
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 6, 3, pTime * 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 4. Orbiting dust/sparks getting sucked into the portal
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = color2;
+        var numSparks = 8;
+        for (var i = 0; i < numSparks; i++) {
+            // Spiral inward logic based on time + index
+            var baseAngle = i * (Math.PI * 2 / numSparks);
+            var spiralTime = (pTime * 0.5 + i * 0.125) % 1.0; // moves from 0 (outer) to 1 (inner)
+            var currentRadiusW = 32 * (1.0 - spiralTime) + 4;
+            var currentRadiusH = 16 * (1.0 - spiralTime) + 2;
+            var angle = baseAngle + spiralTime * Math.PI * 3; // spirals around
+            
+            var px = Math.cos(angle) * currentRadiusW;
+            var py = Math.sin(angle) * currentRadiusH;
+            
+            // Fades out as it gets close to center or when it first spawns
+            var sparkAlpha = Math.sin(spiralTime * Math.PI); 
+            ctx.fillStyle = "rgba(255, 255, 255, " + sparkAlpha + ")";
+            ctx.beginPath();
+            ctx.arc(px, py, 1.5 + (1.0 - spiralTime) * 1.5, 0, Math.PI * 2);
             ctx.fill();
         }
         
         ctx.restore();
+        ctx.shadowBlur = 0;
+        ctx.globalAlpha = 1.0;
         
         // Portal Label
         ctx.save();
         ctx.font = "8pt 'Determination Mono', monospace";
         ctx.textAlign = "center";
         ctx.fillStyle = "#FFF";
-        ctx.fillText(label, cx, cy - 22);
+        ctx.fillText(label, cx, cy - 25);
         ctx.restore();
     }
 
