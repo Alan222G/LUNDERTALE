@@ -54,6 +54,62 @@ Este archivo contiene la información detallada de los primeros 3 jefes de **Cul
 
 ---
 
+### 4. GALACTUS (El Devorador de Mundos)
+* **Concepto Visual**:
+  * Una entidad cósmica colosal. Solo se ve su gigantesco casco con cuernos y su rostro sombrío contra un fondo de galaxias siendo consumidas. Sus ojos brillan con energía del Poder Cósmico (púrpura brillante).
+  * El fondo del cuadro de batalla es el espacio profundo con estrellas y nebulosas que van desapareciendo a medida que Galactus "devora" energía — el fondo se oscurece progresivamente durante el combate.
+  * Cambia a través de 3 fases dinámicas:
+    * **Fase 1: El Heraldo**: Galactus envía su energía cósmica desde la distancia. Se ve lejano, enorme, con un aura púrpura/azul brillante. Sus ataques son medidos y "imperiales".
+    * **Fase 2: El Hambriento**: Se acerca. Su rostro llena más del cuadro del enemigo, los ojos brillan con intensidad, grietas de energía cósmica recorren su casco. El espacio de fondo se distorsiona con ondas gravitacionales.
+    * **Fase 3: El Devorador**: Su boca se abre revelando un vórtice de energía pura. El casco se agrieta con fisuras de luz. Rayos cósmicos emanan de su figura. Efecto visual de que está "tragando" la realidad misma.
+  * Efectos ambientales: partículas de estrellas moribundas que flotan hacia él, ondas de gravedad que distorsionan el espacio, planetas diminutos que orbitan y son consumidos en el fondo.
+* **Mecánicas y Ataques**:
+  * **Rayo del Poder Cósmico (Cosmic Power Beam)**:
+    * Galactus carga energía en sus manos (advertencia con brillo creciente en sus ojos), luego dispara un rayo púrpura masivo que barre toda la caja de combate en un arco.
+    * El rayo deja una estela residual de energía dañina que persiste 1.5 segundos.
+    * El jugador debe predecir la dirección del barrido y posicionarse en la zona segura detrás del arco.
+  * **Gravitational Crush (Aplastamiento Gravitacional)**:
+    * La caja de combate empieza a encogerse lentamente mientras "paredes" de energía cósmica púrpura presionan desde los 4 lados.
+    * Simultáneamente, fragmentos de planetas destruidos (escombros rocosos) orbitan dentro del espacio reducido.
+    * Después de 3 segundos, la caja "explota" de vuelta a su tamaño normal con una onda expansiva que el jugador debe esquivar.
+  * **Invocación del Heraldo (Herald Summon)**:
+    * Silver Surfer aparece como un proyectil plateado brillante que cruza la caja en trayectorias curvas.
+    * Deja una estela plateada dañina temporal en su camino.
+    * El Surfer hace 3-4 pasadas antes de desaparecer, cada una más rápida que la anterior.
+  * **Máquina Taa-II (World Engine)**:
+    * Una máquina circular aparece en el centro de la caja, anclándose con 4 "pilares" de energía que se extienden a las esquinas.
+    * Los pilares rotan lentamente. El jugador debe navegar entre los pilares mientras la máquina central pulsa ondas de energía concéntricas.
+  * **Devorar Estrella (Star Devour)**:
+    * Mini-estrellas aparecen en posiciones aleatorias de la caja. Galactus las "succiona" una a una — cada estrella que es devorada explota en una onda expansiva circular.
+    * El jugador puede intentar "proteger" las estrellas posicionándose cerca (mecánica de riesgo/recompensa: si proteges 3 estrellas, Galactus pierde turno).
+  * **Grieta Dimensional (Cosmic Rift)**:
+    * Grietas púrpuras aparecen en el espacio de la caja con advertencias. Las grietas se abren creando portales que escupen ráfagas de energía cósmica en direcciones aleatorias.
+    * Las grietas persisten y cambian de posición cada 2 segundos.
+  * **Juicio Final (Ultimate Nullifier)**:
+    * ATAQUE FINAL de Fase 3: La pantalla se oscurece completamente. Un punto brillante aparece en el centro y explota en anillos concéntricos de energía pura que el jugador debe esquivar saltando a través de las brechas.
+    * La velocidad de los anillos aumenta progresivamente. Daño extremadamente alto.
+* **Estadísticas**:
+  * HP: [6500, 7800, 13000] (3 fases)
+  * ATK: 30, DEF: 25
+  * Spareable: true
+  * XP: 6000, Gold: 4000
+* **Actos (ACT) y Sistema Spare**:
+  * **Check**: "GALACTUS - ATK 30 DEF 25. El Devorador de Mundos. Su hambre es infinita... pero también su soledad."
+  * **Ofrecer Energía**: Sacrificas 20 HP para alimentar parcialmente su hambre. +20 Spare.
+  * **Razonar**: Le hablas sobre los seres que viven en los mundos que devora. +15 Spare.
+  * **Invocar a Reed**: Mencionas a Reed Richards y su promesa de encontrar mundos deshabitados. +25 Spare.
+  * **Desafiar**: Le gritas que no es un dios, solo un parásito. -5 Spare (se enoja).
+  * **Compasión**: Le preguntas si recuerda Taa, su mundo natal destruido. +30 Spare.
+  * **Flee**: "¡No puedes escapar de algo que devora galaxias enteras!"
+* **Diálogos (Speech)**:
+  * Fase 1: "SOY INEVITABLE.", "TU MUNDO\nSERÁ MI\nALIMENTO.", "NO CONOCES\nEL HAMBRE\nCÓSMICA."
+  * Fase 2: "¡NECESITO\nENERGÍA!", "¿CREES QUE\nPUEDES\nDETENERME?", "TAA... MI\nMUNDO... PERDIDO."
+  * Fase 3: "¡EL HAMBRE\nME CONSUME!", "¡SERÉ\nTU FIN!", "¡NADA PUEDE\nSACIARME!"
+* **Subworld**: Invitados (subWorld: 2)
+* **Renderizado**: `galactus_herald`, `galactus_hungry`, `galactus_devourer`
+
+---
+
 ---
 
 ## 🌀 PARTE 2: JEFES PROPIOS (ANOMALÍAS ORIGINALES)

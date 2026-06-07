@@ -263,14 +263,15 @@ var Overworld = (function() {
                 });
             }
         });
-        
+
+        // --- INVITADOS BOSSES (Subworld 2) ---
         // Bill Cipher battle trigger
         triggerList.push({
-            x: 370, y: 240, w: 26, h: 26,
+            x: 370, y: 290, w: 26, h: 26,
             triggered: false,
             bossId: "bill",
             label: "Bill Cipher",
-            subWorld: 1,
+            subWorld: 2,
             color: "rgba(255, 255, 0, 0.6)",
             action: function() {
                 var self = this;
@@ -282,7 +283,6 @@ var Overworld = (function() {
             }
         });
 
-        // --- INVITADOS BOSSES (Subworld 2) ---
         // Ramiel battle trigger
         triggerList.push({
             x: 180, y: 200, w: 26, h: 26,
@@ -619,14 +619,6 @@ var Overworld = (function() {
         ctx.restore();
         ctx.shadowBlur = 0;
         ctx.globalAlpha = 1.0;
-        
-        // Portal Label
-        ctx.save();
-        ctx.font = "8pt 'Determination Mono', monospace";
-        ctx.textAlign = "center";
-        ctx.fillStyle = "#FFF";
-        ctx.fillText(label, cx, cy - 25);
-        ctx.restore();
     }
 
     function draw(ctx) {

@@ -1,4 +1,4 @@
-﻿// billPatterns.js â€” 21 Unique Bill Cipher themed patterns for LUNDERTALE
+// billPatterns.js â€” 21 Unique Bill Cipher themed patterns for LUNDERTALE
 
 // Helper function to draw warning lines or simple shapes if needed
 var billParticles = [];
@@ -151,6 +151,7 @@ BillEyeLasersPattern.prototype.draw = function(ctx) {
     drawBillParticles(ctx);
 };
 BillEyeLasersPattern.prototype.isOver = function() {
+    if (this.elapsed >= this.duration + 5) return true;
     return this.elapsed >= this.duration && this.lasers.length === 0;
 };
 
@@ -675,6 +676,7 @@ BillDealBlueFirePattern.prototype.draw = function(ctx) {
     drawBillParticles(ctx);
 };
 BillDealBlueFirePattern.prototype.isOver = function() {
+    if (this.elapsed >= this.duration + 5) return true;
     return this.elapsed >= this.duration && this.fires.length === 0;
 };
 
@@ -761,6 +763,7 @@ BillHatDropPattern.prototype.draw = function(ctx) {
     drawBillParticles(ctx);
 };
 BillHatDropPattern.prototype.isOver = function() {
+    if (this.elapsed >= this.duration + 5) return true;
     return this.elapsed >= this.duration && this.bullets.length === 0;
 };
 
@@ -854,6 +857,7 @@ BillCaneSwackPattern.prototype.draw = function(ctx) {
     drawBillParticles(ctx);
 };
 BillCaneSwackPattern.prototype.isOver = function() {
+    if (this.elapsed >= this.duration + 5) return true;
     return this.elapsed >= this.duration && this.canes.length === 0;
 };
 
@@ -892,7 +896,8 @@ BillTriangleBeamsPattern.prototype.update = function(dt) {
             scaleSpeed: 80,
             rot: Math.random() * Math.PI,
             rotSpeed: 0.7,
-            active: true
+            active: true,
+            lifetime: 0
         });
         Sound.playSound("laser", true);
     }
@@ -901,7 +906,9 @@ BillTriangleBeamsPattern.prototype.update = function(dt) {
         var t = this.triangles[i];
         t.size += t.scaleSpeed * dt;
         t.rot += t.rotSpeed * dt;
-        if (t.size >= t.maxScale) {
+        t.lifetime += dt;
+        // Remove when expanded past max OR hard timeout after 2.5s
+        if (t.size >= t.maxScale || t.lifetime >= 2.5) {
             this.triangles.splice(i, 1);
         }
     }
@@ -945,6 +952,8 @@ BillTriangleBeamsPattern.prototype.draw = function(ctx) {
     drawBillParticles(ctx);
 };
 BillTriangleBeamsPattern.prototype.isOver = function() {
+    // Safety: hard timeout after duration + 5s even if triangles remain
+    if (this.elapsed >= this.duration + 5) return true;
     return this.elapsed >= this.duration && this.triangles.length === 0;
 };
 
@@ -1135,6 +1144,7 @@ BillMadnessBubblesPattern.prototype.draw = function(ctx) {
     drawBillParticles(ctx);
 };
 BillMadnessBubblesPattern.prototype.isOver = function() {
+    if (this.elapsed >= this.duration + 5) return true;
     return this.elapsed >= this.duration && this.bullets.length === 0;
 };
 
@@ -1218,6 +1228,7 @@ BillTimeGlitchPattern.prototype.draw = function(ctx) {
     drawBillParticles(ctx);
 };
 BillTimeGlitchPattern.prototype.isOver = function() {
+    if (this.elapsed >= this.duration + 5) return true;
     return this.elapsed >= this.duration && this.bullets.length === 0;
 };
 
@@ -1508,6 +1519,7 @@ BillDimensionalRiftPattern.prototype.draw = function(ctx) {
     drawBillParticles(ctx);
 };
 BillDimensionalRiftPattern.prototype.isOver = function() {
+    if (this.elapsed >= this.duration + 5) return true;
     return this.elapsed >= this.duration && this.debris.length === 0 && this.fadeAlpha <= 0.01;
 };
 
@@ -1765,6 +1777,7 @@ BillWeirdmageddonRainPattern.prototype.draw = function(ctx) {
     drawBillParticles(ctx);
 };
 BillWeirdmageddonRainPattern.prototype.isOver = function() {
+    if (this.elapsed >= this.duration + 5) return true;
     return this.elapsed >= this.duration && this.cracks.length === 0;
 };
 
@@ -1868,6 +1881,7 @@ BillFloatingPyramidsPattern.prototype.draw = function(ctx) {
     drawBillParticles(ctx);
 };
 BillFloatingPyramidsPattern.prototype.isOver = function() {
+    if (this.elapsed >= this.duration + 5) return true;
     return this.elapsed >= this.duration && this.bullets.length === 0;
 };
 
@@ -2157,6 +2171,7 @@ BillShadowClonesPattern.prototype.draw = function(ctx) {
     drawBillParticles(ctx);
 };
 BillShadowClonesPattern.prototype.isOver = function() {
+    if (this.elapsed >= this.duration + 5) return true;
     return this.elapsed >= this.duration && this.candyZones.length === 0 && this.fadeAlpha <= 0.01;
 };
 
@@ -2276,6 +2291,7 @@ BillTeleportSlamPattern.prototype.draw = function(ctx) {
     drawBillParticles(ctx);
 };
 BillTeleportSlamPattern.prototype.isOver = function() {
+    if (this.elapsed >= this.duration + 5) return true;
     return this.elapsed >= this.duration && this.slams.length === 0;
 };
 
@@ -2363,6 +2379,7 @@ BillAngryRedNovaPattern.prototype.draw = function(ctx) {
     drawBillParticles(ctx);
 };
 BillAngryRedNovaPattern.prototype.isOver = function() {
+    if (this.elapsed >= this.duration + 5) return true;
     return this.elapsed >= this.duration && this.pulses.length === 0;
 };
 
@@ -2473,6 +2490,7 @@ BillFistSlamPattern.prototype.draw = function(ctx) {
     drawBillParticles(ctx);
 };
 BillFistSlamPattern.prototype.isOver = function() {
+    if (this.elapsed >= this.duration + 5) return true;
     return this.elapsed >= this.duration && this.fists.length === 0;
 };
 
@@ -2564,6 +2582,7 @@ BillTeethChirpPattern.prototype.draw = function(ctx) {
     drawBillParticles(ctx);
 };
 BillTeethChirpPattern.prototype.isOver = function() {
+    if (this.elapsed >= this.duration + 5) return true;
     return this.elapsed >= this.duration && this.bullets.length === 0;
 };
 
@@ -2686,6 +2705,7 @@ BillCataclysmRaysPattern.prototype.draw = function(ctx) {
     drawBillParticles(ctx);
 };
 BillCataclysmRaysPattern.prototype.isOver = function() {
+    if (this.elapsed >= this.duration + 5) return true;
     return this.elapsed >= this.duration && this.rays.length === 0;
 };
 
@@ -2997,6 +3017,7 @@ BillGravityChaosPattern.prototype.draw = function(ctx) {
     drawBillParticles(ctx);
 };
 BillGravityChaosPattern.prototype.isOver = function() {
+    if (this.elapsed >= this.duration + 5) return true;
     return this.elapsed >= this.duration && this.tears.length === 0 && this.eyeLaser === null;
 };
 
@@ -3269,5 +3290,6 @@ BillArmageddonPattern.prototype.draw = function(ctx) {
     drawBillParticles(ctx);
 };
 BillArmageddonPattern.prototype.isOver = function() {
+    if (this.elapsed >= this.duration + 5) return true;
     return this.elapsed >= this.duration && this.bullets.length === 0 && this.lasers.length === 0;
 };
