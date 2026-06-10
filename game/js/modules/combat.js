@@ -81,6 +81,16 @@ var Combat = (function() {
             combatState = COMBAT_STATE.DEATH;
         }
 
+        // Check if enemy died from DOT when not defending
+        if (combatState !== COMBAT_STATE.DEFEND && combatState !== COMBAT_STATE.DEATH && combatState !== COMBAT_STATE.WIN && combatState !== -1) {
+            var activeEnemy = Cgroup.getEnemy(selectStateEnemy);
+            if (activeEnemy && activeEnemy.curHP <= 0 && (!activeEnemy.phases || activeEnemy.currentPhase >= activeEnemy.phases.length - 1)) {
+                Sound.playSound("heal", true);
+                combatState = COMBAT_STATE.WIN;
+                return;
+            }
+        }
+
         switch (combatState) {
             case COMBAT_STATE.MAIN:
                 if (Cbbox.update(dt)) {
@@ -299,6 +309,13 @@ var Combat = (function() {
                             Sound.playSound("damage", true);
                         }
                     }
+
+                    if (Cgroup.getCurHP(selectStateEnemy) <= 0) {
+                        Sound.playSound("heal", true);
+                        combatState = COMBAT_STATE.WIN;
+                        return;
+                    }
+
                     combatState = COMBAT_STATE.MAIN;
                     Writer.setupText(Cgroup.getText());
                 }

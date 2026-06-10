@@ -107,7 +107,15 @@ Object.defineProperty(Enemy.prototype, "mercyHP", {
             // Decrease (Mercy going up / bar filling)
             // Apply scale factor of 0.45 to ensure at least 10 actions are required
             var scale = (this.spareable && this.currentPhase === 0) ? 0.45 : 1.0;
-            this._mercyHP = Math.max(0, this._mercyHP + diff * scale);
+            var change = diff * scale;
+            
+            // If the caller clamped to 0 (val === 0) and the remaining mercyHP is small,
+            // we let it reach 0 to avoid the asymptotic/infinite division bug.
+            if (val === 0 && this._mercyHP <= 20) {
+                this._mercyHP = 0;
+            } else {
+                this._mercyHP = Math.max(0, this._mercyHP + change);
+            }
         } else {
             // Increase (Mercy going down / penalty)
             this._mercyHP = Math.min(this.totalMercyHP || 100, this._mercyHP + diff);
@@ -163,14 +171,20 @@ Enemy.prototype.update = function(dt) {
     if (this.bleedTimer && this.bleedTimer > 0) {
         this.bleedTimer -= dt;
         this.curHP -= (this.bleedDmg || 5) * dt;
-        if (this.curHP < 0) this.curHP = 0;
+        if (this.curHP <= 0) {
+            this.curHP = 0;
+            this.checkPhaseTransitionOrDeath();
+        }
     }
     
     // Sans poison: enemy poison DOT (20 dmg/sec for 10 sec)
     if (this.sansPoisonTimer && this.sansPoisonTimer > 0) {
         this.sansPoisonTimer -= dt;
         this.curHP -= (this.sansPoisonDmg || 20) * dt;
-        if (this.curHP < 0) this.curHP = 0;
+        if (this.curHP <= 0) {
+            this.curHP = 0;
+            this.checkPhaseTransitionOrDeath();
+        }
     }
 };
 
@@ -230,6 +244,10 @@ Enemy.prototype.draw = function(ctx) {
     } else if (this.renderType === "bill_normal" || this.renderType === "bill_madness" || this.renderType === "bill_angry") {
         ctx.save(); ctx.translate(370, 160); ctx.scale(1.4, 1.4); ctx.translate(-370, -160);
         this.drawBillCipher(ctx);
+        ctx.restore();
+    } else if (this.renderType === "galactus_herald" || this.renderType === "galactus_hungry" || this.renderType === "galactus_devourer") {
+        ctx.save(); ctx.translate(370, 160); ctx.scale(1.4, 1.4); ctx.translate(-370, -160);
+        this.drawGalactus(ctx);
         ctx.restore();
     } else if (this.renderType === "sachiel") {
         ctx.save(); ctx.translate(370, 160); ctx.scale(1.4, 1.4); ctx.translate(-370, -160);
@@ -713,6 +731,10 @@ Enemy.prototype.dealDamage = function(damage) {
         this.sansPoisonDmg = 20; // 20 damage per tick (per second)
     }
     
+    return this.checkPhaseTransitionOrDeath();
+};
+
+Enemy.prototype.checkPhaseTransitionOrDeath = function() {
     if (this.curHP <= 0) {
         // Return stolen items for El Hambre Cósmica on phase defeat / death
         if (this.name === "El Hambre Cósmica" && this.stolenItems && this.stolenItems.length > 0) {
@@ -741,6 +763,15 @@ Enemy.prototype.dealDamage = function(damage) {
                 this.maxHP = this.phaseHP[this.currentPhase];
             }
             this.curHP = this.maxHP; // Refill HP for next phase
+            
+            // Phase transition effect
+            Sound.playSound("heal", true);
+            if (typeof Soul !== "undefined" && Soul.addFloatingText) {
+                var sPos = Soul.getPos();
+                Soul.addFloatingText("FASE SIGUIENTE!", sPos.x + Soul.getWidth() / 2, sPos.y - 12, "#FF3333");
+            }
+            console.log("Boss phase transitioned to phase " + this.currentPhase);
+            
             return false; // Not fully dead yet!
         }
         this.curHP = 0;
@@ -5248,6 +5279,201 @@ Enemy.prototype.drawVoidMaw = function(ctx) {
     ctx.restore();
 };
 
+Enemy.prototype.drawGalactus = function(ctx) {
+    var time = Date.now() / 1000;
+    ctx.save();
+    
+    var isP1 = (this.renderType === "galactus_herald");
+    var isP2 = (this.renderType === "galactus_hungry");
+    var isP3 = (this.renderType === "galactus_devourer");
+    
+    var shakeX = isP3 ? (Math.random() - 0.5) * 5 : (isP2 ? (Math.random() - 0.5) * 2 : 0);
+    var shakeY = isP3 ? (Math.random() - 0.5) * 5 : (isP2 ? (Math.random() - 0.5) * 2 : 0);
+    var floatY = Math.sin(time * 1.5) * 5;
+    var breathe = 1.0 + Math.sin(time * 2.0) * 0.015;
+    ctx.translate(370 + shakeX, 170 + floatY + shakeY);
+    ctx.scale(breathe, breathe);
+    
+    // Background effects
+    if (isP1) {
+        ctx.save();
+        ctx.strokeStyle = "rgba(128, 0, 255, 0.15)";
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 6]);
+        ctx.beginPath();
+        ctx.arc(0, 0, 85, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        for (var s = 0; s < 8; s++) {
+            var sAngle = time * 0.3 + s * Math.PI / 4;
+            ctx.fillStyle = "rgba(200, 100, 255, 0.3)";
+            ctx.beginPath();
+            ctx.arc(Math.cos(sAngle) * 85, Math.sin(sAngle) * 85, 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.restore();
+    } else if (isP2) {
+        ctx.save();
+        for (var r = 0; r < 3; r++) {
+            ctx.strokeStyle = "rgba(200, 50, 255, " + (0.15 + r * 0.05) + ")";
+            ctx.lineWidth = 2;
+            var rRad = 70 + r * 20 + Math.sin(time * 3 + r) * 5;
+            ctx.beginPath();
+            ctx.arc(0, 0, rRad, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        ctx.restore();
+    } else if (isP3) {
+        ctx.save();
+        ctx.globalCompositeOperation = "screen";
+        for (var r = 0; r < 10; r++) {
+            var rAngle = time * 0.4 + r * Math.PI * 2 / 10;
+            var grad = ctx.createLinearGradient(0, 0, Math.cos(rAngle) * 130, Math.sin(rAngle) * 130);
+            grad.addColorStop(0, "rgba(200, 100, 255, 0.5)");
+            grad.addColorStop(0.5, "rgba(128, 0, 255, 0.2)");
+            grad.addColorStop(1, "rgba(0, 0, 0, 0)");
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(Math.cos(rAngle - 0.08) * 130, Math.sin(rAngle - 0.08) * 130);
+            ctx.lineTo(Math.cos(rAngle + 0.08) * 130, Math.sin(rAngle + 0.08) * 130);
+            ctx.closePath();
+            ctx.fill();
+        }
+        ctx.restore();
+    }
+    
+    // Shoulders
+    ctx.save();
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = "#6600AA";
+    ctx.fillStyle = "#332255";
+    ctx.beginPath();
+    ctx.moveTo(-50, -10); ctx.lineTo(-35, -25); ctx.lineTo(-25, -5); ctx.lineTo(-40, 10);
+    ctx.closePath(); ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(50, -10); ctx.lineTo(35, -25); ctx.lineTo(25, -5); ctx.lineTo(40, 10);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = "#9933FF"; ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(-45, -8); ctx.lineTo(-30, -8);
+    ctx.moveTo(45, -8); ctx.lineTo(30, -8);
+    ctx.stroke();
+    ctx.restore();
+    
+    // Neck/Chest
+    ctx.fillStyle = "#221144";
+    ctx.fillRect(-15, 15, 30, 25);
+    ctx.strokeStyle = "#6633AA"; ctx.lineWidth = 1;
+    ctx.strokeRect(-15, 15, 30, 25);
+    
+    // Helmet
+    ctx.save();
+    ctx.shadowBlur = isP3 ? 25 : 15;
+    ctx.shadowColor = isP3 ? "#FF00FF" : "#8800FF";
+    var helmColor = isP1 ? "#442266" : (isP2 ? "#553377" : "#663388");
+    ctx.fillStyle = helmColor;
+    ctx.beginPath();
+    ctx.ellipse(0, -10, 32, 28, 0, Math.PI, 0);
+    ctx.fill();
+    ctx.fillStyle = isP3 ? "#331155" : "#2A1050";
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 28, 18, 0, 0, Math.PI);
+    ctx.fill();
+    ctx.strokeStyle = isP3 ? "#CC44FF" : "#7744AA"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.ellipse(0, -10, 32, 28, 0, Math.PI, 0); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(0, 0, 28, 18, 0, 0, Math.PI); ctx.stroke();
+    
+    // Horns
+    ctx.lineWidth = 3.5; ctx.lineCap = "round";
+    ctx.strokeStyle = isP3 ? "#BB33FF" : "#6633AA";
+    ctx.beginPath(); ctx.moveTo(-22, -28); ctx.quadraticCurveTo(-35, -50, -28, -65); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(22, -28); ctx.quadraticCurveTo(35, -50, 28, -65); ctx.stroke();
+    if (isP2 || isP3) {
+        ctx.fillStyle = "#DD88FF"; ctx.shadowBlur = 12; ctx.shadowColor = "#FF00FF";
+        ctx.beginPath(); ctx.arc(-28, -65, 3, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(28, -65, 3, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.restore();
+    
+    // Eyes
+    ctx.save();
+    var eyeColor = isP1 ? "#CC44FF" : (isP2 ? "#FF33FF" : "#FF0000");
+    ctx.shadowBlur = 12; ctx.shadowColor = eyeColor;
+    ctx.fillStyle = eyeColor;
+    ctx.beginPath(); ctx.ellipse(-10, -5, 6, 3, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(10, -5, 6, 3, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#000000";
+    ctx.beginPath(); ctx.ellipse(-10, -5, 1.5, 2.5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(10, -5, 1.5, 2.5, 0, 0, Math.PI * 2); ctx.fill();
+    if (isP3) {
+        ctx.strokeStyle = "rgba(255, 0, 0, 0.4)"; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(-10, -5);
+        ctx.lineTo(-10 + Math.cos(time * 3) * 30, -5 + Math.sin(time * 3) * 20); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(10, -5);
+        ctx.lineTo(10 + Math.cos(time * 3 + 1) * 30, -5 + Math.sin(time * 3 + 1) * 20); ctx.stroke();
+    }
+    ctx.restore();
+    
+    // Mouth
+    if (isP3) {
+        ctx.save(); ctx.translate(0, 8);
+        ctx.shadowBlur = 15; ctx.shadowColor = "#FF00FF";
+        ctx.fillStyle = "#0A0020";
+        ctx.beginPath(); ctx.ellipse(0, 0, 12, 8 + Math.sin(time * 4) * 3, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = "rgba(200, 100, 255, 0.6)"; ctx.lineWidth = 1.5;
+        for (var sp = 0; sp < 3; sp++) {
+            ctx.beginPath();
+            var spAngle = time * 4 + sp * Math.PI * 2 / 3;
+            ctx.arc(0, 0, 5 + sp * 2, spAngle, spAngle + Math.PI);
+            ctx.stroke();
+        }
+        ctx.restore();
+    } else {
+        ctx.strokeStyle = isP2 ? "#9933FF" : "#6633AA"; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(-8, 8); ctx.lineTo(8, 8); ctx.stroke();
+    }
+    
+    // Helmet cracks (P2/P3)
+    if (isP2 || isP3) {
+        ctx.save();
+        ctx.strokeStyle = isP3 ? "#FF44FF" : "#BB44FF";
+        ctx.lineWidth = isP3 ? 2 : 1.5;
+        ctx.shadowBlur = 8; ctx.shadowColor = "#FF00FF";
+        ctx.beginPath(); ctx.moveTo(-15, -20); ctx.lineTo(-18, -12); ctx.lineTo(-22, -5); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(12, -25); ctx.lineTo(16, -18); ctx.lineTo(14, -10); ctx.stroke();
+        if (isP3) {
+            ctx.beginPath(); ctx.moveTo(-5, -30); ctx.lineTo(-3, -22); ctx.lineTo(-7, -15); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(8, -15); ctx.lineTo(12, -8); ctx.lineTo(18, 2); ctx.stroke();
+        }
+        ctx.restore();
+    }
+    
+    // Floating cosmic particles
+    ctx.save();
+    var numP = isP1 ? 5 : (isP2 ? 8 : 12);
+    for (var p = 0; p < numP; p++) {
+        var pAngle = time * (0.5 + p * 0.1) + p * Math.PI * 2 / numP;
+        var pDist = 50 + Math.sin(time * 2 + p) * 15;
+        ctx.fillStyle = isP3 ? "#FF44FF" : "#BB44FF";
+        ctx.globalAlpha = 0.4 + Math.sin(time * 5 + p) * 0.3;
+        ctx.beginPath();
+        ctx.arc(Math.cos(pAngle) * pDist, Math.sin(pAngle) * (pDist * 0.6), 2, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    ctx.globalAlpha = 1.0;
+    ctx.restore();
+    
+    // Chest symbol
+    ctx.save();
+    ctx.fillStyle = "#BB44FF"; ctx.shadowBlur = 8; ctx.shadowColor = "#9933FF";
+    ctx.font = "bold 12px Arial"; ctx.textAlign = "center";
+    ctx.fillText("G", 0, 34);
+    ctx.restore();
+    
+    ctx.restore();
+};
+
 Enemy.prototype.drawBillCipher = function(ctx) {
     var time = Date.now() / 1000;
     ctx.save();
@@ -5257,18 +5483,28 @@ Enemy.prototype.drawBillCipher = function(ctx) {
     var isP3 = (this.renderType === "bill_angry");
     
     // Jitter/shake effect when angry
-    var shakeX = isP3 ? (Math.random() - 0.5) * 4 : (isP2 ? (Math.random() - 0.5) * 1.5 : 0);
-    var shakeY = isP3 ? (Math.random() - 0.5) * 4 : (isP2 ? (Math.random() - 0.5) * 1.5 : 0);
+    var shakeX = isP3 ? (Math.random() - 0.5) * 5 : (isP2 ? (Math.random() - 0.5) * 2 : 0);
+    var shakeY = isP3 ? (Math.random() - 0.5) * 5 : (isP2 ? (Math.random() - 0.5) * 2 : 0);
     
     // Floating movement
     var floatOffset = Math.sin(time * 3) * 6;
     ctx.translate(370 + shakeX, 150 + floatOffset + shakeY);
     
-    // 0. Draw Background Aura / Cipher Wheel / Magical Effects
+    // 0. Background Aura / Cipher Wheel / Magical Effects
     if (isP1) {
         ctx.save();
+        // Gold glowing halo behind Cipher Wheel
+        var goldGlow = ctx.createRadialGradient(0, 0, 15, 0, 0, 78);
+        goldGlow.addColorStop(0, "rgba(255, 215, 0, 0.25)");
+        goldGlow.addColorStop(0.7, "rgba(255, 180, 0, 0.08)");
+        goldGlow.addColorStop(1, "rgba(0, 0, 0, 0)");
+        ctx.fillStyle = goldGlow;
+        ctx.beginPath(); ctx.arc(0, 0, 80, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+
+        ctx.save();
         // Rotating golden Cipher Wheel behind Bill
-        ctx.strokeStyle = "rgba(255, 215, 0, 0.25)";
+        ctx.strokeStyle = "rgba(255, 215, 0, 0.35)";
         ctx.lineWidth = 1.5;
         ctx.setLineDash([4, 4]);
         ctx.beginPath();
@@ -5277,7 +5513,7 @@ Enemy.prototype.drawBillCipher = function(ctx) {
         
         ctx.rotate(-time * 0.4);
         ctx.setLineDash([]);
-        ctx.strokeStyle = "rgba(255, 215, 0, 0.15)";
+        ctx.strokeStyle = "rgba(255, 215, 0, 0.18)";
         // Draw spokes
         for (var sp = 0; sp < 8; sp++) {
             var sa = sp * Math.PI / 4;
@@ -5287,31 +5523,113 @@ Enemy.prototype.drawBillCipher = function(ctx) {
             ctx.stroke();
         }
         ctx.restore();
+
+        // Helix Golden Sparkles
+        ctx.save();
+        for (var p = 0; p < 8; p++) {
+            var pSeed = p * 987.654;
+            var pTimeOffset = (time * 0.5 + pSeed) % 1.0;
+            var pAngle = pTimeOffset * Math.PI * 2 + (pSeed % Math.PI);
+            var pRadius = 40 + (pSeed % 25) + pTimeOffset * 10;
+            var px = Math.cos(pAngle) * pRadius;
+            var py = Math.sin(pAngle) * (pRadius * 0.7) - 10;
+            var pSize = 1.5 + (pSeed % 2) * (1 - pTimeOffset);
+            var pAlpha = (1 - pTimeOffset) * 0.8;
+            ctx.globalAlpha = pAlpha;
+            ctx.fillStyle = "#FFD700";
+            ctx.shadowBlur = 6;
+            ctx.shadowColor = "#FFD700";
+            ctx.beginPath();
+            ctx.moveTo(px, py - pSize);
+            ctx.lineTo(px + pSize, py);
+            ctx.lineTo(px, py + pSize);
+            ctx.lineTo(px - pSize, py);
+            ctx.closePath();
+            ctx.fill();
+        }
+        ctx.restore();
     } else if (isP2) {
         ctx.save();
         // Shifting neon magenta/cyan halo
         var madnessHue = (time * 90) % 360;
         ctx.shadowBlur = 35;
         ctx.shadowColor = "hsl(" + madnessHue + ", 100%, 50%)";
-        ctx.fillStyle = "rgba(255, 255, 255, 0.05)";
+        ctx.fillStyle = "rgba(255, 255, 255, 0.06)";
         ctx.beginPath();
         ctx.arc(0, 0, 60, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Expanding trippy geometric circles
+        ctx.strokeStyle = "rgba(0, 255, 255, 0.2)";
+        ctx.lineWidth = 1;
+        for (var r = 0; r < 3; r++) {
+            var rad = 50 + r * 15 + Math.sin(time * 4 + r) * 6;
+            ctx.beginPath();
+            ctx.arc(0, 0, rad, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        ctx.restore();
+
+        // Chromatic Aberration ghost clones behind body
+        var shiftX = Math.sin(time * 20) * 5;
+        
+        ctx.save();
+        ctx.translate(shiftX, 0);
+        ctx.beginPath();
+        ctx.moveTo(0, -45); ctx.lineTo(45, 40); ctx.lineTo(-45, 40); ctx.closePath();
+        ctx.fillStyle = "rgba(0, 255, 255, 0.3)";
+        ctx.fill();
+        ctx.restore();
+        
+        ctx.save();
+        ctx.translate(-shiftX, 0);
+        ctx.beginPath();
+        ctx.moveTo(0, -45); ctx.lineTo(45, 40); ctx.lineTo(-45, 40); ctx.closePath();
+        ctx.fillStyle = "rgba(255, 0, 255, 0.3)";
         ctx.fill();
         ctx.restore();
     } else if (isP3) {
         ctx.save();
-        // Fiery red energy tendrils discharging from back
-        ctx.shadowBlur = 30;
+        // Apocalyptic red fire rings expanding
+        ctx.strokeStyle = "rgba(255, 0, 0, " + (0.25 + Math.sin(time * 8) * 0.12) + ")";
+        ctx.lineWidth = 2.5;
+        var rRad = 55 + (time * 45) % 35;
+        ctx.beginPath();
+        ctx.arc(0, 0, rRad, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        // Tendrils
+        ctx.shadowBlur = 35;
         ctx.shadowColor = "#FF0000";
-        ctx.strokeStyle = "rgba(255, 0, 0, 0.45)";
-        ctx.lineWidth = 2;
-        for (var l = 0; l < 6; l++) {
-            var la = l * Math.PI / 3 + time * 1.5;
-            var lLen = 60 + Math.sin(time * 8 + l) * 20;
+        ctx.strokeStyle = "rgba(255, 0, 0, 0.6)";
+        ctx.lineWidth = 2.5;
+        for (var l = 0; l < 8; l++) {
+            var la = l * Math.PI / 4 + time * 1.8;
+            var lLen = 65 + Math.sin(time * 10 + l) * 25;
             ctx.beginPath();
             ctx.moveTo(0, 0);
-            ctx.quadraticCurveTo(Math.cos(la + 0.3) * (lLen * 0.5), Math.sin(la + 0.3) * (lLen * 0.5), Math.cos(la) * lLen, Math.sin(la) * lLen);
+            ctx.quadraticCurveTo(Math.cos(la + 0.35) * (lLen * 0.55), Math.sin(la + 0.35) * (lLen * 0.55), Math.cos(la) * lLen, Math.sin(la) * lLen);
             ctx.stroke();
+        }
+        ctx.restore();
+
+        // Rising fire sparks from bottom base
+        ctx.save();
+        ctx.globalCompositeOperation = "screen";
+        for (var p = 0; p < 12; p++) {
+            var pSeed = p * 123.456;
+            var pTimeOffset = (time * 0.8 + pSeed) % 1.0;
+            var px = -45 + (pSeed % 90);
+            var py = 40 - pTimeOffset * 95;
+            var pSize = 1.5 + (pSeed % 3) * (1 - pTimeOffset);
+            var pAlpha = (1 - pTimeOffset) * 0.85;
+            ctx.globalAlpha = pAlpha;
+            ctx.fillStyle = p % 2 === 0 ? "#FF4500" : "#FFA500";
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = ctx.fillStyle;
+            ctx.beginPath();
+            ctx.arc(px, py, pSize, 0, Math.PI * 2);
+            ctx.fill();
         }
         ctx.restore();
     }
@@ -5379,8 +5697,17 @@ Enemy.prototype.drawBillCipher = function(ctx) {
     ctx.closePath();
     
     if (isP1) {
-        ctx.fillStyle = "#FFD700"; // Gold/Yellow
-        ctx.shadowBlur = 15;
+        // Golden metallic sweep
+        var sweepPos = ((time * 0.45) % 1.6) - 0.3; // sweeps across -0.3 to 1.3
+        var bodyGrad = ctx.createLinearGradient(-45, 0, 45, 0);
+        bodyGrad.addColorStop(0, "#FFD700");
+        bodyGrad.addColorStop(Math.max(0, Math.min(1, sweepPos)), "#FFD700");
+        bodyGrad.addColorStop(Math.max(0, Math.min(1, sweepPos + 0.1)), "#FFE875"); // Bright highlight
+        bodyGrad.addColorStop(Math.max(0, Math.min(1, sweepPos + 0.2)), "#FFD700");
+        bodyGrad.addColorStop(1, "#FFD700");
+        
+        ctx.fillStyle = bodyGrad;
+        ctx.shadowBlur = 18;
         ctx.shadowColor = "#FFD700";
         ctx.fill();
     } else if (isP2) {
@@ -5409,6 +5736,26 @@ Enemy.prototype.drawBillCipher = function(ctx) {
             ctx.fillStyle = s % 2 === 0 ? "#FF00FF" : "#00FFFF";
             ctx.fillRect(sx, sy, 2.5, 2.5);
         }
+        
+        // Floating glitch digits inside body
+        ctx.font = "8px Courier New";
+        ctx.fillStyle = "#00FFFF";
+        ctx.globalAlpha = 0.35;
+        for (var c = 0; c < 4; c++) {
+            var cSeed = c * 50;
+            var cy = -35 + ((time * 40 + cSeed) % 70);
+            var cx = -25 + (c * 15);
+            var charCode = 48 + Math.floor(Math.random() * 10);
+            ctx.fillText(String.fromCharCode(charCode), cx, cy);
+        }
+        ctx.fillStyle = "#FF00FF";
+        for (var c = 0; c < 4; c++) {
+            var cSeed = c * 75;
+            var cy = -35 + ((time * 30 + cSeed) % 70);
+            var cx = -20 + (c * 15);
+            var charCode = 65 + Math.floor(Math.random() * 26);
+            ctx.fillText(String.fromCharCode(charCode), cx, cy);
+        }
         ctx.restore();
         
         ctx.shadowBlur = 20;
@@ -5416,7 +5763,7 @@ Enemy.prototype.drawBillCipher = function(ctx) {
         var rBlue = Math.floor(180 + Math.sin(time * 6 + Math.PI) * 75);
         ctx.shadowColor = "rgba(" + rRed + ",0," + rBlue + ",0.8)";
     } else {
-        // Fiery red body with licking outer flames
+        // Fiery red body
         ctx.fillStyle = "#FF0000"; // Angry Red
         ctx.shadowBlur = 25;
         ctx.shadowColor = "#FF0000";
@@ -5431,6 +5778,24 @@ Enemy.prototype.drawBillCipher = function(ctx) {
         ctx.quadraticCurveTo(15, 25, 0, 10);
         ctx.closePath();
         ctx.fill();
+
+        // Crackling electric discharges
+        ctx.strokeStyle = "#FFFFFF";
+        ctx.lineWidth = 1.5;
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = "#FF5500";
+        if (Math.sin(time * 12) > 0.7) {
+            ctx.beginPath();
+            var startX = -25 + Math.random() * 50;
+            var startY = -25 + Math.random() * 55;
+            ctx.moveTo(startX, startY);
+            for (var seg = 0; seg < 4; seg++) {
+                startX += (Math.random() - 0.5) * 12;
+                startY += 8;
+                ctx.lineTo(startX, startY);
+            }
+            ctx.stroke();
+        }
     }
     
     ctx.shadowBlur = 0; // reset shadow for body outline
@@ -5439,30 +5804,91 @@ Enemy.prototype.drawBillCipher = function(ctx) {
     ctx.stroke();
     
     // Brick pattern lines inside Bill's body (Gravity Falls style)
-    if (!isP2) { // Skip bricks for P2 cosmic body
-        ctx.save();
-        ctx.strokeStyle = isP3 ? "rgba(0, 0, 0, 0.22)" : "rgba(0, 0, 0, 0.15)";
-        ctx.lineWidth = 1.5;
-        // Horizontal lines
-        for (var ly = -20; ly < 40; ly += 15) {
-            // Calculate horizontal bounds of the triangle at this height
-            var t = (ly + 45) / 85; // 0 at apex (-45), 1 at bottom (40)
-            var halfW = t * 45;
-            ctx.beginPath();
-            ctx.moveTo(-halfW, ly);
-            ctx.lineTo(halfW, ly);
-            ctx.stroke();
-            
-            // Vertical lines (bricks staggered)
-            var numSegments = Math.floor(halfW / 12) + 1;
-            for (var s = -numSegments; s <= numSegments; s++) {
-                var sx = s * 16 + (Math.floor(ly / 15) % 2 === 0 ? 8 : 0);
-                if (Math.abs(sx) < halfW - 2) {
-                    ctx.beginPath();
-                    ctx.moveTo(sx, ly);
-                    ctx.lineTo(sx, ly + 15);
-                    ctx.stroke();
+    if (!isP2) {
+        if (isP3) {
+            // Lava/magma brick cracks glowing inside body
+            ctx.save();
+            var pulse = Math.floor(100 + Math.sin(time * 8) * 80);
+            ctx.strokeStyle = "rgba(255, " + pulse + ", 0, 0.95)";
+            ctx.lineWidth = 2;
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = "rgba(255, 100, 0, 0.9)";
+            for (var ly = -20; ly < 40; ly += 15) {
+                var t = (ly + 45) / 85;
+                var halfW = t * 45;
+                ctx.beginPath();
+                ctx.moveTo(-halfW + 1.5, ly);
+                ctx.lineTo(halfW - 1.5, ly);
+                ctx.stroke();
+                
+                var numSegments = Math.floor(halfW / 12) + 1;
+                for (var s = -numSegments; s <= numSegments; s++) {
+                    var sx = s * 16 + (Math.floor(ly / 15) % 2 === 0 ? 8 : 0);
+                    if (Math.abs(sx) < halfW - 3) {
+                        ctx.beginPath();
+                        ctx.moveTo(sx, ly);
+                        ctx.lineTo(sx, ly + 15);
+                        ctx.stroke();
+                    }
                 }
+            }
+            ctx.restore();
+        } else {
+            // Normal yellow brick lines
+            ctx.save();
+            ctx.strokeStyle = "rgba(0, 0, 0, 0.15)";
+            ctx.lineWidth = 1.5;
+            for (var ly = -20; ly < 40; ly += 15) {
+                var t = (ly + 45) / 85;
+                var halfW = t * 45;
+                ctx.beginPath();
+                ctx.moveTo(-halfW, ly);
+                ctx.lineTo(halfW, ly);
+                ctx.stroke();
+                
+                var numSegments = Math.floor(halfW / 12) + 1;
+                for (var s = -numSegments; s <= numSegments; s++) {
+                    var sx = s * 16 + (Math.floor(ly / 15) % 2 === 0 ? 8 : 0);
+                    if (Math.abs(sx) < halfW - 2) {
+                        ctx.beginPath();
+                        ctx.moveTo(sx, ly);
+                        ctx.lineTo(sx, ly + 15);
+                        ctx.stroke();
+                    }
+                }
+            }
+            ctx.restore();
+        }
+    } else {
+        // Extra madness eyes inside body for P2
+        var eyePositions = [
+            {x: -12, y: 15, size: 4.5},
+            {x: 16, y: 20, size: 5},
+            {x: -4, y: -12, size: 3.5},
+            {x: 10, y: 2, size: 4}
+        ];
+        ctx.save();
+        for (var k = 0; k < eyePositions.length; k++) {
+            var ep = eyePositions[k];
+            var eyeBlink = (Math.sin(time * 3.5 + k) > 0.85);
+            ctx.fillStyle = "#FFFFFF";
+            ctx.beginPath();
+            ctx.ellipse(ep.x, ep.y, ep.size * 1.5, ep.size, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = "#000000";
+            ctx.lineWidth = 1.2;
+            ctx.stroke();
+            if (!eyeBlink) {
+                ctx.fillStyle = "#FF0000"; // Madness red iris
+                ctx.beginPath();
+                ctx.arc(ep.x + Math.sin(time * 4 + k) * (ep.size * 0.4), ep.y + Math.cos(time * 4 + k) * (ep.size * 0.3), ep.size * 0.5, 0, Math.PI * 2);
+                ctx.fill();
+            } else {
+                ctx.strokeStyle = "#000000";
+                ctx.beginPath();
+                ctx.moveTo(ep.x - ep.size * 1.5, ep.y);
+                ctx.lineTo(ep.x + ep.size * 1.5, ep.y);
+                ctx.stroke();
             }
         }
         ctx.restore();
@@ -5497,12 +5923,26 @@ Enemy.prototype.drawBillCipher = function(ctx) {
     // Eye outline
     ctx.fillStyle = "#FFFFFF";
     ctx.strokeStyle = "#000000";
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 3.5;
     ctx.beginPath();
     ctx.ellipse(0, 0, 18, 11, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
     
+    // Sclera Veins for P3
+    if (isP3) {
+        ctx.save();
+        ctx.strokeStyle = "rgba(220, 0, 0, 0.75)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(-13, -3); ctx.lineTo(-7, -1);
+        ctx.moveTo(13, -3); ctx.lineTo(7, -1);
+        ctx.moveTo(-11, 4); ctx.lineTo(-6, 1);
+        ctx.moveTo(11, 4); ctx.lineTo(6, 1);
+        ctx.stroke();
+        ctx.restore();
+    }
+
     // Iris / Pupil
     var isBlinking = (Math.sin(time * 2.2) > 0.92);
     if (!isBlinking) {
@@ -5514,7 +5954,7 @@ Enemy.prototype.drawBillCipher = function(ctx) {
         } else if (isP2) {
             // Glowing red madness eye
             ctx.fillStyle = "#FF0000";
-            ctx.shadowBlur = 8;
+            ctx.shadowBlur = 10;
             ctx.shadowColor = "#FF0000";
             ctx.beginPath();
             ctx.arc(0, 0, 7, 0, Math.PI * 2);
@@ -5534,11 +5974,24 @@ Enemy.prototype.drawBillCipher = function(ctx) {
             
             // Fiery yellow pupil slit
             ctx.fillStyle = "#FFFF00";
-            ctx.shadowBlur = 10;
+            ctx.shadowBlur = 12;
             ctx.shadowColor = "#FFFF00";
             ctx.beginPath();
             ctx.ellipse(0, 0, 3, 8, 0, 0, Math.PI * 2);
             ctx.fill();
+
+            // Flare lines emanating from yellow pupil
+            ctx.shadowBlur = 0;
+            ctx.strokeStyle = "rgba(255, 220, 0, 0.65)";
+            ctx.lineWidth = 1.5;
+            for (var p = 0; p < 4; p++) {
+                var pa = time * 6.5 + p * Math.PI / 2;
+                var pl = 9 + Math.sin(time * 16 + p) * 4;
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(Math.cos(pa) * pl, Math.sin(pa) * pl);
+                ctx.stroke();
+            }
         }
     } else {
         // Draw closed eye line (blink)

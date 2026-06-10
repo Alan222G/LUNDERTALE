@@ -354,6 +354,24 @@ var Overworld = (function() {
                 });
             }
         });
+
+        // Galactus battle trigger
+        triggerList.push({
+            x: 560, y: 290, w: 26, h: 26,
+            triggered: false,
+            bossId: "galactus",
+            label: "GALACTUS",
+            subWorld: 2,
+            color: "rgba(128, 0, 255, 0.6)",
+            action: function() {
+                var self = this;
+                Transition.start(function() {
+                    main.gameState = main.GAME_STATE.COMBAT;
+                    Combat.init(self.bossId);
+                    Combat.setup(main.ctx);
+                });
+            }
+        });
         
         singFrames = [
             loadImg("Resources/Agujero negro Boss Map 1.PNG"),
@@ -659,7 +677,7 @@ var Overworld = (function() {
                     if (t.bossId === "seraphina") {
                         var frameIdx = Math.floor(animTimer * 4) % seraFrames.length;
                         img = seraFrames[frameIdx];
-                    } else if (t.bossId === "ramiel" || t.bossId === "paradox" || t.bossId === "sachiel" || t.bossId === "vader" || t.bossId === "godzilla" || t.bossId === "glitch" || t.bossId === "prism" || t.bossId === "void_maw" || t.bossId === "bill") {
+                    } else if (t.bossId === "ramiel" || t.bossId === "paradox" || t.bossId === "sachiel" || t.bossId === "vader" || t.bossId === "godzilla" || t.bossId === "glitch" || t.bossId === "prism" || t.bossId === "void_maw" || t.bossId === "bill" || t.bossId === "galactus") {
                         img = null; 
                     } else {
                         var frameIdx = Math.floor(animTimer * 4) % singFrames.length;
@@ -1185,6 +1203,48 @@ var Overworld = (function() {
                         ctx.lineTo(bSize * 0.4, bSize * 1.0);
                         ctx.stroke();
                         
+                        ctx.restore();
+                    } else if (t.bossId === "galactus") {
+                        var gTime = animTimer;
+                        ctx.save();
+                        ctx.translate(gcx, gcy - 3 + Math.sin(gTime * 2) * 3);
+                        
+                        // Purple cosmic aura
+                        ctx.shadowBlur = 20;
+                        ctx.shadowColor = "rgba(128, 0, 255, 0.8)";
+                        
+                        // Helmet body
+                        ctx.fillStyle = "#442266";
+                        ctx.beginPath();
+                        ctx.arc(0, 0, 10, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        // Horns
+                        ctx.strokeStyle = "#6633AA";
+                        ctx.lineWidth = 2.5;
+                        ctx.beginPath();
+                        ctx.moveTo(-6, -6);
+                        ctx.lineTo(-10, -16);
+                        ctx.moveTo(6, -6);
+                        ctx.lineTo(10, -16);
+                        ctx.stroke();
+                        
+                        // Visor/Eyes
+                        ctx.fillStyle = "#FF44FF";
+                        ctx.shadowBlur = 8;
+                        ctx.shadowColor = "#FF00FF";
+                        ctx.fillRect(-6, -2, 4, 2);
+                        ctx.fillRect(2, -2, 4, 2);
+                        
+                        // Helmet line
+                        ctx.strokeStyle = "#9933FF";
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(-10, 2);
+                        ctx.lineTo(10, 2);
+                        ctx.stroke();
+                        
+                        ctx.shadowBlur = 0;
                         ctx.restore();
                     } else if (img && img.complete) {
                         ctx.drawImage(img, t.x, t.y, t.w, t.h);

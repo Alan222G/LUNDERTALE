@@ -30,6 +30,8 @@ var Cgroup = (function() {
             setupVoidMaw();
         } else if (currentBossId === "bill") {
             setupBillCipher();
+        } else if (currentBossId === "galactus") {
+            setupGalactus();
         } else {
             setupSingularity();
         }
@@ -1052,6 +1054,104 @@ var Cgroup = (function() {
             }
         };
 
+        enemies[0].bubblePos = enemies[0].damagePos.getAdd(new Vect(60, -160, 0));
+        mercies = ["Spare", "Flee"];
+        defends = [];
+    }
+
+    function setupGalactus() {
+        enemies = [
+            new Enemy({
+                name: "GALACTUS",
+                checkText: "El Devorador de Mundos. Su hambre es infinita y su poder, cósmico.",
+                maxHP: 6500,
+                curHP: 6500,
+                renderType: "galactus_herald",
+                atk: 30,
+                def: 25,
+                defense: 1.2,
+                spareable: true,
+                acts: ["Check", "Ofrecer Energía", "Razonar", "Invocar a Reed", "Compasión", "Flee"],
+                actResponses: [
+                    "* GALACTUS - ATK 30 DEF 25\n* El Devorador de Mundos. Su hambre es una fuerza fundamental del universo.\n* Su poder cósmico supera la comprensión mortal.",
+                    "* Ofreces una pequeña porción de tu energía vital.\n* GALACTUS la absorbe... y por un instante, su hambre parece disminuir.",
+                    "* Intentas razonar con GALACTUS sobre el valor de la vida.\n* '¿Razonar? Las estrellas no razonan antes de colapsar.'",
+                    "* Invocas el nombre de Reed Richards.\n* GALACTUS se detiene un momento. 'Ese mortal... siempre persistente.'",
+                    "* Muestras compasión genuina por su hambre eterna.\n* Algo cambia en sus ojos cósmicos... recuerda a Galan.",
+                    "* Intentas huir del Devorador de Mundos.\n* La gravedad cósmica te lo impide."
+                ],
+                actFunctions: [
+                    function() { console.log("Checked Galactus"); },
+                    function() {
+                        console.log("Offered Energy to Galactus");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 20);
+                    },
+                    function() {
+                        console.log("Reasoned with Galactus");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 10);
+                    },
+                    function() {
+                        console.log("Invoked Reed Richards");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 25);
+                    },
+                    function() {
+                        console.log("Showed Compassion to Galactus");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 30);
+                    },
+                    function() {
+                        console.log("Flee Galactus failed");
+                    }
+                ],
+                texts: [
+                    "* El cosmos tiembla ante la presencia de GALACTUS.",
+                    "* Las estrellas cercanas se apagan lentamente.",
+                    "* La gravedad cósmica distorsiona el espacio a tu alrededor.",
+                    "* Sientes el hambre insaciable irradiando de su forma.",
+                    "* Las galaxias giran más lento en su presencia."
+                ],
+                speech: [
+                    "MI HAMBRE\nES ETERNA.",
+                    "ESTE MUNDO\nSERA\nCONSUMIDO.",
+                    "SOY\nINEVITABLE.",
+                    "LA VIDA\nES EFIMERA.\nYO SOY\nETERNO."
+                ],
+                spriteId: "asriel",
+                attacks: [
+                    "galactusCosmicBeam", "galactusHeraldSurfer", "galactusPowerCosmic", "galactusGravityCrush", "galactusStarDrain", "galactusCosmicRift", "galactusWorldEngine",
+                    "galactusDevourPull", "galactusNebulaBurst", "galactusOrbitalBombard", "galactusCosmicStorm", "galactusHungerWave", "galactusPlanetCrush", "galactusVoidTendrils",
+                    "galactusUltimateNullifier", "galactusRealityTear", "galactusBlackHoleMaw", "galactusCosmicJudgment", "galactusDimensionalCollapse", "galactusDevourStar", "galactusEndOfAllThings"
+                ],
+                phases: [
+                    {
+                        patterns: ["galactusCosmicBeam", "galactusHeraldSurfer", "galactusPowerCosmic", "galactusGravityCrush", "galactusStarDrain", "galactusCosmicRift", "galactusWorldEngine"],
+                        soulMode: "red",
+                        renderType: "galactus_herald",
+                        speech: ["MI HAMBRE\nES ETERNA.", "EL HERALDO\nHA ANUNCIADO\nMI LLEGADA.", "ESTE MUNDO\nSERA\nCONSUMIDO."]
+                    },
+                    {
+                        patterns: ["galactusDevourPull", "galactusNebulaBurst", "galactusOrbitalBombard", "galactusCosmicStorm", "galactusHungerWave", "galactusPlanetCrush", "galactusVoidTendrils"],
+                        soulMode: "red",
+                        renderType: "galactus_hungry",
+                        speech: ["TENGO\nHAMBRE.", "EL UNIVERSO\nSE ENCOGE\nANTE MI.", "NO PUEDES\nDETENER\nLO INEVITABLE."]
+                    },
+                    {
+                        patterns: ["galactusUltimateNullifier", "galactusRealityTear", "galactusBlackHoleMaw", "galactusCosmicJudgment", "galactusDimensionalCollapse", "galactusDevourStar", "galactusEndOfAllThings"],
+                        soulMode: "blue",
+                        renderType: "galactus_devourer",
+                        speech: ["¡SOY\nGALACTUS!", "¡EL FIN\nDE TODO\nHA LLEGADO!", "¡NADA\nESCAPARA\nMI HAMBRE!"]
+                    }
+                ],
+                phaseHP: [6500, 7800, 13000],
+                karmaEnabled: false,
+                jitterEnabled: true,
+                damagePos: new Vect(370, 290, 0),
+                damageVel: 120,
+                bubbleOff: 30,
+                mercyHP: 100,
+                xpReward: 6000,
+                goldReward: 3500,
+            })
+        ];
         enemies[0].bubblePos = enemies[0].damagePos.getAdd(new Vect(60, -160, 0));
         mercies = ["Spare", "Flee"];
         defends = [];

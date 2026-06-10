@@ -115,13 +115,16 @@ ATFieldPattern.prototype.update = function(dt) {
             var dx = w.targetX - w.x;
             var dy = w.targetY - w.y;
             var dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist < 3) {
+            var step = w.speed * dt;
+            if (dist <= step) {
                 // Reached target — explode
                 w.exploded = true;
+                w.x = w.targetX;
+                w.y = w.targetY;
                 this.explodeWall(w);
             } else {
-                w.x += (dx / dist) * w.speed * dt;
-                w.y += (dy / dist) * w.speed * dt;
+                w.x += (dx / dist) * step;
+                w.y += (dy / dist) * step;
             }
         }
 

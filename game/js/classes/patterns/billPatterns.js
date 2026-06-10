@@ -5,31 +5,96 @@ var billParticles = [];
 function updateBillParticles(dt) {
     for (var i = billParticles.length - 1; i >= 0; i--) {
         var p = billParticles[i];
+        p.vx += (p.ax || 0) * dt;
+        p.vy += (p.ay || 0) * dt;
         p.x += p.vx * dt;
         p.y += p.vy * dt;
+        p.angle = (p.angle || 0) + (p.rotSpeed || 0) * dt;
         p.life -= dt;
-        if (p.life <= 0) billParticles.splice(i, 1);
+        if (p.life <= 0) {
+            billParticles.splice(i, 1);
+        }
     }
 }
 function drawBillParticles(ctx) {
     ctx.save();
     for (var i = 0; i < billParticles.length; i++) {
         var p = billParticles[i];
+        var alpha = Math.max(0, Math.min(1, p.life / p.maxLife));
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.angle || 0);
+        ctx.globalAlpha = alpha * (p.alphaScale !== undefined ? p.alphaScale : 1.0);
+        
         ctx.fillStyle = p.color || "#00FFFF";
-        ctx.shadowBlur = p.glow || 8;
+        ctx.shadowBlur = (p.glow || 8) * alpha;
         ctx.shadowColor = p.color || "#00FFFF";
-        ctx.fillRect(p.x - p.size/2, p.y - p.size/2, p.size, p.size);
+        
+        var size = p.size * (p.shrink ? alpha : 1.0);
+        
+        if (p.type === 'triangle') {
+            ctx.beginPath();
+            ctx.moveTo(0, -size / 2);
+            ctx.lineTo(size / 2, size / 2);
+            ctx.lineTo(-size / 2, size / 2);
+            ctx.closePath();
+            ctx.fill();
+        } else if (p.type === 'star') {
+            ctx.beginPath();
+            for (var j = 0; j < 5; j++) {
+                var angle = (Math.PI * 2 / 5) * j - Math.PI / 2;
+                ctx.lineTo(Math.cos(angle) * size / 2, Math.sin(angle) * size / 2);
+                var angle2 = angle + Math.PI / 5;
+                ctx.lineTo(Math.cos(angle2) * size / 4, Math.sin(angle2) * size / 4);
+            }
+            ctx.closePath();
+            ctx.fill();
+        } else if (p.type === 'fire') {
+            ctx.fillStyle = p.color || "#FF4500";
+            ctx.beginPath();
+            ctx.moveTo(0, -size);
+            ctx.quadraticCurveTo(size / 2, -size / 2, size / 4, size / 2);
+            ctx.lineTo(-size / 4, size / 2);
+            ctx.quadraticCurveTo(-size / 2, -size / 2, 0, -size);
+            ctx.closePath();
+            ctx.fill();
+        } else if (p.type === 'circle') {
+            ctx.beginPath();
+            ctx.arc(0, 0, size / 2, 0, Math.PI * 2);
+            ctx.fill();
+        } else if (p.type === 'glyph') {
+            ctx.font = "bold " + Math.round(size) + "px Arial";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            var glyphs = ["?", "★", "★", "▲", "▼", "◆", "X", "O", "★", "★"];
+            var glyph = p.glyphChar || glyphs[Math.floor(p.seed || 0) % glyphs.length];
+            ctx.fillText(glyph, 0, 0);
+        } else {
+            ctx.fillRect(-size/2, -size/2, size, size);
+        }
+        ctx.restore();
     }
     ctx.restore();
 }
-function spawnBillParticle(x, y, vx, vy, size, life, color, glow) {
+function spawnBillParticle(x, y, vx, vy, size, life, color, glow, config) {
+    config = config || {};
     billParticles.push({
         x: x, y: y,
         vx: vx, vy: vy,
+        ax: config.ax || 0,
+        ay: config.ay || 0,
         size: size,
         life: life,
+        maxLife: life,
         color: color,
-        glow: glow
+        glow: glow,
+        type: config.type || 'spark',
+        angle: config.angle || Math.random() * Math.PI * 2,
+        rotSpeed: config.rotSpeed || (Math.random() - 0.5) * 4,
+        alphaScale: config.alphaScale !== undefined ? config.alphaScale : 1.0,
+        shrink: config.shrink !== undefined ? config.shrink : true,
+        glyphChar: config.glyphChar || null,
+        seed: Math.random() * 100
     });
 }
 
@@ -84,11 +149,15 @@ BillEyeLasersPattern.prototype.update = function(dt) {
         } else if (l.active > 0) {
             l.active -= dt;
             l.angle += l.speed * dt;
-            if (Math.random() < 0.3) {
+            if (Math.random() < 0.35) {
                 var len = 100 + Math.random() * 200;
                 var lx = l.x + Math.cos(l.angle) * len;
                 var ly = l.y + Math.sin(l.angle) * len;
-                spawnBillParticle(lx, ly, (Math.random() - 0.5) * 40, (Math.random() - 0.5) * 40, 3, 0.4, "#FFFF00", 8);
+                spawnBillParticle(lx, ly, (Math.random() - 0.5) * 50, (Math.random() - 0.5) * 50, 6 + Math.random() * 4, 0.6, "#FFFF00", 10, {
+                    type: Math.random() > 0.45 ? 'triangle' : 'star',
+                    ay: 90,
+                    rotSpeed: (Math.random() - 0.5) * 6
+                });
             }
             if (l.active <= 0) {
                 this.lasers.splice(i, 1);
@@ -240,7 +309,10 @@ BillCipherWheelPattern.prototype.update = function(dt) {
                     var sx = cx + Math.cos(sAngle) * this.wheelRadius;
                     var sy = cy + Math.sin(sAngle) * this.wheelRadius;
                     for (var p = 0; p < 6; p++) {
-                        spawnBillParticle(sx, sy, (Math.random() - 0.5) * 60, (Math.random() - 0.5) * 60, 3, 0.5, "#FF4444", 10);
+                        spawnBillParticle(sx, sy, (Math.random() - 0.5) * 75, (Math.random() - 0.5) * 75, 9 + Math.random() * 5, 0.7, "#FF3333", 12, {
+                            type: 'glyph',
+                            rotSpeed: (Math.random() - 0.5) * 4
+                        });
                     }
                 }
             } else if (s.laserActive > 0) {
@@ -254,11 +326,14 @@ BillCipherWheelPattern.prototype.update = function(dt) {
         }
     }
     // Ambient particles along the wheel rim
-    if (this.elapsed < this.duration - 1.0 && Math.random() < 0.3) {
+    if (this.elapsed < this.duration - 1.0 && Math.random() < 0.4) {
         var rAngle = Math.random() * Math.PI * 2;
         var rx = cx + Math.cos(rAngle) * this.wheelRadius;
         var ry = cy + Math.sin(rAngle) * this.wheelRadius;
-        spawnBillParticle(rx, ry, (Math.random() - 0.5) * 15, (Math.random() - 0.5) * 15, 2, 0.6, "#00FFFF", 4);
+        spawnBillParticle(rx, ry, (Math.random() - 0.5) * 15, (Math.random() - 0.5) * 15, 5 + Math.random() * 4, 0.8, "#00FFFF", 6, {
+            type: 'star',
+            rotSpeed: (Math.random() - 0.5) * 3
+        });
     }
 };
 BillCipherWheelPattern.prototype._drawSymbol = function(ctx, name, x, y, size) {
@@ -622,8 +697,12 @@ BillDealBlueFirePattern.prototype.update = function(dt) {
             f.active -= dt;
             f.x += f.vx * dt;
             f.y += f.vy * dt;
-            if (Math.random() < 0.25) {
-                spawnBillParticle(f.x, f.y, (Math.random() - 0.5) * 30, (Math.random() - 0.5) * 30, 2 + Math.random() * 2, 0.4, "#00BFFF", 6);
+            if (Math.random() < 0.35) {
+                spawnBillParticle(f.x, f.y, (Math.random() - 0.5) * 20, -10 - Math.random() * 30, 8 + Math.random() * 6, 0.6, "#00BFFF", 8, {
+                    type: 'fire',
+                    ay: -25,
+                    rotSpeed: (Math.random() - 0.5) * 2
+                });
             }
             if (f.active <= 0 || f.x < bb[0] - 30 || f.x > bb[2] + 30 || f.y < bb[1] - 30 || f.y > bb[3] + 30) {
                 this.fires.splice(i, 1);
@@ -726,8 +805,12 @@ BillHatDropPattern.prototype.update = function(dt) {
             b.vy = -70; // Bounce up
             b.bounced = true;
             Sound.playSound("ting", true);
-            for (var p = 0; p < 5; p++) {
-                spawnBillParticle(b.x, b.y, (Math.random() - 0.5) * 50, -Math.random() * 40, 2, 0.3, "#FFFF00", 6);
+            for (var p = 0; p < 8; p++) {
+                spawnBillParticle(b.x, b.y, (Math.random() - 0.5) * 80, -30 - Math.random() * 60, 6 + Math.random() * 4, 0.5, "#FFFF00", 8, {
+                    type: 'star',
+                    ay: 100,
+                    rotSpeed: (Math.random() - 0.5) * 8
+                });
             }
         } else if (b.bounced && b.vy < 0 && b.y <= bb[3] - 45) {
             b.vy = 100; // Drop down again

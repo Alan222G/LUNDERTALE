@@ -184,6 +184,32 @@ var BossController = (function() {
             "billGravityChaos": function(cfg) { return new BillGravityChaosPattern(cfg || { damVal: 9, duration: 7.5 }); },
             "billNightmareVortex": function(cfg) { return new BillNightmareVortexPattern(cfg || { damVal: 9, duration: 7.5 }); },
             "billArmageddon": function(cfg) { return new BillArmageddonPattern(cfg || { damVal: 12, duration: 8.0 }); },
+
+            // --- GALACTUS (El Devorador de Mundos) ---
+            // Phase 1: El Heraldo
+            "galactusCosmicBeam": function(cfg) { return new GalactusCosmicBeamPattern(cfg || { damVal: 9, duration: 8.0 }); },
+            "galactusHeraldSurfer": function(cfg) { return new GalactusHeraldSurferPattern(cfg || { damVal: 7, duration: 8.0 }); },
+            "galactusPowerCosmic": function(cfg) { return new GalactusPowerCosmicPattern(cfg || { damVal: 8, duration: 7.5 }); },
+            "galactusGravityCrush": function(cfg) { return new GalactusGravityCrushPattern(cfg || { damVal: 8, duration: 8.0 }); },
+            "galactusStarDrain": function(cfg) { return new GalactusStarDrainPattern(cfg || { damVal: 7, duration: 8.0 }); },
+            "galactusCosmicRift": function(cfg) { return new GalactusCosmicRiftPattern(cfg || { damVal: 8, duration: 8.0 }); },
+            "galactusWorldEngine": function(cfg) { return new GalactusWorldEnginePattern(cfg || { damVal: 8, duration: 8.0 }); },
+            // Phase 2: El Hambriento
+            "galactusDevourPull": function(cfg) { return new GalactusDevourPullPattern(cfg || { damVal: 8, duration: 8.0 }); },
+            "galactusNebulaBurst": function(cfg) { return new GalactusNebulaBurstPattern(cfg || { damVal: 7, duration: 7.5 }); },
+            "galactusOrbitalBombard": function(cfg) { return new GalactusOrbitalBombardPattern(cfg || { damVal: 9, duration: 8.0 }); },
+            "galactusCosmicStorm": function(cfg) { return new GalactusCosmicStormPattern(cfg || { damVal: 8, duration: 8.0 }); },
+            "galactusHungerWave": function(cfg) { return new GalactusHungerWavePattern(cfg || { damVal: 8, duration: 7.5 }); },
+            "galactusPlanetCrush": function(cfg) { return new GalactusPlanetCrushPattern(cfg || { damVal: 9, duration: 8.0 }); },
+            "galactusVoidTendrils": function(cfg) { return new GalactusVoidTendrilsPattern(cfg || { damVal: 8, duration: 7.5 }); },
+            // Phase 3: El Devorador
+            "galactusUltimateNullifier": function(cfg) { return new GalactusUltimateNullifierPattern(cfg || { damVal: 12, duration: 8.0 }); },
+            "galactusRealityTear": function(cfg) { return new GalactusRealityTearPattern(cfg || { damVal: 10, duration: 8.0 }); },
+            "galactusBlackHoleMaw": function(cfg) { return new GalactusBlackHoleMawPattern(cfg || { damVal: 10, duration: 8.0 }); },
+            "galactusCosmicJudgment": function(cfg) { return new GalactusCosmicJudgmentPattern(cfg || { damVal: 10, duration: 8.0 }); },
+            "galactusDimensionalCollapse": function(cfg) { return new GalactusDimensionalCollapsePattern(cfg || { damVal: 9, duration: 8.0 }); },
+            "galactusDevourStar": function(cfg) { return new GalactusDevourStarPattern(cfg || { damVal: 11, duration: 8.0 }); },
+            "galactusEndOfAllThings": function(cfg) { return new GalactusEndOfAllThingsPattern(cfg || { damVal: 12, duration: 9.0 }); },
         };
     }
 
@@ -407,6 +433,10 @@ var BossController = (function() {
         } else if (patternName === "billArmageddon") {
             w = 340; h = 340;
         } else if (patternName.indexOf("bill") === 0) {
+            w = 320; h = 320;
+        } else if (patternName === "galactusEndOfAllThings" || patternName === "galactusBlackHoleMaw") {
+            w = 340; h = 340;
+        } else if (patternName.indexOf("galactus") === 0) {
             w = 320; h = 320;
         }
 

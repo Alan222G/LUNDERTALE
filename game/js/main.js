@@ -250,7 +250,7 @@ var main = {
             var t = triggers[i];
             if (t.triggered) {
                 if (t.bossId === "singularity" || t.bossId === "seraphina" || t.bossId === "paradox" || 
-                    t.bossId === "prism" || t.bossId === "glitch" || t.bossId === "void_maw" || t.bossId === "bill") {
+                    t.bossId === "prism" || t.bossId === "glitch" || t.bossId === "void_maw" || t.bossId === "bill" || t.bossId === "galactus") {
                     spareableCount++;
                     if (t.defeatStatus === "spared") {
                         sparedCount++;
@@ -264,12 +264,12 @@ var main = {
             }
         }
         
-        // Pacifist: all 7 spareable bosses are spared (sparedCount === 7)
-        if (sparedCount === 7) {
+        // Pacifist: all 8 spareable bosses are spared (sparedCount === 8)
+        if (sparedCount === 8) {
             return "PACIFISTA";
         }
-        // Genocide: all 11 bosses are killed (killedCount === 11)
-        if (killedCount === 11) {
+        // Genocide: all 12 bosses are killed (killedCount === 12)
+        if (killedCount === 12) {
             return "GENOCIDA";
         }
         return "NEUTRAL";
@@ -319,10 +319,25 @@ var main = {
         var bosses = [
             "Anti-gravity", "Seraphina Vex", "RAMIEL", "PARADOJA",
             "SACHIEL", "GODZILLA", "DARTH VADER", "ERROR 404",
-            "COLOSO DE ESPEJOS", "EL HAMBRE CÓSMICA", "Bill Cipher"
+            "COLOSO DE ESPEJOS", "EL HAMBRE CÓSMICA", "Bill Cipher", "GALACTUS"
         ];
 
         var triggers = (typeof Overworld !== "undefined" && Overworld.getTriggerList) ? Overworld.getTriggerList() : [];
+
+        var bossIdMap = {
+            "Anti-gravity": "singularity",
+            "Seraphina Vex": "seraphina",
+            "RAMIEL": "ramiel",
+            "PARADOJA": "paradox",
+            "SACHIEL": "sachiel",
+            "GODZILLA": "godzilla",
+            "DARTH VADER": "vader",
+            "ERROR 404": "glitch",
+            "COLOSO DE ESPEJOS": "prism",
+            "EL HAMBRE CÓSMICA": "void_maw",
+            "Bill Cipher": "bill",
+            "GALACTUS": "galactus"
+        };
 
         ctx.font = "12pt Determination Mono";
         ctx.textAlign = "left";
@@ -332,8 +347,12 @@ var main = {
             
             // Find corresponding trigger to get its status
             var tStatus = "killed";
-            if (triggers[b]) {
-                tStatus = triggers[b].defeatStatus || "killed";
+            var targetBossId = bossIdMap[bosses[b]];
+            for (var i = 0; i < triggers.length; i++) {
+                if (triggers[i].bossId === targetBossId) {
+                    tStatus = triggers[i].defeatStatus || "killed";
+                    break;
+                }
             }
             
             if (tStatus === "spared") {
