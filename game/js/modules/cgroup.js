@@ -226,7 +226,7 @@ var Cgroup = (function() {
                 renderType: "ramiel_crystal",
                 atk: 14,
                 def: 10,
-                spareable: false,
+                spareable: true,
                 acts: ["Check", "Analyze", "Provoke", "Flee"],
                 actResponses: [
                     "* RAMIEL - ATK 14 DEF 10\n* The 5th Angel. A fortress of light.\n* Its A.T. Field is almost absolute.",
@@ -238,9 +238,11 @@ var Cgroup = (function() {
                     function() { console.log("Checked Ramiel"); },
                     function() {
                         console.log("Analyzed Ramiel");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 25);
                     },
                     function() {
                         console.log("Provoked Ramiel");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 15);
                     },
                     function() {
                         console.log("Fled Ramiel");
@@ -300,7 +302,7 @@ var Cgroup = (function() {
                 renderType: "sachiel",
                 atk: 15,
                 def: 12,
-                spareable: false,
+                spareable: true,
                 acts: ["Check", "Study Core", "Shield", "Flee"],
                 actResponses: [
                     "* SACHIEL - ATK 15 DEF 12\n* The Third Angel.\n* Its A.T. Field is weak but its strikes are brutal.",
@@ -312,9 +314,11 @@ var Cgroup = (function() {
                     function() { console.log("Checked Sachiel"); },
                     function() {
                         console.log("Studied Sachiel's Core");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 20);
                     },
                     function() {
                         console.log("Shielded against Sachiel");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 25);
                     },
                     function() {
                         console.log("Fled Sachiel");
@@ -459,7 +463,7 @@ var Cgroup = (function() {
                 renderType: "godzilla_head",
                 atk: 18,
                 def: 15,
-                spareable: false,
+                spareable: true,
                 acts: ["Check", "Dodge", "Roar Back", "Flee"],
                 actResponses: [
                     "* GODZILLA - ATK 18 DEF 15\n* El Titán Alfa. Su presencia es devastadora.",
@@ -474,10 +478,12 @@ var Cgroup = (function() {
                         if (typeof Player !== "undefined" && Player.addSpeedBuff) {
                             Player.addSpeedBuff(1.2, 1);
                         }
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 20);
                     },
                     function() {
                         console.log("Roared at Godzilla");
                         enemies[0].defense = Math.max(0.8, enemies[0].defense - 0.2);
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 25);
                     },
                     function() {
                         console.log("Flee Godzilla failed");
@@ -531,21 +537,23 @@ var Cgroup = (function() {
                 renderType: "vader_normal",
                 atk: 22,
                 def: 18,
-                spareable: false,
-                acts: ["Check", "Defy", "Bribe", "Flee"],
+                spareable: true,
+                acts: ["Check", "Defy", "Apelar a Anakin", "Flee"],
                 actResponses: [
                     "* DARTH VADER - ATK 22 DEF 18\n* Sientes la inmensa presión del Lado Oscuro.",
                     "* Desafías a Darth Vader con determinación.\n* Vader levanta su mano. Sientes un leve ahogo en la garganta.",
-                    "* Intentas sobornar al Lord Sith con unos créditos galácticos.\n* Vader destruye los créditos con su sable. 'Tus trucos no funcionan conmigo'.",
+                    "* Apelas al conflicto interno y a la bondad oculta de Anakin Skywalker.\n* Vader se estremece por un segundo. 'Ese nombre ya no significa nada para mí...'\n* Su respiración se agita notablemente.",
                     "* ¡No hay forma de huir del Lado Oscuro!"
                 ],
                 actFunctions: [
                     function() { console.log("Checked Vader"); },
                     function() {
                         console.log("Defied Vader");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 15);
                     },
                     function() {
-                        console.log("Bribed Vader");
+                        console.log("Appealed to Anakin");
+                        enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 35);
                     },
                     function() {
                         console.log("Flee Vader failed");

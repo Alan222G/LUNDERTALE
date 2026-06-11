@@ -246,26 +246,28 @@ var main = {
         var sparedCount = 0;
         var killedCount = 0;
         
+        var bossIds = [
+            "singularity", "seraphina", "paradox", "prism", 
+            "glitch", "void_maw", "bill", "galactus",
+            "ramiel", "sachiel", "godzilla", "vader"
+        ];
+        
         for (var i = 0; i < triggers.length; i++) {
             var t = triggers[i];
             if (t.triggered) {
-                if (t.bossId === "singularity" || t.bossId === "seraphina" || t.bossId === "paradox" || 
-                    t.bossId === "prism" || t.bossId === "glitch" || t.bossId === "void_maw" || t.bossId === "bill" || t.bossId === "galactus") {
+                if (bossIds.indexOf(t.bossId) !== -1) {
                     spareableCount++;
                     if (t.defeatStatus === "spared") {
                         sparedCount++;
                     } else {
                         killedCount++;
                     }
-                } else {
-                    // Un-spareable boss was killed
-                    killedCount++;
                 }
             }
         }
         
-        // Pacifist: all 8 spareable bosses are spared (sparedCount === 8)
-        if (sparedCount === 8) {
+        // Pacifist: all 12 spareable bosses are spared (sparedCount === 12)
+        if (sparedCount === 12) {
             return "PACIFISTA";
         }
         // Genocide: all 12 bosses are killed (killedCount === 12)

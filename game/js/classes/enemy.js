@@ -105,8 +105,8 @@ Object.defineProperty(Enemy.prototype, "mercyHP", {
         var diff = val - this._mercyHP;
         if (diff < 0) {
             // Decrease (Mercy going up / bar filling)
-            // Apply scale factor of 0.45 to ensure at least 10 actions are required
-            var scale = (this.spareable && this.currentPhase === 0) ? 0.45 : 1.0;
+            // Apply scale factor of 0.56 to ensure at least 8 actions are required
+            var scale = (this.spareable && this.currentPhase === 0) ? 0.56 : 1.0;
             var change = diff * scale;
             
             // If the caller clamped to 0 (val === 0) and the remaining mercyHP is small,
@@ -5287,157 +5287,372 @@ Enemy.prototype.drawGalactus = function(ctx) {
     var isP2 = (this.renderType === "galactus_hungry");
     var isP3 = (this.renderType === "galactus_devourer");
     
-    var shakeX = isP3 ? (Math.random() - 0.5) * 5 : (isP2 ? (Math.random() - 0.5) * 2 : 0);
-    var shakeY = isP3 ? (Math.random() - 0.5) * 5 : (isP2 ? (Math.random() - 0.5) * 2 : 0);
-    var floatY = Math.sin(time * 1.5) * 5;
-    var breathe = 1.0 + Math.sin(time * 2.0) * 0.015;
-    ctx.translate(370 + shakeX, 170 + floatY + shakeY);
-    ctx.scale(breathe, breathe);
+    var shakeX = isP3 ? (Math.random() - 0.5) * 6 : (isP2 ? (Math.random() - 0.5) * 2.5 : 0);
+    var shakeY = isP3 ? (Math.random() - 0.5) * 6 : (isP2 ? (Math.random() - 0.5) * 2.5 : 0);
+    var floatY = Math.sin(time * 1.2) * 6;
+    var breathe = 1.0 + Math.sin(time * 1.8) * 0.015;
     
-    // Background effects
+    // Colossal scale factor
+    ctx.translate(370 + shakeX, 160 + floatY + shakeY);
+    ctx.scale(breathe * 1.35, breathe * 1.35); // Render slightly larger for more presence
+    
+    // === BACKGROUND COSMIC EFFECTS ===
+    ctx.save();
+    ctx.globalCompositeOperation = "screen";
     if (isP1) {
-        ctx.save();
-        ctx.strokeStyle = "rgba(128, 0, 255, 0.15)";
+        // Purple/Blue Herald Nebula
+        var bgGrad = ctx.createRadialGradient(0, -10, 20, 0, -10, 110);
+        bgGrad.addColorStop(0, "rgba(128, 0, 255, 0.45)");
+        bgGrad.addColorStop(0.6, "rgba(0, 0, 128, 0.2)");
+        bgGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+        ctx.fillStyle = bgGrad;
+        ctx.beginPath(); ctx.arc(0, -10, 110, 0, Math.PI * 2); ctx.fill();
+        
+        // Orbital energy rings
+        ctx.strokeStyle = "rgba(100, 200, 255, 0.25)";
         ctx.lineWidth = 1.5;
-        ctx.setLineDash([4, 6]);
-        ctx.beginPath();
-        ctx.arc(0, 0, 85, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.setLineDash([]);
-        for (var s = 0; s < 8; s++) {
-            var sAngle = time * 0.3 + s * Math.PI / 4;
-            ctx.fillStyle = "rgba(200, 100, 255, 0.3)";
-            ctx.beginPath();
-            ctx.arc(Math.cos(sAngle) * 85, Math.sin(sAngle) * 85, 2, 0, Math.PI * 2);
-            ctx.fill();
-        }
-        ctx.restore();
+        ctx.beginPath(); ctx.ellipse(0, -10, 80 + Math.sin(time) * 3, 30, Math.sin(time * 0.5) * 0.1, 0, Math.PI * 2); ctx.stroke();
     } else if (isP2) {
-        ctx.save();
-        for (var r = 0; r < 3; r++) {
-            ctx.strokeStyle = "rgba(200, 50, 255, " + (0.15 + r * 0.05) + ")";
+        // Pulsing hunger gravity aura
+        var bgGrad = ctx.createRadialGradient(0, -10, 10, 0, -10, 125);
+        bgGrad.addColorStop(0, "rgba(220, 30, 255, 0.5)");
+        bgGrad.addColorStop(0.5, "rgba(128, 0, 255, 0.25)");
+        bgGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+        ctx.fillStyle = bgGrad;
+        ctx.beginPath(); ctx.arc(0, -10, 125, 0, Math.PI * 2); ctx.fill();
+        
+        // Spatial distortion waves
+        for (var d = 0; d < 3; d++) {
+            ctx.strokeStyle = "rgba(255, 0, 255, " + (0.2 - d * 0.05) + ")";
             ctx.lineWidth = 2;
-            var rRad = 70 + r * 20 + Math.sin(time * 3 + r) * 5;
-            ctx.beginPath();
-            ctx.arc(0, 0, rRad, 0, Math.PI * 2);
-            ctx.stroke();
+            var radius = 65 + d * 22 + (time * 40) % 25;
+            ctx.beginPath(); ctx.arc(0, -10, radius, 0, Math.PI * 2); ctx.stroke();
         }
-        ctx.restore();
     } else if (isP3) {
+        // Red/Purple Swirling Cosmos / Black Hole
         ctx.save();
-        ctx.globalCompositeOperation = "screen";
-        for (var r = 0; r < 10; r++) {
-            var rAngle = time * 0.4 + r * Math.PI * 2 / 10;
-            var grad = ctx.createLinearGradient(0, 0, Math.cos(rAngle) * 130, Math.sin(rAngle) * 130);
-            grad.addColorStop(0, "rgba(200, 100, 255, 0.5)");
-            grad.addColorStop(0.5, "rgba(128, 0, 255, 0.2)");
-            grad.addColorStop(1, "rgba(0, 0, 0, 0)");
-            ctx.fillStyle = grad;
+        ctx.rotate(time * 0.8);
+        var bgGrad = ctx.createRadialGradient(0, 0, 10, 0, 0, 140);
+        bgGrad.addColorStop(0, "rgba(255, 0, 50, 0.65)");
+        bgGrad.addColorStop(0.4, "rgba(128, 0, 155, 0.35)");
+        bgGrad.addColorStop(0.8, "rgba(50, 0, 100, 0.15)");
+        bgGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+        ctx.fillStyle = bgGrad;
+        ctx.beginPath(); ctx.arc(0, 0, 140, 0, Math.PI * 2); ctx.fill();
+        
+        // Cosmic Rays
+        for (var r = 0; r < 8; r++) {
+            var rAngle = r * Math.PI / 4;
+            var rayGrad = ctx.createLinearGradient(0, 0, Math.cos(rAngle) * 150, Math.sin(rAngle) * 150);
+            rayGrad.addColorStop(0, "rgba(255, 0, 80, 0.4)");
+            rayGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+            ctx.fillStyle = rayGrad;
             ctx.beginPath();
             ctx.moveTo(0, 0);
-            ctx.lineTo(Math.cos(rAngle - 0.08) * 130, Math.sin(rAngle - 0.08) * 130);
-            ctx.lineTo(Math.cos(rAngle + 0.08) * 130, Math.sin(rAngle + 0.08) * 130);
-            ctx.closePath();
-            ctx.fill();
+            ctx.lineTo(Math.cos(rAngle - 0.05) * 150, Math.sin(rAngle - 0.05) * 150);
+            ctx.lineTo(Math.cos(rAngle + 0.05) * 150, Math.sin(rAngle + 0.05) * 150);
+            ctx.closePath(); ctx.fill();
         }
         ctx.restore();
     }
+    ctx.restore();
     
-    // Shoulders
+    // === ARMOR & SHOULDERS ===
     ctx.save();
-    ctx.shadowBlur = 10;
-    ctx.shadowColor = "#6600AA";
-    ctx.fillStyle = "#332255";
+    ctx.shadowBlur = 12;
+    ctx.shadowColor = isP3 ? "#FF0055" : "#7700EE";
+    
+    var armorGrad = ctx.createLinearGradient(-100, 0, 100, 0);
+    armorGrad.addColorStop(0, "#190d29");
+    armorGrad.addColorStop(0.3, "#3d2256");
+    armorGrad.addColorStop(0.5, "#4c326c");
+    armorGrad.addColorStop(0.7, "#3d2256");
+    armorGrad.addColorStop(1, "#190d29");
+    ctx.fillStyle = armorGrad;
+    
     ctx.beginPath();
-    ctx.moveTo(-50, -10); ctx.lineTo(-35, -25); ctx.lineTo(-25, -5); ctx.lineTo(-40, 10);
-    ctx.closePath(); ctx.fill();
+    ctx.moveTo(-110, 60);
+    ctx.lineTo(-70, 20);
+    ctx.lineTo(-30, 25);
+    ctx.lineTo(-20, 15);
+    ctx.lineTo(20, 15);
+    ctx.lineTo(30, 25);
+    ctx.lineTo(70, 20);
+    ctx.lineTo(110, 60);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Shoulder tech lines / plates
+    ctx.strokeStyle = isP3 ? "#FF4488" : "#9955FF";
+    ctx.lineWidth = 1.8;
     ctx.beginPath();
-    ctx.moveTo(50, -10); ctx.lineTo(35, -25); ctx.lineTo(25, -5); ctx.lineTo(40, 10);
-    ctx.closePath(); ctx.fill();
-    ctx.strokeStyle = "#9933FF"; ctx.lineWidth = 1;
+    ctx.moveTo(-90, 50); ctx.lineTo(-65, 25); ctx.lineTo(-30, 28);
+    ctx.moveTo(90, 50); ctx.lineTo(65, 25); ctx.lineTo(30, 28);
+    ctx.stroke();
+    
+    // Neck collar
+    ctx.fillStyle = "#12081f";
+    ctx.fillRect(-22, 10, 44, 20);
+    ctx.strokeRect(-22, 10, 44, 20);
+    
+    // Vertical neck muscle lines
+    ctx.strokeStyle = "rgba(128, 0, 255, 0.4)";
+    ctx.lineWidth = 1.2;
     ctx.beginPath();
-    ctx.moveTo(-45, -8); ctx.lineTo(-30, -8);
-    ctx.moveTo(45, -8); ctx.lineTo(30, -8);
+    ctx.moveTo(-10, 10); ctx.lineTo(-10, 30);
+    ctx.moveTo(0, 10); ctx.lineTo(0, 30);
+    ctx.moveTo(10, 10); ctx.lineTo(10, 30);
+    ctx.stroke();
+    
+    // Chest Reactor/Circular Map (Image 1 style)
+    var rx = 0, ry = 48, rRadius = 24;
+    ctx.fillStyle = "#180f26";
+    ctx.beginPath();
+    ctx.arc(rx, ry, rRadius, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.strokeStyle = isP3 ? "#FF0077" : "#8833FF";
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.arc(rx, ry, rRadius, 0, Math.PI * 2);
+    ctx.stroke();
+    
+    // Inner reactor glow
+    var reactGlow = ctx.createRadialGradient(rx, ry, 0, rx, ry, rRadius);
+    reactGlow.addColorStop(0, isP3 ? "rgba(255, 0, 100, 0.95)" : (isP2 ? "rgba(255, 50, 255, 0.85)" : "rgba(100, 200, 255, 0.8)"));
+    reactGlow.addColorStop(0.4, isP3 ? "rgba(200, 0, 100, 0.4)" : "rgba(100, 0, 200, 0.4)");
+    reactGlow.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = reactGlow;
+    ctx.beginPath();
+    ctx.arc(rx, ry, rRadius - 2, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Reactor tech marks (Crosshairs/Lines like Image 1)
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.65)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(rx - rRadius + 5, ry); ctx.lineTo(rx + rRadius - 5, ry);
+    ctx.moveTo(rx, ry - rRadius + 5); ctx.lineTo(rx, ry + rRadius - 5);
+    ctx.stroke();
+    
+    // Rotating radar sweeps inside reactor
+    ctx.save();
+    ctx.translate(rx, ry);
+    ctx.rotate(time * 1.5);
+    ctx.strokeStyle = isP3 ? "rgba(255, 100, 200, 0.85)" : "rgba(100, 255, 255, 0.85)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(0, 0); ctx.lineTo(0, -rRadius + 3);
     ctx.stroke();
     ctx.restore();
     
-    // Neck/Chest
-    ctx.fillStyle = "#221144";
-    ctx.fillRect(-15, 15, 30, 25);
-    ctx.strokeStyle = "#6633AA"; ctx.lineWidth = 1;
-    ctx.strokeRect(-15, 15, 30, 25);
-    
-    // Helmet
-    ctx.save();
-    ctx.shadowBlur = isP3 ? 25 : 15;
-    ctx.shadowColor = isP3 ? "#FF00FF" : "#8800FF";
-    var helmColor = isP1 ? "#442266" : (isP2 ? "#553377" : "#663388");
-    ctx.fillStyle = helmColor;
-    ctx.beginPath();
-    ctx.ellipse(0, -10, 32, 28, 0, Math.PI, 0);
-    ctx.fill();
-    ctx.fillStyle = isP3 ? "#331155" : "#2A1050";
-    ctx.beginPath();
-    ctx.ellipse(0, 0, 28, 18, 0, 0, Math.PI);
-    ctx.fill();
-    ctx.strokeStyle = isP3 ? "#CC44FF" : "#7744AA"; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.ellipse(0, -10, 32, 28, 0, Math.PI, 0); ctx.stroke();
-    ctx.beginPath(); ctx.ellipse(0, 0, 28, 18, 0, 0, Math.PI); ctx.stroke();
-    
-    // Horns
-    ctx.lineWidth = 3.5; ctx.lineCap = "round";
-    ctx.strokeStyle = isP3 ? "#BB33FF" : "#6633AA";
-    ctx.beginPath(); ctx.moveTo(-22, -28); ctx.quadraticCurveTo(-35, -50, -28, -65); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(22, -28); ctx.quadraticCurveTo(35, -50, 28, -65); ctx.stroke();
-    if (isP2 || isP3) {
-        ctx.fillStyle = "#DD88FF"; ctx.shadowBlur = 12; ctx.shadowColor = "#FF00FF";
-        ctx.beginPath(); ctx.arc(-28, -65, 3, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(28, -65, 3, 0, Math.PI * 2); ctx.fill();
-    }
     ctx.restore();
     
-    // Eyes
+    // === FACE & CONTOURS ===
     ctx.save();
-    var eyeColor = isP1 ? "#CC44FF" : (isP2 ? "#FF33FF" : "#FF0000");
-    ctx.shadowBlur = 12; ctx.shadowColor = eyeColor;
-    ctx.fillStyle = eyeColor;
-    ctx.beginPath(); ctx.ellipse(-10, -5, 6, 3, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(10, -5, 6, 3, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = "#000000";
-    ctx.beginPath(); ctx.ellipse(-10, -5, 1.5, 2.5, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(10, -5, 1.5, 2.5, 0, 0, Math.PI * 2); ctx.fill();
-    if (isP3) {
-        ctx.strokeStyle = "rgba(255, 0, 0, 0.4)"; ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.moveTo(-10, -5);
-        ctx.lineTo(-10 + Math.cos(time * 3) * 30, -5 + Math.sin(time * 3) * 20); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(10, -5);
-        ctx.lineTo(10 + Math.cos(time * 3 + 1) * 30, -5 + Math.sin(time * 3 + 1) * 20); ctx.stroke();
-    }
-    ctx.restore();
+    ctx.fillStyle = "#1b112b"; // Dark cybernetic face base
+    ctx.beginPath();
+    ctx.moveTo(-24, -20);
+    ctx.quadraticCurveTo(-26, 0, -22, 15);
+    ctx.lineTo(22, 15);
+    ctx.quadraticCurveTo(26, 0, 24, -20);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Chin & Cheekbone lines (Image 1 features)
+    ctx.strokeStyle = "#432863";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(-16, -5); ctx.lineTo(-12, 10); ctx.lineTo(-6, 12);
+    ctx.moveTo(16, -5); ctx.lineTo(12, 10); ctx.lineTo(6, 12);
+    // Chin cleft
+    ctx.moveTo(0, 8); ctx.lineTo(0, 14);
+    ctx.stroke();
+    
+    // Nose
+    ctx.strokeStyle = "#432863";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(-4, -10); ctx.lineTo(0, -4); ctx.lineTo(4, -10);
+    ctx.stroke();
     
     // Mouth
     if (isP3) {
-        ctx.save(); ctx.translate(0, 8);
-        ctx.shadowBlur = 15; ctx.shadowColor = "#FF00FF";
-        ctx.fillStyle = "#0A0020";
-        ctx.beginPath(); ctx.ellipse(0, 0, 12, 8 + Math.sin(time * 4) * 3, 0, 0, Math.PI * 2); ctx.fill();
-        ctx.strokeStyle = "rgba(200, 100, 255, 0.6)"; ctx.lineWidth = 1.5;
-        for (var sp = 0; sp < 3; sp++) {
+        // Devourer mouth: Black hole vortex
+        ctx.save();
+        ctx.translate(0, 5);
+        ctx.shadowBlur = 18; ctx.shadowColor = "#FF00FF";
+        ctx.fillStyle = "#03000a";
+        ctx.beginPath(); 
+        ctx.arc(0, 0, 9 + Math.sin(time * 5) * 1.5, 0, Math.PI * 2); 
+        ctx.fill();
+        
+        // Swirling vortex lines inside mouth
+        ctx.strokeStyle = "rgba(255, 0, 255, 0.75)"; 
+        ctx.lineWidth = 1.5;
+        for (var sp = 0; sp < 4; sp++) {
             ctx.beginPath();
-            var spAngle = time * 4 + sp * Math.PI * 2 / 3;
-            ctx.arc(0, 0, 5 + sp * 2, spAngle, spAngle + Math.PI);
+            var spAngle = time * 6 + sp * Math.PI / 2;
+            var spRadius = 3 + sp * 2 + Math.sin(time * 5) * 1;
+            ctx.arc(0, 0, spRadius, spAngle, spAngle + Math.PI / 2);
             ctx.stroke();
         }
         ctx.restore();
     } else {
-        ctx.strokeStyle = isP2 ? "#9933FF" : "#6633AA"; ctx.lineWidth = 1.5;
-        ctx.beginPath(); ctx.moveTo(-8, 8); ctx.lineTo(8, 8); ctx.stroke();
+        // Stern lips line
+        ctx.strokeStyle = "#4c326c";
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.moveTo(-8, 6);
+        ctx.quadraticCurveTo(0, 7.5 + Math.sin(time) * 0.4, 8, 6);
+        ctx.stroke();
     }
+    ctx.restore();
     
-    // Helmet cracks (P2/P3)
+    // === TALL CROWN HELMET & CURVED HORNS ===
+    ctx.save();
+    ctx.shadowBlur = isP3 ? 22 : 12;
+    ctx.shadowColor = isP3 ? "#FF00FF" : "#8800FF";
+    
+    var crownGrad = ctx.createLinearGradient(-35, -50, 35, -50);
+    crownGrad.addColorStop(0, "#24133b");
+    crownGrad.addColorStop(0.5, "#492672");
+    crownGrad.addColorStop(1, "#24133b");
+    ctx.fillStyle = crownGrad;
+    
+    // Tall central block (helmet headpiece)
+    ctx.beginPath();
+    ctx.moveTo(-30, -18);
+    ctx.lineTo(-24, -62);
+    ctx.lineTo(-12, -74);
+    ctx.lineTo(12, -74);
+    ctx.lineTo(24, -62);
+    ctx.lineTo(30, -18);
+    ctx.closePath();
+    ctx.fill();
+    
+    ctx.strokeStyle = isP3 ? "#FF66FF" : "#8c56cc";
+    ctx.lineWidth = 1.8;
+    ctx.stroke();
+    
+    // Helmet horizontal plates / grooves (Image 1 style)
+    ctx.beginPath();
+    ctx.moveTo(-27, -32); ctx.lineTo(27, -32);
+    ctx.moveTo(-25, -45); ctx.lineTo(25, -45);
+    ctx.moveTo(-24, -58); ctx.lineTo(24, -58);
+    ctx.stroke();
+    
+    // Helmet rivets / small details
+    ctx.fillStyle = isP3 ? "#FF33FF" : "#b087e5";
+    ctx.beginPath();
+    ctx.arc(-18, -32, 1.5, 0, Math.PI * 2);
+    ctx.arc(18, -32, 1.5, 0, Math.PI * 2);
+    ctx.arc(-16, -45, 1.5, 0, Math.PI * 2);
+    ctx.arc(16, -45, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Flanking Horns / Ears (Giant curved brackets from Image 1)
+    // Left Horn
+    ctx.save();
+    ctx.translate(-28, -25);
+    ctx.fillStyle = crownGrad;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.bezierCurveTo(-50, -10, -75, -55, -45, -95);
+    ctx.bezierCurveTo(-58, -75, -60, -35, -12, -8);
+    ctx.closePath();
+    ctx.fill();
+    
+    ctx.strokeStyle = isP3 ? "#FF44FF" : "#9955FF";
+    ctx.lineWidth = 2.2;
+    ctx.stroke();
+    
+    // Tech grids on left horn (Image 1 texture)
+    ctx.strokeStyle = "rgba(138, 86, 204, 0.4)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(-35, -25); ctx.lineTo(-45, -70);
+    ctx.moveTo(-25, -18); ctx.lineTo(-32, -60);
+    ctx.stroke();
+    ctx.restore();
+    
+    // Right Horn
+    ctx.save();
+    ctx.translate(28, -25);
+    ctx.fillStyle = crownGrad;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.bezierCurveTo(50, -10, 75, -55, 45, -95);
+    ctx.bezierCurveTo(58, -75, 60, -35, 12, -8);
+    ctx.closePath();
+    ctx.fill();
+    
+    ctx.strokeStyle = isP3 ? "#FF44FF" : "#9955FF";
+    ctx.lineWidth = 2.2;
+    ctx.stroke();
+    
+    // Tech grids on right horn (Image 1 texture)
+    ctx.strokeStyle = "rgba(138, 86, 204, 0.4)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(35, -25); ctx.lineTo(45, -70);
+    ctx.moveTo(25, -18); ctx.lineTo(32, -60);
+    ctx.stroke();
+    ctx.restore();
+    
+    ctx.restore();
+    
+    // === VISOR & VISOR OUTLINE ===
+    ctx.save();
+    ctx.fillStyle = "#10061a";
+    ctx.beginPath();
+    ctx.moveTo(-25, -15);
+    ctx.lineTo(-20, -5);
+    ctx.lineTo(20, -5);
+    ctx.lineTo(25, -15);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = "#5f349c";
+    ctx.lineWidth = 1.8;
+    ctx.stroke();
+    
+    // Visor eyes
+    var eyeGlowColor = isP3 ? "rgba(255, 0, 100, 0.95)" : (isP2 ? "rgba(230, 80, 255, 0.9)" : "rgba(100, 200, 255, 0.95)");
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = eyeGlowColor;
+    ctx.fillStyle = "#FFFFFF"; // Solid white center for that extreme power look
+    
+    // Left eye slit
+    ctx.beginPath();
+    ctx.moveTo(-18, -11); ctx.lineTo(-6, -11); ctx.lineTo(-8, -9); ctx.lineTo(-16, -9);
+    ctx.closePath(); ctx.fill();
+    
+    // Right eye slit
+    ctx.beginPath();
+    ctx.moveTo(18, -11); ctx.lineTo(6, -11); ctx.lineTo(8, -9); ctx.lineTo(16, -9);
+    ctx.closePath(); ctx.fill();
+    
+    // Horizontal glowing flares (lens flare from the eyes!)
+    ctx.globalCompositeOperation = "screen";
+    var flareGrad = ctx.createLinearGradient(-80, 0, 80, 0);
+    flareGrad.addColorStop(0, "rgba(255,255,255,0)");
+    flareGrad.addColorStop(0.38, "rgba(255,255,255,0)");
+    flareGrad.addColorStop(0.42, eyeGlowColor);
+    flareGrad.addColorStop(0.48, "#FFFFFF");
+    flareGrad.addColorStop(0.5, "#FFFFFF");
+    flareGrad.addColorStop(0.52, "#FFFFFF");
+    flareGrad.addColorStop(0.58, eyeGlowColor);
+    flareGrad.addColorStop(0.62, "rgba(255,255,255,0)");
+    flareGrad.addColorStop(1, "rgba(255,255,255,0)");
+    
+    ctx.fillStyle = flareGrad;
+    ctx.fillRect(-80, -13, 160, 4);
+    ctx.restore();
+    
+    // === HELMET CRACKS & LIGHTNING ARCS (P2 / P3) ===
     if (isP2 || isP3) {
         ctx.save();
-        ctx.strokeStyle = isP3 ? "#FF44FF" : "#BB44FF";
+        ctx.strokeStyle = isP3 ? "#FF22AA" : "#BB44FF";
         ctx.lineWidth = isP3 ? 2 : 1.5;
         ctx.shadowBlur = 8; ctx.shadowColor = "#FF00FF";
         ctx.beginPath(); ctx.moveTo(-15, -20); ctx.lineTo(-18, -12); ctx.lineTo(-22, -5); ctx.stroke();
@@ -5445,29 +5660,59 @@ Enemy.prototype.drawGalactus = function(ctx) {
         if (isP3) {
             ctx.beginPath(); ctx.moveTo(-5, -30); ctx.lineTo(-3, -22); ctx.lineTo(-7, -15); ctx.stroke();
             ctx.beginPath(); ctx.moveTo(8, -15); ctx.lineTo(12, -8); ctx.lineTo(18, 2); ctx.stroke();
+            
+            // Random lightning arcs between horns and chest reactor
+            if (Math.random() < 0.25) {
+                ctx.strokeStyle = "#FFFFFF"; ctx.lineWidth = 1.5;
+                ctx.shadowColor = "#00FFFF"; ctx.shadowBlur = 10;
+                ctx.beginPath();
+                ctx.moveTo(-45, -70);
+                var lx = -45, ly = -70;
+                while (ly < 40) {
+                    lx += (Math.random() - 0.5) * 15;
+                    ly += Math.random() * 20 + 5;
+                    ctx.lineTo(lx, ly);
+                }
+                ctx.stroke();
+            }
+            if (Math.random() < 0.25) {
+                ctx.strokeStyle = "#FFFFFF"; ctx.lineWidth = 1.5;
+                ctx.shadowColor = "#00FFFF"; ctx.shadowBlur = 10;
+                ctx.beginPath();
+                ctx.moveTo(45, -70);
+                var rx = 45, ry = -70;
+                while (ry < 40) {
+                    rx += (Math.random() - 0.5) * 15;
+                    ry += Math.random() * 20 + 5;
+                    ctx.lineTo(rx, ry);
+                }
+                ctx.stroke();
+            }
         }
         ctx.restore();
     }
     
-    // Floating cosmic particles
+    // === FLOATING COSMIC PARTICLES ===
     ctx.save();
-    var numP = isP1 ? 5 : (isP2 ? 8 : 12);
+    ctx.globalCompositeOperation = "screen";
+    var numP = isP1 ? 6 : (isP2 ? 10 : 18);
     for (var p = 0; p < numP; p++) {
-        var pAngle = time * (0.5 + p * 0.1) + p * Math.PI * 2 / numP;
-        var pDist = 50 + Math.sin(time * 2 + p) * 15;
-        ctx.fillStyle = isP3 ? "#FF44FF" : "#BB44FF";
-        ctx.globalAlpha = 0.4 + Math.sin(time * 5 + p) * 0.3;
+        var pAngle = time * (0.4 + p * 0.08) + p * Math.PI * 2 / numP;
+        var pDist = 60 + Math.sin(time * 2.2 + p) * 20;
+        ctx.fillStyle = isP3 ? "#FF66FF" : "#BB55FF";
+        ctx.shadowBlur = 6; ctx.shadowColor = ctx.fillStyle;
+        ctx.globalAlpha = 0.45 + Math.sin(time * 4.5 + p) * 0.35;
         ctx.beginPath();
-        ctx.arc(Math.cos(pAngle) * pDist, Math.sin(pAngle) * (pDist * 0.6), 2, 0, Math.PI * 2);
+        ctx.arc(Math.cos(pAngle) * pDist, Math.sin(pAngle) * (pDist * 0.55), 1.8 + Math.sin(time + p) * 0.8, 0, Math.PI * 2);
         ctx.fill();
     }
-    ctx.globalAlpha = 1.0;
     ctx.restore();
     
-    // Chest symbol
+    // === CHEST EMBLEM GLOW ===
     ctx.save();
-    ctx.fillStyle = "#BB44FF"; ctx.shadowBlur = 8; ctx.shadowColor = "#9933FF";
-    ctx.font = "bold 12px Arial"; ctx.textAlign = "center";
+    ctx.fillStyle = isP3 ? "#FF00FF" : "#AA44FF";
+    ctx.shadowBlur = 10; ctx.shadowColor = ctx.fillStyle;
+    ctx.font = "bold 13px Arial"; ctx.textAlign = "center";
     ctx.fillText("G", 0, 34);
     ctx.restore();
     
