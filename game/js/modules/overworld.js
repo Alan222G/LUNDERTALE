@@ -2344,10 +2344,11 @@ var Overworld = (function() {
         ctx.restore();
     }
 
-    function markBossDefeated() {
+    function markBossDefeated(status) {
         if (activeBossTriggerIndex >= 0 && activeBossTriggerIndex < triggerList.length) {
             triggerList[activeBossTriggerIndex].triggered = true;
-            console.log("Boss defeated! Trigger " + activeBossTriggerIndex + " marked as triggered.");
+            triggerList[activeBossTriggerIndex].defeatStatus = status || "killed";
+            console.log("Boss defeated! Trigger " + activeBossTriggerIndex + " marked as triggered with status: " + (status || "killed"));
         }
         activeBossTriggerIndex = -1;
     }
