@@ -14,13 +14,23 @@ var Cbbox = (function() {
     }
 
     function update(dt) {
-        if (width < newWidth) width += speed * dt;
-        if (height < newHeight) height += speed * dt;
-        if (width > newWidth) width -= speed * dt;
-        if (height > newHeight) height -= speed * dt;
-        if (Math.abs(width - newWidth) < speed * dt) width = newWidth;
-        if (Math.abs(height - newHeight) < speed * dt) height = newHeight;
-        return width == newWidth && height == newHeight;
+        if (Math.abs(width - newWidth) <= speed * dt) {
+            width = newWidth;
+        } else if (width < newWidth) {
+            width += speed * dt;
+        } else if (width > newWidth) {
+            width -= speed * dt;
+        }
+
+        if (Math.abs(height - newHeight) <= speed * dt) {
+            height = newHeight;
+        } else if (height < newHeight) {
+            height += speed * dt;
+        } else if (height > newHeight) {
+            height -= speed * dt;
+        }
+
+        return width === newWidth && height === newHeight;
     }
 
     function draw(ctx) {

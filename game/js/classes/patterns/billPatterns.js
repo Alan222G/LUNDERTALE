@@ -483,11 +483,10 @@ BillCipherWheelPattern.prototype.checkCollision = function(sx, sy, sw, sh) {
         if (s.laserActive > 0) {
             // Laser goes from symbol position toward center and beyond
             var sAngle = s.baseAngle + this.wheelAngle;
-            var sx1 = cx + Math.cos(sAngle) * this.wheelRadius;
-            var sy1 = cy + Math.sin(sAngle) * this.wheelRadius;
-            // Endpoint is on the opposite side of the wheel
-            var sx2 = cx - Math.cos(sAngle) * this.wheelRadius;
-            var sy2 = cy - Math.sin(sAngle) * this.wheelRadius;
+            var sx1 = cx + Math.cos(sAngle) * 400;
+            var sy1 = cy + Math.sin(sAngle) * 400;
+            var sx2 = cx - Math.cos(sAngle) * 400;
+            var sy2 = cy - Math.sin(sAngle) * 400;
             // Distance from player center to the laser line
             var num = Math.abs((sy2 - sy1) * scx - (sx2 - sx1) * scy + sx2 * sy1 - sy2 * sx1);
             var den = Math.sqrt(Math.pow(sy2 - sy1, 2) + Math.pow(sx2 - sx1, 2));
@@ -563,21 +562,23 @@ BillCipherWheelPattern.prototype.draw = function(ctx) {
         var sx = cx + Math.cos(sAngle) * r;
         var sy = cy + Math.sin(sAngle) * r;
         if (s.glowing && s.fireTimer > 0) {
-            // Warning line: thin red dashed line from symbol through center
+            // Warning line: thin red dashed line from symbol through center and beyond
             ctx.save();
             ctx.strokeStyle = "rgba(255, 0, 0, " + (0.3 + 0.3 * Math.sin(this.elapsed * 20)) + ")";
             ctx.lineWidth = 2;
             ctx.setLineDash([4, 6]);
             ctx.beginPath();
-            ctx.moveTo(sx, sy);
-            ctx.lineTo(cx - Math.cos(sAngle) * r, cy - Math.sin(sAngle) * r);
+            ctx.moveTo(cx + Math.cos(sAngle) * 400, cy + Math.sin(sAngle) * 400);
+            ctx.lineTo(cx - Math.cos(sAngle) * 400, cy - Math.sin(sAngle) * 400);
             ctx.stroke();
             ctx.setLineDash([]);
             ctx.restore();
         } else if (s.laserActive > 0) {
-            // Active laser beam
-            var endX = cx - Math.cos(sAngle) * r;
-            var endY = cy - Math.sin(sAngle) * r;
+            // Active laser beam covering the full box width/height
+            var startX = cx + Math.cos(sAngle) * 400;
+            var startY = cy + Math.sin(sAngle) * 400;
+            var endX = cx - Math.cos(sAngle) * 400;
+            var endY = cy - Math.sin(sAngle) * 400;
             var alpha = s.laserAlpha;
             ctx.save();
             ctx.strokeStyle = "rgba(255, 50, 50, " + alpha + ")";
@@ -585,7 +586,7 @@ BillCipherWheelPattern.prototype.draw = function(ctx) {
             ctx.shadowColor = "#FF0000";
             ctx.lineWidth = 12 * alpha;
             ctx.beginPath();
-            ctx.moveTo(sx, sy);
+            ctx.moveTo(startX, startY);
             ctx.lineTo(endX, endY);
             ctx.stroke();
             // White core
@@ -593,7 +594,7 @@ BillCipherWheelPattern.prototype.draw = function(ctx) {
             ctx.lineWidth = 4 * alpha;
             ctx.shadowBlur = 0;
             ctx.beginPath();
-            ctx.moveTo(sx, sy);
+            ctx.moveTo(startX, startY);
             ctx.lineTo(endX, endY);
             ctx.stroke();
             ctx.restore();
@@ -975,8 +976,8 @@ BillTriangleBeamsPattern.prototype.update = function(dt) {
             x: cx,
             y: cy,
             size: 5,
-            maxScale: 110,
-            scaleSpeed: 80,
+            maxScale: 250,
+            scaleSpeed: 150,
             rot: Math.random() * Math.PI,
             rotSpeed: 0.7,
             active: true,

@@ -393,7 +393,49 @@ var Overworld = (function() {
         }
     }
 
+    function checkSubWorldPortals() {
+        var originalsBosses = ["singularity", "seraphina", "paradox", "glitch", "prism", "void_maw"];
+        var originalsCompleted = true;
+        for (var i = 0; i < triggerList.length; i++) {
+            var t = triggerList[i];
+            if (t.subWorld === 1 && originalsBosses.indexOf(t.bossId) !== -1) {
+                if (!t.triggered) {
+                    originalsCompleted = false;
+                }
+            }
+        }
+        
+        var guestsBosses = ["bill", "ramiel", "sachiel", "godzilla", "vader", "galactus"];
+        var guestsCompleted = true;
+        for (var i = 0; i < triggerList.length; i++) {
+            var t = triggerList[i];
+            if (t.subWorld === 2 && guestsBosses.indexOf(t.bossId) !== -1) {
+                if (!t.triggered) {
+                    guestsCompleted = false;
+                }
+            }
+        }
+        
+        for (var i = 0; i < triggerList.length; i++) {
+            var t = triggerList[i];
+            if (t.bossId === "portal_originals" && t.subWorld === 0) {
+                if (originalsCompleted) {
+                    t.triggered = true;
+                    console.log("portal_originals auto-destroyed as all bosses in Subworld 1 are defeated!");
+                }
+            }
+            if (t.bossId === "portal_guests" && t.subWorld === 0) {
+                if (guestsCompleted) {
+                    t.triggered = true;
+                    console.log("portal_guests auto-destroyed as all bosses in Subworld 2 are defeated!");
+                }
+            }
+        }
+    }
+
     function setup(ctx) {
+        checkSubWorldPortals();
+        
         // Check if all bosses are defeated (Super Victory check)
         var allDefeated = true;
         for (var i = 0; i < triggerList.length; i++) {

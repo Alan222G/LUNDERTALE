@@ -5357,6 +5357,51 @@ Enemy.prototype.drawGalactus = function(ctx) {
     }
     ctx.restore();
     
+    // === COSMIC CAPE (flowing behind shoulders) ===
+    ctx.save();
+    ctx.globalCompositeOperation = "destination-over"; // Draw behind the body/armor
+    var capeGrad = ctx.createLinearGradient(0, 40, 0, 160);
+    if (isP1) {
+        capeGrad.addColorStop(0, "rgba(95, 52, 156, 0.65)");
+        capeGrad.addColorStop(0.5, "rgba(45, 20, 90, 0.45)");
+        capeGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+    } else if (isP2) {
+        capeGrad.addColorStop(0, "rgba(180, 40, 220, 0.75)");
+        capeGrad.addColorStop(0.5, "rgba(90, 10, 130, 0.5)");
+        capeGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+    } else {
+        capeGrad.addColorStop(0, "rgba(255, 0, 80, 0.85)");
+        capeGrad.addColorStop(0.5, "rgba(128, 0, 50, 0.55)");
+        capeGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+    }
+    ctx.fillStyle = capeGrad;
+    
+    var waveL = Math.sin(time * 2.2) * 8;
+    var waveR = Math.cos(time * 2.2) * 8;
+    
+    ctx.beginPath();
+    ctx.moveTo(-100, 40);
+    ctx.bezierCurveTo(-140 + waveL, 90, -110 + waveL, 160, -70, 180);
+    ctx.lineTo(70, 180);
+    ctx.bezierCurveTo(110 + waveR, 160, 140 + waveR, 90, 100, 40);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Twinkling stars inside cape
+    ctx.fillStyle = "#FFFFFF";
+    for (var s = 0; s < 12; s++) {
+        var starX = -90 + s * 16 + Math.sin(time * 1.5 + s) * 4;
+        var starY = 60 + (s % 4) * 25 + Math.cos(time * 1.2 + s) * 6;
+        var starAlpha = 0.35 + 0.6 * Math.sin(time * 3.5 + s);
+        ctx.save();
+        ctx.globalAlpha = starAlpha;
+        ctx.beginPath();
+        ctx.arc(starX, starY, 1.3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    }
+    ctx.restore();
+
     // === ARMOR & SHOULDERS ===
     ctx.save();
     ctx.shadowBlur = 12;
@@ -5467,6 +5512,14 @@ Enemy.prototype.drawGalactus = function(ctx) {
     ctx.moveTo(16, -5); ctx.lineTo(12, 10); ctx.lineTo(6, 12);
     // Chin cleft
     ctx.moveTo(0, 8); ctx.lineTo(0, 14);
+    ctx.stroke();
+    
+    // Glowing circuit details on face
+    ctx.strokeStyle = isP3 ? "rgba(255, 0, 100, 0.8)" : (isP2 ? "rgba(255, 100, 255, 0.7)" : "rgba(100, 200, 255, 0.7)");
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(-15, -2); ctx.lineTo(-12, 8);
+    ctx.moveTo(15, -2); ctx.lineTo(12, 8);
     ctx.stroke();
     
     // Nose

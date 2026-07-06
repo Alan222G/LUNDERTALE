@@ -299,7 +299,7 @@ var Combat = (function() {
                     // Attack finished
                     Soul.reset();
                     Soul.setSoulMode(Soul.SOUL_MODE.RED);
-                    Cbbox.setSize(574, 140, false);
+                    Cbbox.setSize(574, 140, true);
                     Player.resetBuffs();
 
                     if (typeof Player !== 'undefined' && Player.isPoisonEnemy && Player.isPoisonEnemy()) {
