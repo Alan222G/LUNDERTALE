@@ -64,7 +64,7 @@ var BossController = (function() {
             "entropyVortex": function(cfg) { return new EntropyVortexPattern(cfg || { damVal: 10, duration: 9 }); },
             "coreEruption": function(cfg) { return new CoreEruptionPattern(cfg || { damVal: 12, duration: 7 }); },
             "bloodBoil": function(cfg) { return new BloodBoilPattern(cfg || { damVal: 11, duration: 8 }); },
-            "voidImplosion": function(cfg) { return new VoidImplosionPattern(cfg || { damVal: 15, duration: 8 }); },
+
             // --- Custom Sachiel Attacks ---
             "sachielWaterBlast": function(cfg) { return new SachielWaterBlastPattern(cfg || { damVal: 8, duration: 7 }); },
             "sachielEyeSpark": function(cfg) { return new SachielEyeSparkPattern(cfg || { damVal: 6, duration: 7 }); },
@@ -121,28 +121,7 @@ var BossController = (function() {
             "glitchFormatDrive": function(cfg) { return new GlitchFormatDrivePattern(cfg || { damVal: 10, duration: 7.0 }); },
             "glitchKernelPanic": function(cfg) { return new GlitchKernelPanicPattern(cfg || { damVal: 10, duration: 7.0 }); },
             "glitchScreenTear": function(cfg) { return new GlitchScreenTearPattern(cfg || { damVal: 9, duration: 7.0 }); },
-            // --- Custom Void Maw (El Hambre Cósmica) Attacks ---
-            "voidTentacleLash": function(cfg) { return new VoidTentacleLashPattern(cfg || { damVal: 8, duration: 7.5 }); },
-            "voidBiteSlam": function(cfg) { return new VoidBiteSlamPattern(cfg || { damVal: 9, duration: 7.5 }); },
-            "voidEyeBeam": function(cfg) { return new VoidEyeBeamPattern(cfg || { damVal: 8, duration: 7.5 }); },
-            "voidGravitySingularity": function(cfg) { return new VoidGravitySingularityPattern(cfg || { damVal: 8, duration: 7.5 }); },
-            "voidInventoryDevourAttempt": function(cfg) { return new VoidInventoryDevourAttemptPattern(cfg || { damVal: 6, duration: 4.5 }); },
-            "voidSpitBackBarrage": function(cfg) { return new VoidSpitBackBarragePattern(cfg || { damVal: 8, duration: 8.0 }); },
-            "voidMawDrip": function(cfg) { return new VoidMawDripPattern(cfg || { damVal: 8, duration: 7.5 }); },
-            "voidCosmicDust": function(cfg) { return new VoidCosmicDustPattern(cfg || { damVal: 8, duration: 7.5 }); },
-            "voidGravityPlunge": function(cfg) { return new VoidGravityPlungePattern(cfg || { damVal: 8, duration: 7.5 }); },
-            "voidEldritchScream": function(cfg) { return new VoidEldritchScreamPattern(cfg || { damVal: 8, duration: 7.5 }); },
-            "voidNebulaSwarm": function(cfg) { return new VoidNebulaSwarmPattern(cfg || { damVal: 8, duration: 7.5 }); },
-            "voidAbyssalRift": function(cfg) { return new VoidAbyssalRiftPattern(cfg || { damVal: 8, duration: 7.5 }); },
-            "voidTentacleFlurry": function(cfg) { return new VoidTentacleFlurryPattern(cfg || { damVal: 8, duration: 7.5 }); },
-            "voidCorrosiveSpit": function(cfg) { return new VoidCorrosiveSpitPattern(cfg || { damVal: 8, duration: 7.5 }); },
-            "voidShatteredCorePulse": function(cfg) { return new VoidShatteredCorePulsePattern(cfg || { damVal: 9, duration: 8.0 }); },
-            "voidSingularityOrbits": function(cfg) { return new VoidSingularityOrbitsPattern(cfg || { damVal: 8, duration: 7.5 }); },
-            "voidCosmicCollapse": function(cfg) { return new VoidCosmicCollapsePattern(cfg || { damVal: 8, duration: 7.5 }); },
-            "voidEldritchCross": function(cfg) { return new VoidEldritchCrossPattern(cfg || { damVal: 9, duration: 7.5 }); },
-            "voidInventoryPurge": function(cfg) { return new VoidInventoryPurgePattern(cfg || { damVal: 9, duration: 6.5 }); },
-            "voidWormholeJump": function(cfg) { return new VoidWormholeJumpPattern(cfg || { damVal: 8, duration: 8.0 }); },
-            "voidBlackHoleNova": function(cfg) { return new VoidBlackHoleNovaPattern(cfg || { damVal: 12, duration: 7.5 }); },
+
             // --- Custom Coloso de Espejos (Mirror Colossus) Attacks ---
             "prismBeamGrid": function(cfg) { return new PrismBeamGridPattern(cfg || { damVal: 8, duration: 7.0 }); },
             "shatteringSpikes": function(cfg) { return new ShatteringSpikesPattern(cfg || { damVal: 8, duration: 7.0 }); },
@@ -185,31 +164,7 @@ var BossController = (function() {
             "billNightmareVortex": function(cfg) { return new BillNightmareVortexPattern(cfg || { damVal: 9, duration: 7.5 }); },
             "billArmageddon": function(cfg) { return new BillArmageddonPattern(cfg || { damVal: 12, duration: 8.0 }); },
 
-            // --- GALACTUS (El Devorador de Mundos) ---
-            // Phase 1: El Heraldo
-            "galactusCosmicBeam": function(cfg) { return new GalactusCosmicBeamPattern(cfg || { damVal: 9, duration: 8.0 }); },
-            "galactusHeraldSurfer": function(cfg) { return new GalactusHeraldSurferPattern(cfg || { damVal: 7, duration: 8.0 }); },
-            "galactusPowerCosmic": function(cfg) { return new GalactusPowerCosmicPattern(cfg || { damVal: 8, duration: 7.5 }); },
-            "galactusGravityCrush": function(cfg) { return new GalactusGravityCrushPattern(cfg || { damVal: 8, duration: 8.0 }); },
-            "galactusStarDrain": function(cfg) { return new GalactusStarDrainPattern(cfg || { damVal: 7, duration: 8.0 }); },
-            "galactusCosmicRift": function(cfg) { return new GalactusCosmicRiftPattern(cfg || { damVal: 8, duration: 8.0 }); },
-            "galactusWorldEngine": function(cfg) { return new GalactusWorldEnginePattern(cfg || { damVal: 8, duration: 8.0 }); },
-            // Phase 2: El Hambriento
-            "galactusDevourPull": function(cfg) { return new GalactusDevourPullPattern(cfg || { damVal: 8, duration: 8.0 }); },
-            "galactusNebulaBurst": function(cfg) { return new GalactusNebulaBurstPattern(cfg || { damVal: 7, duration: 7.5 }); },
-            "galactusOrbitalBombard": function(cfg) { return new GalactusOrbitalBombardPattern(cfg || { damVal: 9, duration: 8.0 }); },
-            "galactusCosmicStorm": function(cfg) { return new GalactusCosmicStormPattern(cfg || { damVal: 8, duration: 8.0 }); },
-            "galactusHungerWave": function(cfg) { return new GalactusHungerWavePattern(cfg || { damVal: 8, duration: 7.5 }); },
-            "galactusPlanetCrush": function(cfg) { return new GalactusPlanetCrushPattern(cfg || { damVal: 9, duration: 8.0 }); },
-            "galactusVoidTendrils": function(cfg) { return new GalactusVoidTendrilsPattern(cfg || { damVal: 8, duration: 7.5 }); },
-            // Phase 3: El Devorador
-            "galactusUltimateNullifier": function(cfg) { return new GalactusUltimateNullifierPattern(cfg || { damVal: 12, duration: 8.0 }); },
-            "galactusRealityTear": function(cfg) { return new GalactusRealityTearPattern(cfg || { damVal: 10, duration: 8.0 }); },
-            "galactusBlackHoleMaw": function(cfg) { return new GalactusBlackHoleMawPattern(cfg || { damVal: 10, duration: 8.0 }); },
-            "galactusCosmicJudgment": function(cfg) { return new GalactusCosmicJudgmentPattern(cfg || { damVal: 10, duration: 8.0 }); },
-            "galactusDimensionalCollapse": function(cfg) { return new GalactusDimensionalCollapsePattern(cfg || { damVal: 9, duration: 8.0 }); },
-            "galactusDevourStar": function(cfg) { return new GalactusDevourStarPattern(cfg || { damVal: 11, duration: 8.0 }); },
-            "galactusEndOfAllThings": function(cfg) { return new GalactusEndOfAllThingsPattern(cfg || { damVal: 12, duration: 9.0 }); },
+
         };
     }
 
@@ -345,8 +300,7 @@ var BossController = (function() {
             w = 320; h = 320;
         } else if (patternName === "bloodBoil") {
             w = 300; h = 300;
-        } else if (patternName === "voidImplosion") {
-            w = 340; h = 340;
+
         } else if (patternName === "vaderLethalStrike") {
             w = 260; h = 260;
         } else if (patternName === "vaderForcePush") {
@@ -419,11 +373,6 @@ var BossController = (function() {
             w = 300; h = 300;
         } else if (patternName === "crystalCataclysm") {
             w = 340; h = 300;
-        } else if (patternName === "voidTentacleLash" || patternName === "voidBiteSlam" || patternName === "voidEyeBeam" || patternName === "voidGravitySingularity" || patternName === "voidInventoryDevourAttempt" || patternName === "voidSpitBackBarrage" ||
-                   patternName === "voidMawDrip" || patternName === "voidCosmicDust" || patternName === "voidGravityPlunge" || patternName === "voidEldritchScream" || patternName === "voidNebulaSwarm" || patternName === "voidAbyssalRift" ||
-                   patternName === "voidTentacleFlurry" || patternName === "voidCorrosiveSpit" || patternName === "voidShatteredCorePulse" || patternName === "voidSingularityOrbits" || patternName === "voidCosmicCollapse" ||
-                   patternName === "voidEldritchCross" || patternName === "voidInventoryPurge" || patternName === "voidWormholeJump" || patternName === "voidBlackHoleNova") {
-            w = 320; h = 320;
         } else if (patternName === "billEyeLasers" || patternName === "billDimensionalRift" || patternName === "billCaneSwack") {
             w = 320; h = 240;
         } else if (patternName === "billHatDrop") {
@@ -433,10 +382,6 @@ var BossController = (function() {
         } else if (patternName === "billArmageddon") {
             w = 340; h = 340;
         } else if (patternName.indexOf("bill") === 0) {
-            w = 320; h = 320;
-        } else if (patternName === "galactusEndOfAllThings" || patternName === "galactusBlackHoleMaw") {
-            w = 340; h = 340;
-        } else if (patternName.indexOf("galactus") === 0) {
             w = 320; h = 320;
         }
 

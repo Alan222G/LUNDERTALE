@@ -11,7 +11,7 @@ var Overworld = (function() {
     var catalogTab = 0; // 0 = Corazones, 1 = Pociones
     var catalogScrollOffset = 0;
     var starParticles = [];
-    var catalogOptions = [
+    var allCatalogOptions = [
         { id: 0, name: "Corazón Rojo", desc: "Equilibrado. HP:120, VEL:Normal, ATK:Normal" },
         { id: 1, name: "Corazón Verde", desc: "Tanque. HP:180, VEL:-20%, ATK:-20%, DEF:+30%" },
         { id: 2, name: "Corazón Amarillo", desc: "Agresivo. HP:80, VEL:+30%, ATK:+40%, DEF:-30%" },
@@ -24,14 +24,26 @@ var Overworld = (function() {
         { id: 9, name: "Corazón Cristalino", desc: "Cristalino. HP:100, Refleja 30% del daño recibido al jefe." },
         { id: 10, name: "Corazón de Vampiro", desc: "Vampiro. HP:90, Lifesteal (cura 10% del daño infligido al jefe)." },
         { id: 11, name: "Corazón Caótico", desc: "Caótico. HP:100, Cada turno cambia de alma y stats. Arcoíris." },
+        // Special character souls (unlocked via minigame):
         { id: 12, name: "Divergent zilla", desc: "Adaptación. HP:120. Se adapta ganando +30% DEF por golpe (máx +150%, recibe 1 HP mín). Se reinicia al cambiar fase del boss." },
         { id: 13, name: "Eva 01", desc: "Berserk. HP:110. Si tu HP baja del 30%: +110% ATK, +55% VEL, regenera 4.4 HP/seg. +20% stats vs Ángeles." },
         { id: 14, name: "Gojo", desc: "Infinito. HP:90, VEL:+20%. Satoru Gojo. Barrera de Infinito bloquea 1 golpe cada 4 turnos. RCT: cura progresivamente bajo 20% HP cada 8 turnos." },
         { id: 15, name: "Subaru", desc: "Retorno por Muerte. HP:70. Si mueres, revives con 50% HP y 2 seg de invulnerabilidad (hasta 3 veces por combate)." },
         { id: 16, name: "All Might", desc: "One For All. HP:150, ATK:+60%, DEF:+40%. Símbolo de la Paz. Tu HP Máximo decae -3/turno (mín 60)." },
-        { id: 17, name: "Itadori", desc: "Jujutsu. HP:100, VEL:+10%, ATK:+30%. Black Flash (20% crit 2.5x), Sangre Perforante (sangrado al enemigo), RCT cada 8 turnos." },
-        { id: 19, name: "Sans", desc: "Mal Tiempo. HP:50. 10 esquives automáticos por turno (sin inmunidad). Cada golpe aplica veneno de 10seg (20 dmg/seg) al enemigo." }
+        { id: 17, name: "Itadori", desc: "Jujutsu. HP:100, VEL:+10%, ATK:+30%. Black Flash (20% crit 2.5x), Sangre Perforante (sangrado al enemigo), RCT cada 8 turnos." }
     ];
+
+    var catalogOptions = [];
+    var unlockedSpecials = []; // array of IDs of unlocked specials
+    var keysCount = 0; // number of keys collected
+
+    // Chest Minigame State Variables
+    var chestGameActive = false;
+    var chestGameIndex = 0; // Selected chest (0 to 4)
+    var chestGameStatus = "select"; // "select", "opened", "no_keys", "all_unlocked"
+    var chestGameChests = []; // 5 chests
+    var chestGameUnlockedChar = null; // Unlocked character name
+    var chestGameMessage = "";
 
     var bgImage = new Image();
     bgImage.src = "Resources/Fondo del overworld Best.png";
@@ -60,6 +72,10 @@ var Overworld = (function() {
         "  - Usa la estrella amarilla (Catálogo) en el mapa principal para equipar almas y pociones.\n" +
         "  - Cada alma otorga diferentes habilidades y estadísticas.\n" +
         "  - Puedes equipar hasta 8 pociones para usar en combate.\n\n" +
+        "* COFRE MISTERIOSO:\n" +
+        "  - Gana batallas con almas normales para obtener llaves.\n" +
+        "  - Usa las llaves en el Cofre Misterioso para desbloquear almas especiales.\n" +
+        "  - Cada cofre puede contener un alma especial... o estar vacío.\n\n" +
         "* PORTALES Y HUIDAS:\n" +
         "  - Usa los portales del nexo para viajar a los submundos de originales o invitados.\n" +
         "  - Huye de combates (FLEE) para regresar al overworld sin perder tu progreso de derrota.";
@@ -84,6 +100,30 @@ var Overworld = (function() {
             isSignpost: true,
             subWorld: 0
         });
+
+        // Create Chest Game NPC (Cofre Misterioso)
+        npcList.push({
+            x: 260, y: 120, w: 36, h: 36,
+            isChestGame: true,
+            subWorld: 0
+        });
+
+        // Initialize catalog with ONLY normal souls (ids 0-11)
+        catalogOptions = [];
+        for (var ci = 0; ci < allCatalogOptions.length; ci++) {
+            if (allCatalogOptions[ci].id <= 11) {
+                catalogOptions.push(allCatalogOptions[ci]);
+            }
+        }
+        // Re-add any previously unlocked specials
+        for (var ui = 0; ui < unlockedSpecials.length; ui++) {
+            for (var ai = 0; ai < allCatalogOptions.length; ai++) {
+                if (allCatalogOptions[ai].id === unlockedSpecials[ui]) {
+                    catalogOptions.push(allCatalogOptions[ai]);
+                    break;
+                }
+            }
+        }
 
         // --- SUBWORLD 0 (MAIN MAP PORTALS) ---
         // Portal to Originals
@@ -245,24 +285,7 @@ var Overworld = (function() {
                 });
             }
         });
-        
-        // El Hambre Cósmica battle trigger
-        triggerList.push({
-            x: 460, y: 150, w: 26, h: 26,
-            triggered: false,
-            bossId: "void_maw",
-            label: "EL HAMBRE CÓSMICA",
-            subWorld: 1,
-            color: "rgba(148, 0, 211, 0.6)",
-            action: function() {
-                var self = this;
-                Transition.start(function() {
-                    main.gameState = main.GAME_STATE.COMBAT;
-                    Combat.init(self.bossId);
-                    Combat.setup(main.ctx);
-                });
-            }
-        });
+
 
         // --- INVITADOS BOSSES (Subworld 2) ---
         // Bill Cipher battle trigger
@@ -355,23 +378,7 @@ var Overworld = (function() {
             }
         });
 
-        // Galactus battle trigger
-        triggerList.push({
-            x: 560, y: 290, w: 26, h: 26,
-            triggered: false,
-            bossId: "galactus",
-            label: "GALACTUS",
-            subWorld: 2,
-            color: "rgba(128, 0, 255, 0.6)",
-            action: function() {
-                var self = this;
-                Transition.start(function() {
-                    main.gameState = main.GAME_STATE.COMBAT;
-                    Combat.init(self.bossId);
-                    Combat.setup(main.ctx);
-                });
-            }
-        });
+
         
         singFrames = [
             loadImg("Resources/Agujero negro Boss Map 1.PNG"),
@@ -394,7 +401,7 @@ var Overworld = (function() {
     }
 
     function checkSubWorldPortals() {
-        var originalsBosses = ["singularity", "seraphina", "paradox", "glitch", "prism", "void_maw"];
+        var originalsBosses = ["singularity", "seraphina", "paradox", "glitch", "prism"];
         var originalsCompleted = true;
         for (var i = 0; i < triggerList.length; i++) {
             var t = triggerList[i];
@@ -405,7 +412,7 @@ var Overworld = (function() {
             }
         }
         
-        var guestsBosses = ["bill", "ramiel", "sachiel", "godzilla", "vader", "galactus"];
+        var guestsBosses = ["bill", "ramiel", "sachiel", "godzilla", "vader"];
         var guestsCompleted = true;
         for (var i = 0; i < triggerList.length; i++) {
             var t = triggerList[i];
@@ -539,6 +546,57 @@ var Overworld = (function() {
             return; // Skip player movement while in catalog
         }
 
+        if (chestGameActive) {
+            if (chestGameStatus === "select") {
+                if (myKeys.keydown[myKeys.KEYBOARD.KEY_LEFT] || myKeys.keydown[myKeys.KEYBOARD.KEY_A]) {
+                    myKeys.keydown[myKeys.KEYBOARD.KEY_LEFT] = false;
+                    myKeys.keydown[myKeys.KEYBOARD.KEY_A] = false;
+                    chestGameIndex--;
+                    if (chestGameIndex < 0) chestGameIndex = chestGameChests.length - 1;
+                    Sound.playSound("select", true);
+                } else if (myKeys.keydown[myKeys.KEYBOARD.KEY_RIGHT] || myKeys.keydown[myKeys.KEYBOARD.KEY_D]) {
+                    myKeys.keydown[myKeys.KEYBOARD.KEY_RIGHT] = false;
+                    myKeys.keydown[myKeys.KEYBOARD.KEY_D] = false;
+                    chestGameIndex++;
+                    if (chestGameIndex >= chestGameChests.length) chestGameIndex = 0;
+                    Sound.playSound("select", true);
+                } else if (myKeys.isConfirm()) {
+                    myKeys.keydown[myKeys.KEYBOARD.KEY_Z] = false;
+                    myKeys.keydown[myKeys.KEYBOARD.KEY_ENTER] = false;
+                    // Open the selected chest
+                    var selectedChest = chestGameChests[chestGameIndex];
+                    if (selectedChest.content !== null) {
+                        // Found a special character!
+                        chestGameUnlockedChar = selectedChest.content;
+                        unlockedSpecials.push(selectedChest.content.id);
+                        // Add to catalogOptions
+                        catalogOptions.push(selectedChest.content);
+                        chestGameMessage = "¡Desbloqueaste a " + selectedChest.content.name + "!";
+                        Sound.playSound("heal", true);
+                    } else {
+                        chestGameMessage = "¡Cofre vacío! Mala suerte...";
+                        Sound.playSound("damage", true);
+                    }
+                    keysCount--;
+                    chestGameStatus = "opened";
+                } else if (myKeys.isCancel()) {
+                    myKeys.keydown[myKeys.KEYBOARD.KEY_X] = false;
+                    chestGameActive = false;
+                    Sound.playSound("button", true);
+                }
+            } else if (chestGameStatus === "opened" || chestGameStatus === "no_keys" || chestGameStatus === "all_unlocked") {
+                if (myKeys.isConfirm() || myKeys.isCancel()) {
+                    myKeys.keydown[myKeys.KEYBOARD.KEY_Z] = false;
+                    myKeys.keydown[myKeys.KEYBOARD.KEY_ENTER] = false;
+                    myKeys.keydown[myKeys.KEYBOARD.KEY_X] = false;
+                    chestGameActive = false;
+                    chestGameUnlockedChar = null;
+                    Sound.playSound("button", true);
+                }
+            }
+            return;
+        }
+
         player.update(dt, null);
 
         // Check Triggers
@@ -596,6 +654,8 @@ var Overworld = (function() {
                         signpostActive = true;
                         Writer.setupText(tutorialText);
                         Sound.playSound("button", true);
+                    } else if (npc.isChestGame) {
+                        openChestGame();
                     }
                 }
             }
@@ -719,7 +779,7 @@ var Overworld = (function() {
                     if (t.bossId === "seraphina") {
                         var frameIdx = Math.floor(animTimer * 4) % seraFrames.length;
                         img = seraFrames[frameIdx];
-                    } else if (t.bossId === "ramiel" || t.bossId === "paradox" || t.bossId === "sachiel" || t.bossId === "vader" || t.bossId === "godzilla" || t.bossId === "glitch" || t.bossId === "prism" || t.bossId === "void_maw" || t.bossId === "bill" || t.bossId === "galactus") {
+                    } else if (t.bossId === "ramiel" || t.bossId === "paradox" || t.bossId === "sachiel" || t.bossId === "vader" || t.bossId === "godzilla" || t.bossId === "glitch" || t.bossId === "prism" || t.bossId === "bill") {
                         img = null; 
                     } else {
                         var frameIdx = Math.floor(animTimer * 4) % singFrames.length;
@@ -1150,37 +1210,6 @@ var Overworld = (function() {
                         
                         ctx.restore();
                         ctx.shadowBlur = 0;
-                    } else if (t.bossId === "void_maw") {
-                        var vTime = animTimer;
-                        var vSize = 18 + Math.sin(vTime * 3.5) * 3;
-                        ctx.save();
-                        ctx.translate(gcx, gcy);
-                        ctx.rotate(-vTime * 1.5);
-                        
-                        var pGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, vSize);
-                        pGrad.addColorStop(0, "#000000");
-                        pGrad.addColorStop(0.4, "#4B0082");
-                        pGrad.addColorStop(0.8, "#9400D3");
-                        pGrad.addColorStop(1, "rgba(0,0,0,0)");
-                        
-                        ctx.fillStyle = pGrad;
-                        ctx.shadowBlur = 20;
-                        ctx.shadowColor = "#FF00FF";
-                        ctx.beginPath();
-                        ctx.arc(0, 0, vSize, 0, Math.PI * 2);
-                        ctx.fill();
-                        
-                        ctx.fillStyle = "#FFFFFF";
-                        ctx.shadowBlur = 5;
-                        ctx.shadowColor = "#FFFFFF";
-                        for (var d = 0; d < 4; d++) {
-                            var dAngle = vTime * 2.5 + (d * Math.PI / 2);
-                            var dx = Math.cos(dAngle) * (vSize * 0.7);
-                            var dy = Math.sin(dAngle) * (vSize * 0.7);
-                            ctx.fillRect(dx - 1.5, dy - 1.5, 3, 3);
-                        }
-                        
-                        ctx.restore();
                         ctx.shadowBlur = 0;
                     } else if (t.bossId === "bill") {
                         var bTime = animTimer;
@@ -1245,48 +1274,6 @@ var Overworld = (function() {
                         ctx.lineTo(bSize * 0.4, bSize * 1.0);
                         ctx.stroke();
                         
-                        ctx.restore();
-                    } else if (t.bossId === "galactus") {
-                        var gTime = animTimer;
-                        ctx.save();
-                        ctx.translate(gcx, gcy - 3 + Math.sin(gTime * 2) * 3);
-                        
-                        // Purple cosmic aura
-                        ctx.shadowBlur = 20;
-                        ctx.shadowColor = "rgba(128, 0, 255, 0.8)";
-                        
-                        // Helmet body
-                        ctx.fillStyle = "#442266";
-                        ctx.beginPath();
-                        ctx.arc(0, 0, 10, 0, Math.PI * 2);
-                        ctx.fill();
-                        
-                        // Horns
-                        ctx.strokeStyle = "#6633AA";
-                        ctx.lineWidth = 2.5;
-                        ctx.beginPath();
-                        ctx.moveTo(-6, -6);
-                        ctx.lineTo(-10, -16);
-                        ctx.moveTo(6, -6);
-                        ctx.lineTo(10, -16);
-                        ctx.stroke();
-                        
-                        // Visor/Eyes
-                        ctx.fillStyle = "#FF44FF";
-                        ctx.shadowBlur = 8;
-                        ctx.shadowColor = "#FF00FF";
-                        ctx.fillRect(-6, -2, 4, 2);
-                        ctx.fillRect(2, -2, 4, 2);
-                        
-                        // Helmet line
-                        ctx.strokeStyle = "#9933FF";
-                        ctx.lineWidth = 1;
-                        ctx.beginPath();
-                        ctx.moveTo(-10, 2);
-                        ctx.lineTo(10, 2);
-                        ctx.stroke();
-                        
-                        ctx.shadowBlur = 0;
                         ctx.restore();
                     } else if (img && img.complete) {
                         ctx.drawImage(img, t.x, t.y, t.w, t.h);
@@ -1487,6 +1474,79 @@ var Overworld = (function() {
                 }
                 
                 ctx.restore();
+            } else if (npc.isChestGame) {
+                var ccx = npc.x + npc.w / 2;
+                var ccy = npc.y + npc.h / 2;
+                var cTime = animTimer;
+                ctx.save();
+
+                // Glow aura behind chest
+                var chestPulse = 0.4 + Math.sin(cTime * 2.5) * 0.3;
+                ctx.globalAlpha = chestPulse;
+                var chestGlow = ctx.createRadialGradient(ccx, ccy, 3, ccx, ccy, 30);
+                chestGlow.addColorStop(0, "#FF8C00");
+                chestGlow.addColorStop(0.5, "rgba(255, 140, 0, 0.3)");
+                chestGlow.addColorStop(1, "rgba(255, 140, 0, 0)");
+                ctx.fillStyle = chestGlow;
+                ctx.beginPath();
+                ctx.arc(ccx, ccy, 30, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+
+                // Chest body
+                var chestBob = Math.sin(cTime * 2) * 2;
+                ctx.translate(ccx, ccy + chestBob);
+
+                // Bottom box
+                ctx.fillStyle = "#8B4513";
+                ctx.strokeStyle = "#5C2E0B";
+                ctx.lineWidth = 1.5;
+                ctx.fillRect(-12, -2, 24, 14);
+                ctx.strokeRect(-12, -2, 24, 14);
+
+                // Lid
+                ctx.fillStyle = "#A0522D";
+                ctx.fillRect(-14, -10, 28, 10);
+                ctx.strokeRect(-14, -10, 28, 10);
+
+                // Metal band
+                ctx.fillStyle = "#FFD700";
+                ctx.fillRect(-2, -10, 4, 22);
+                ctx.fillRect(-14, -5, 28, 2);
+
+                // Lock/keyhole
+                ctx.fillStyle = "#FFD700";
+                ctx.beginPath();
+                ctx.arc(0, 2, 3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = "#000";
+                ctx.fillRect(-1, 1, 2, 3);
+
+                ctx.restore();
+
+                // Key count badge
+                ctx.save();
+                ctx.font = "bold 9pt 'Determination Mono', monospace";
+                ctx.textAlign = "center";
+                ctx.fillStyle = "#FFD700";
+                ctx.shadowBlur = 6;
+                ctx.shadowColor = "#FFD700";
+                ctx.fillText("🔑 x" + keysCount, ccx, npc.y + npc.h + 16);
+                ctx.restore();
+
+                // Proximity hint
+                var pbox2 = player.getHitbox();
+                var dist2 = Math.hypot((pbox2.x + pbox2.w/2) - ccx, (pbox2.y + pbox2.h/2) - ccy);
+                if (dist2 < 50) {
+                    ctx.save();
+                    ctx.font = "8pt 'Determination Mono', monospace";
+                    ctx.textAlign = "center";
+                    ctx.fillStyle = "#FF8C00";
+                    ctx.shadowBlur = 4;
+                    ctx.shadowColor = "#FF8C00";
+                    ctx.fillText("[Z] COFRE MISTERIOSO", ccx, npc.y - 8);
+                    ctx.restore();
+                }
             } else {
                 ctx.fillStyle = npc.color;
                 ctx.fillRect(npc.x, npc.y, npc.w, npc.h);
@@ -1605,8 +1665,27 @@ var Overworld = (function() {
                         ctx.restore();
                     }
                     
-                    ctx.fillStyle = (i === catalogIndex) ? "#FF0" : "#FFF";
-                    ctx.fillText(catalogOptions[i].name, 370, yPos);
+                    // Draw name - rainbow for special characters (id >= 12)
+                    var isSpecial = catalogOptions[i].id >= 12;
+                    if (isSpecial) {
+                        var nameStr = "★ " + catalogOptions[i].name + " ★";
+                        ctx.save();
+                        ctx.font = "10pt 'Determination Mono', monospace";
+                        ctx.textAlign = "left";
+                        var nameX = 370;
+                        for (var ch = 0; ch < nameStr.length; ch++) {
+                            var charHue = ((animTimer * 120) + ch * 25) % 360;
+                            ctx.fillStyle = "hsl(" + charHue + ", 100%, " + ((i === catalogIndex) ? "65%" : "50%") + ")";
+                            ctx.shadowBlur = (i === catalogIndex) ? 8 : 3;
+                            ctx.shadowColor = ctx.fillStyle;
+                            ctx.fillText(nameStr[ch], nameX, yPos);
+                            nameX += ctx.measureText(nameStr[ch]).width;
+                        }
+                        ctx.restore();
+                    } else {
+                        ctx.fillStyle = (i === catalogIndex) ? "#FF0" : "#FFF";
+                        ctx.fillText(catalogOptions[i].name, 370, yPos);
+                    }
                 }
                 
                 // Scroll arrows
@@ -2369,6 +2448,211 @@ var Overworld = (function() {
             }
         }
 
+        // Draw Chest Game Overlay
+        if (chestGameActive) {
+            ctx.save();
+            // Dark backdrop
+            ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
+            ctx.fillRect(0, 0, 740, 480);
+
+            // Title
+            ctx.font = "bold 16pt 'Determination Mono', monospace";
+            ctx.textAlign = "center";
+            ctx.shadowBlur = 12;
+
+            if (chestGameStatus === "no_keys" || chestGameStatus === "all_unlocked") {
+                // Message-only screen
+                ctx.shadowColor = "#FF8C00";
+                ctx.fillStyle = "#FFD700";
+                ctx.fillText("COFRE MISTERIOSO", 370, 180);
+                ctx.font = "11pt 'Determination Mono', monospace";
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = "#FFF";
+                ctx.fillText(chestGameMessage, 370, 240);
+                ctx.font = "9pt 'Determination Mono', monospace";
+                ctx.fillStyle = "#888";
+                ctx.fillText("[Z/ENTER] Cerrar", 370, 340);
+            } else if (chestGameStatus === "select") {
+                // Title
+                ctx.shadowColor = "#FF8C00";
+                ctx.fillStyle = "#FFD700";
+                ctx.fillText("COFRE MISTERIOSO", 370, 60);
+
+                ctx.font = "9pt 'Determination Mono', monospace";
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = "#FFF";
+                ctx.fillText("Elige un cofre... 3 contienen almas especiales, 2 están vacíos.", 370, 90);
+                ctx.fillText("🔑 Llaves: " + keysCount, 370, 110);
+
+                // Draw 5 chests
+                var chestStartX = 370 - (5 * 70) / 2 + 35;
+                for (var ci = 0; ci < chestGameChests.length; ci++) {
+                    var chX = chestStartX + ci * 70;
+                    var chY = 220;
+                    var isSelected = (ci === chestGameIndex);
+                    var bobOff = isSelected ? Math.sin(animTimer * 5) * 6 : 0;
+
+                    ctx.save();
+                    ctx.translate(chX, chY + bobOff);
+
+                    // Selection glow
+                    if (isSelected) {
+                        ctx.shadowBlur = 20;
+                        ctx.shadowColor = "#FFD700";
+                        ctx.strokeStyle = "#FFD700";
+                        ctx.lineWidth = 3;
+                        ctx.strokeRect(-22, -18, 44, 38);
+                    }
+
+                    // Chest body
+                    ctx.fillStyle = isSelected ? "#CD853F" : "#8B4513";
+                    ctx.strokeStyle = "#5C2E0B";
+                    ctx.lineWidth = 2;
+                    ctx.fillRect(-18, -2, 36, 22);
+                    ctx.strokeRect(-18, -2, 36, 22);
+
+                    // Lid
+                    ctx.fillStyle = isSelected ? "#DEB887" : "#A0522D";
+                    ctx.fillRect(-21, -16, 42, 16);
+                    ctx.strokeRect(-21, -16, 42, 16);
+
+                    // Metal band
+                    ctx.fillStyle = "#FFD700";
+                    ctx.fillRect(-3, -16, 6, 36);
+                    ctx.fillRect(-21, -8, 42, 3);
+
+                    // Keyhole
+                    ctx.fillStyle = "#FFD700";
+                    ctx.beginPath();
+                    ctx.arc(0, 5, 4, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = "#000";
+                    ctx.fillRect(-1.5, 3, 3, 5);
+
+                    // Question mark
+                    ctx.shadowBlur = 0;
+                    ctx.font = "bold 14pt Arial";
+                    ctx.textAlign = "center";
+                    ctx.fillStyle = isSelected ? "#FFD700" : "#AA8844";
+                    ctx.fillText("?", 0, -22);
+
+                    ctx.restore();
+                }
+
+                // Selection arrow
+                var arrowX = chestStartX + chestGameIndex * 70;
+                ctx.font = "14pt Arial";
+                ctx.textAlign = "center";
+                ctx.fillStyle = "#FFD700";
+                ctx.fillText("▼", arrowX, 170);
+
+                // Instructions
+                ctx.font = "9pt 'Determination Mono', monospace";
+                ctx.fillStyle = "#888";
+                ctx.fillText("[◄ ►] Mover   [Z] Abrir   [X] Cancelar", 370, 340);
+
+            } else if (chestGameStatus === "opened") {
+                // Show result
+                ctx.shadowColor = chestGameUnlockedChar ? "#00FF00" : "#FF0000";
+                ctx.fillStyle = chestGameUnlockedChar ? "#00FF00" : "#FF4444";
+                ctx.fillText("COFRE MISTERIOSO", 370, 60);
+
+                // Draw all 5 chests - reveal the opened one
+                var chestStartX2 = 370 - (5 * 70) / 2 + 35;
+                for (var ci2 = 0; ci2 < chestGameChests.length; ci2++) {
+                    var chX2 = chestStartX2 + ci2 * 70;
+                    var chY2 = 160;
+                    var wasChosen = (ci2 === chestGameIndex);
+
+                    ctx.save();
+                    ctx.translate(chX2, chY2);
+
+                    if (wasChosen) {
+                        // Opened chest - lid tilted open
+                        ctx.fillStyle = "#CD853F";
+                        ctx.strokeStyle = "#5C2E0B";
+                        ctx.lineWidth = 2;
+                        ctx.fillRect(-18, -2, 36, 22);
+                        ctx.strokeRect(-18, -2, 36, 22);
+
+                        // Open lid (tilted back)
+                        ctx.save();
+                        ctx.translate(-21, -2);
+                        ctx.rotate(-0.7);
+                        ctx.fillStyle = "#DEB887";
+                        ctx.fillRect(0, -14, 42, 14);
+                        ctx.strokeRect(0, -14, 42, 14);
+                        ctx.restore();
+
+                        // Glow from inside
+                        if (chestGameUnlockedChar) {
+                            var innerGlow = ctx.createRadialGradient(0, 5, 2, 0, 5, 25);
+                            innerGlow.addColorStop(0, "rgba(255, 215, 0, 0.8)");
+                            innerGlow.addColorStop(1, "rgba(255, 215, 0, 0)");
+                            ctx.fillStyle = innerGlow;
+                            ctx.beginPath();
+                            ctx.arc(0, 5, 25, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                    } else {
+                        // Closed chest (dimmed)
+                        ctx.globalAlpha = 0.4;
+                        ctx.fillStyle = "#6B3410";
+                        ctx.strokeStyle = "#3C1A08";
+                        ctx.lineWidth = 2;
+                        ctx.fillRect(-18, -2, 36, 22);
+                        ctx.strokeRect(-18, -2, 36, 22);
+                        ctx.fillStyle = "#7B4020";
+                        ctx.fillRect(-21, -16, 42, 16);
+                        ctx.strokeRect(-21, -16, 42, 16);
+                    }
+                    ctx.restore();
+                }
+
+                // Result message with rainbow text if unlocked
+                if (chestGameUnlockedChar) {
+                    var rainbowTime = animTimer * 3;
+                    var rH = (rainbowTime * 60) % 360;
+                    var rainbowColor = "hsl(" + rH + ", 100%, 65%)";
+                    ctx.font = "bold 14pt 'Determination Mono', monospace";
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = rainbowColor;
+                    ctx.fillStyle = rainbowColor;
+                    ctx.fillText("★ " + chestGameUnlockedChar.name + " ★", 370, 260);
+
+                    ctx.font = "10pt 'Determination Mono', monospace";
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = "#FFF";
+                    ctx.fillText(chestGameMessage, 370, 290);
+
+                    ctx.font = "8pt 'Determination Mono', monospace";
+                    ctx.fillStyle = "#AAA";
+                    var descLines = chestGameUnlockedChar.desc.split(". ");
+                    for (var dl = 0; dl < descLines.length; dl++) {
+                        ctx.fillText(descLines[dl] + (dl < descLines.length - 1 ? "." : ""), 370, 315 + dl * 16);
+                    }
+                } else {
+                    ctx.font = "bold 14pt 'Determination Mono', monospace";
+                    ctx.shadowBlur = 8;
+                    ctx.shadowColor = "#FF0000";
+                    ctx.fillStyle = "#FF4444";
+                    ctx.fillText("¡VACÍO!", 370, 260);
+
+                    ctx.font = "10pt 'Determination Mono', monospace";
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = "#AAA";
+                    ctx.fillText(chestGameMessage, 370, 290);
+                }
+
+                ctx.font = "9pt 'Determination Mono', monospace";
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = "#888";
+                ctx.fillText("[Z/ENTER] Cerrar", 370, 400);
+            }
+
+            ctx.restore();
+        }
+
         // Draw Signpost Tutorial Dialogue Box Overlay
         if (signpostActive) {
             ctx.save();
@@ -2405,5 +2689,87 @@ var Overworld = (function() {
         activeBossTriggerIndex = -1;
     }
 
-    return { init: init, setup: setup, update: update, draw: draw, markBossDefeated: markBossDefeated, resetBossTrigger: resetBossTrigger, getTriggerList: function() { return triggerList; } };
+    function openChestGame() {
+        // Check for all unlocked first
+        var specialIds = [12, 13, 14, 15, 16, 17];
+        var lockedPool = [];
+        for (var si = 0; si < specialIds.length; si++) {
+            var alreadyUnlocked = false;
+            for (var ui = 0; ui < unlockedSpecials.length; ui++) {
+                if (unlockedSpecials[ui] === specialIds[si]) {
+                    alreadyUnlocked = true;
+                    break;
+                }
+            }
+            if (!alreadyUnlocked) {
+                // Find the full option data
+                for (var ai = 0; ai < allCatalogOptions.length; ai++) {
+                    if (allCatalogOptions[ai].id === specialIds[si]) {
+                        lockedPool.push(allCatalogOptions[ai]);
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (lockedPool.length === 0) {
+            chestGameActive = true;
+            chestGameStatus = "all_unlocked";
+            chestGameMessage = "¡Ya desbloqueaste todos los personajes especiales!";
+            Sound.playSound("button", true);
+            return;
+        }
+
+        if (keysCount <= 0) {
+            chestGameActive = true;
+            chestGameStatus = "no_keys";
+            chestGameMessage = "No tienes llaves. ¡Gana batallas con almas normales para conseguir llaves!";
+            Sound.playSound("button", true);
+            return;
+        }
+
+        // Shuffle the locked pool
+        for (var sh = lockedPool.length - 1; sh > 0; sh--) {
+            var rj = Math.floor(Math.random() * (sh + 1));
+            var tmp = lockedPool[sh];
+            lockedPool[sh] = lockedPool[rj];
+            lockedPool[rj] = tmp;
+        }
+
+        // Create 5 chests: up to 3 contain characters, 2 are empty
+        var numPrizes = Math.min(3, lockedPool.length);
+        chestGameChests = [];
+        for (var cp = 0; cp < numPrizes; cp++) {
+            chestGameChests.push({ content: lockedPool[cp], opened: false });
+        }
+        // Fill remaining with empty chests to reach 5
+        while (chestGameChests.length < 5) {
+            chestGameChests.push({ content: null, opened: false });
+        }
+
+        // Shuffle the 5 chests
+        for (var sh2 = chestGameChests.length - 1; sh2 > 0; sh2--) {
+            var rj2 = Math.floor(Math.random() * (sh2 + 1));
+            var tmp2 = chestGameChests[sh2];
+            chestGameChests[sh2] = chestGameChests[rj2];
+            chestGameChests[rj2] = tmp2;
+        }
+
+        chestGameIndex = 2; // Start in center
+        chestGameStatus = "select";
+        chestGameActive = true;
+        chestGameUnlockedChar = null;
+        chestGameMessage = "";
+        Sound.playSound("button", true);
+    }
+
+    function addKey() {
+        keysCount++;
+    }
+
+    function getKeysCount() {
+        return keysCount;
+    }
+
+    return { init: init, setup: setup, update: update, draw: draw, markBossDefeated: markBossDefeated, resetBossTrigger: resetBossTrigger, getTriggerList: function() { return triggerList; }, addKey: addKey, getKeysCount: getKeysCount };
 }());

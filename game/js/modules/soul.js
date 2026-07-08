@@ -9,11 +9,7 @@ var Soul = (function() {
     var floatingTexts = []; // List of active floating text animations
     var shieldParticles = []; // Particles spawned on shield break
 
-    // Goku visual extensions
-    var gokuAfterimages = [];
-    var gokuTransformBurstRadius = 0;
-    var gokuTransformBurstColor = "#FFD700";
-    var gokuTransformBurstAlpha = 0;
+
 
     // Soul mode system
     var soulMode;
@@ -103,29 +99,7 @@ var Soul = (function() {
             }
         }
 
-        // Update Goku transform shockwave burst
-        if (gokuTransformBurstAlpha > 0) {
-            gokuTransformBurstRadius += 250 * dt;
-            gokuTransformBurstAlpha -= 2.0 * dt;
-            if (gokuTransformBurstAlpha < 0) {
-                gokuTransformBurstAlpha = 0;
-            }
-        }
 
-        // Keep track of afterimages for Goku MUI/Sign (soul class 18, form >= 6)
-        if (typeof Player !== "undefined" && Player.getSoulClass && Player.getSoulClass() === 18) {
-            var gf = (typeof Player.getGokuForm === "function") ? Player.getGokuForm() : 0;
-            if (gf >= 6) {
-                gokuAfterimages.push({x: pos.x, y: pos.y, time: Date.now()});
-                if (gokuAfterimages.length > 6) {
-                    gokuAfterimages.shift();
-                }
-            } else {
-                gokuAfterimages = [];
-            }
-        } else {
-            gokuAfterimages = [];
-        }
 
         switch (state) {
             case STATE.DAMAGED:
@@ -195,16 +169,7 @@ var Soul = (function() {
         else if (sClass === 15) ctx.filter = "hue-rotate(200deg) saturate(1.8) brightness(1.1)"; // Subaru Dark Teal
         else if (sClass === 16) ctx.filter = "hue-rotate(50deg) saturate(2.5) brightness(1.4)"; // All Might Gold
         else if (sClass === 17) ctx.filter = "hue-rotate(330deg) saturate(2.5) brightness(1.3)"; // Itadori Cursed Pink
-        else if (sClass === 18) { // Goku: dynamic filter based on form
-            var gf = (typeof Player !== "undefined" && Player.getGokuForm) ? Player.getGokuForm() : 0;
-            if (gf <= 1) ctx.filter = "hue-rotate(30deg) saturate(2.0) brightness(1.4)"; // Base/SSJ Orange-Gold
-            else if (gf <= 3) ctx.filter = "hue-rotate(45deg) saturate(3.0) brightness(1.6)"; // SSJ2-3 Intense Gold
-            else if (gf === 4) ctx.filter = "hue-rotate(0deg) saturate(2.5) brightness(1.3)"; // SSG Red
-            else if (gf === 5) ctx.filter = "hue-rotate(200deg) saturate(3.0) brightness(1.6)"; // SSB Deep Blue
-            else if (gf === 6) ctx.filter = "hue-rotate(200deg) saturate(1.5) brightness(2.0)"; // UI Sign Silver-Blue
-            else ctx.filter = "grayscale(30%) brightness(2.5) contrast(1.3)"; // MUI Silver-White
-        }
-        else if (sClass === 19) ctx.filter = "grayscale(100%) brightness(2.5) contrast(1.5)"; // Sans Bone White
+
     }
 
     function drawDecorations(ctx, drawPos, sw, sh, sClass) {
@@ -621,266 +586,6 @@ var Soul = (function() {
                 ctx.fill();
                 ctx.restore();
             }
-            
-        } else if (sClass === 18) { // Goku — High-Fidelity Animated Aura + Ki Ring + Sparks + Form Label + Shockwave
-            var cx = drawPos.x + sw/2;
-            var cy = drawPos.y + sh/2;
-            var time = Date.now() / 1000;
-            var gf = (typeof Player !== "undefined" && Player.getGokuForm) ? Player.getGokuForm() : 0;
-            
-            // Form-based aura colors (three layers for realistic energy depth)
-            var auraColors = [
-                ["rgba(255,100,0,", "rgba(255,50,0,", "rgba(150,0,0,"],      // 0: Base (orange)
-                ["rgba(255,215,0,", "rgba(255,165,0,", "rgba(218,165,32,"],  // 1: SSJ (gold)
-                ["rgba(255,255,100,", "rgba(255,215,0,", "rgba(255,140,0,"], // 2: SSJ2 (bright gold)
-                ["rgba(255,165,0,", "rgba(255,69,0,", "rgba(139,0,0,"],      // 3: SSJ3 (intense fiery gold)
-                ["rgba(255,0,50,", "rgba(220,20,60,", "rgba(128,0,0,"],      // 4: SSG (crimson red)
-                ["rgba(0,191,255,", "rgba(30,144,255,", "rgba(0,0,139,"],    // 5: SSB (god blue)
-                ["rgba(176,224,230,", "rgba(135,206,250,", "rgba(147,112,219,"], // 6: UI Sign (silver-blue-purple)
-                ["rgba(240,248,255,", "rgba(192,192,192,", "rgba(255,255,255,"] // 7: MUI (silver-white)
-            ];
-            var ac = auraColors[Math.min(gf, 7)];
-            
-            // 1. High-fidelity Rising Ki Flame/Aura (Wavy particles pulled upward)
-            ctx.save();
-            ctx.globalCompositeOperation = "screen";
-            var numFlames = 8 + gf * 2;
-            for (var f = 0; f < numFlames; f++) {
-                var angle = (f / numFlames) * Math.PI * 2 + time * 1.5;
-                // Radius wobbles nicely
-                var rWobble = sw * (1.15 + gf * 0.15) + Math.sin(time * 8 + f) * (2 + gf * 0.5);
-                var fX = cx + Math.cos(angle) * rWobble * 0.85;
-                var fY = cy + Math.sin(angle) * rWobble * 0.85 - (5 + gf * 1.8) * (1 + Math.sin(time * 6 + f * 2));
-                
-                var fRadius = sw * (0.45 + gf * 0.08) * (1.0 + Math.sin(time * 10 + f) * 0.25);
-                
-                var grad = ctx.createRadialGradient(fX, fY, 0, fX, fY, fRadius);
-                var alpha = (0.16 + 0.03 * gf) * (0.85 + 0.15 * Math.sin(time * 5 + f));
-                grad.addColorStop(0, ac[0] + alpha + ")");
-                grad.addColorStop(0.5, ac[1] + (alpha * 0.5) + ")");
-                grad.addColorStop(1, ac[2] + "0)");
-                
-                ctx.fillStyle = grad;
-                ctx.beginPath();
-                ctx.arc(fX, fY, fRadius, 0, Math.PI * 2);
-                ctx.fill();
-            }
-            ctx.restore();
-
-            // 2. Extra outer yellow aura overlay specifically for SSB
-            if (gf === 5) { 
-                ctx.save();
-                ctx.globalCompositeOperation = "screen";
-                var goldAuraSize = sw * 2.2;
-                var goldGrad = ctx.createRadialGradient(cx, cy, sw * 0.8, cx, cy, goldAuraSize);
-                var goldAlpha = 0.1 + Math.sin(time * 5) * 0.05;
-                goldGrad.addColorStop(0, "rgba(255,223,0,0)");
-                goldGrad.addColorStop(0.65, "rgba(255,215,0," + goldAlpha + ")");
-                goldGrad.addColorStop(1, "rgba(255,165,0,0)");
-                ctx.fillStyle = goldGrad;
-                ctx.beginPath();
-                ctx.arc(cx, cy, goldAuraSize, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
-            }
-
-            // 3. UI Sign / MUI rising heat particles
-            if (gf >= 6) {
-                ctx.save();
-                ctx.globalCompositeOperation = "screen";
-                var pCount = 8;
-                for (var p = 0; p < pCount; p++) {
-                    var pTime = (time * 0.8 + p / pCount) % 1.0; 
-                    var px = cx + Math.sin(p * 23.4 + time * 2) * (sw * 0.8) * (1.0 - pTime * 0.5);
-                    var py = cy + sh * 0.8 - pTime * (sh * 2.8);
-                    var pRadius = (1.5 + (1 - pTime) * 1.5);
-                    var pAlpha = (1.0 - pTime) * 0.65;
-                    
-                    ctx.fillStyle = gf === 7 ? "rgba(230, 240, 255, " + pAlpha + ")" : "rgba(180, 200, 255, " + pAlpha + ")";
-                    ctx.shadowBlur = 4;
-                    ctx.shadowColor = gf === 7 ? "#FFFFFF" : "#80A0FF";
-                    ctx.beginPath();
-                    ctx.arc(px, py, pRadius, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-                ctx.restore();
-            }
-            
-            // 4. Ki Ring (rotating elliptical energy ring)
-            ctx.save();
-            ctx.translate(cx, cy);
-            ctx.rotate(time * (1.0 + gf * 0.3));
-            ctx.strokeStyle = ac[0] + "0.65)";
-            ctx.lineWidth = 1.0 + gf * 0.15;
-            ctx.shadowBlur = 5 + gf;
-            ctx.shadowColor = ac[0] + "0.85)";
-            ctx.beginPath();
-            ctx.ellipse(0, 0, sw * (0.95 + gf * 0.08), sh * (0.55 + gf * 0.04), 0, 0, Math.PI * 2);
-            ctx.stroke();
-            ctx.restore();
-            
-            // 5. SSJ2+ Jagged Lightning Sparks
-            if (gf >= 2) {
-                ctx.save();
-                var sparkColor = "rgba(200, 240, 255, 0.9)";
-                var glowColor = "#AAAAFF";
-                if (gf === 2 || gf === 3) {
-                    sparkColor = "rgba(255, 255, 100, 0.95)";
-                    glowColor = "#FFFF55";
-                } else if (gf === 4) {
-                    sparkColor = "rgba(255, 100, 100, 0.9)";
-                    glowColor = "#FF3333";
-                } else if (gf === 5) {
-                    sparkColor = "rgba(100, 200, 255, 0.9)";
-                    glowColor = "#33A0FF";
-                } else if (gf >= 6) {
-                    sparkColor = "rgba(255, 255, 255, 0.95)";
-                    glowColor = "#FFFFFF";
-                }
-                
-                ctx.strokeStyle = sparkColor;
-                ctx.lineWidth = 1.0;
-                ctx.shadowBlur = 5;
-                ctx.shadowColor = glowColor;
-                
-                var sparkCount = gf === 2 ? 3 : (gf === 3 ? 5 : 2);
-                for (var sk = 0; sk < sparkCount; sk++) {
-                    if (Math.random() > 0.4) {
-                        var skAngle = (sk * Math.PI * 2 / sparkCount) + time * 4 + Math.random() * 0.5;
-                        var startDist = sw * 0.6;
-                        var endDist = sw * (1.8 + Math.random() * 0.6);
-                        
-                        var sx = cx + Math.cos(skAngle) * startDist;
-                        var sy = cy + Math.sin(skAngle) * startDist;
-                        var ex = cx + Math.cos(skAngle) * endDist;
-                        var ey = cy + Math.sin(skAngle) * endDist;
-                        
-                        var midAngle = skAngle + (Math.random() - 0.5) * 0.6;
-                        var midDist = (startDist + endDist) / 2;
-                        var mx = cx + Math.cos(midAngle) * midDist;
-                        var my = cy + Math.sin(midAngle) * midDist;
-                        
-                        ctx.beginPath();
-                        ctx.moveTo(sx, sy);
-                        ctx.lineTo(mx, my);
-                        ctx.lineTo(ex, ey);
-                        ctx.stroke();
-                    }
-                }
-                ctx.restore();
-            }
-            
-            // 6. Form label (small bold label text above soul)
-            ctx.save();
-            ctx.font = "bold 7px monospace";
-            ctx.textAlign = "center";
-            ctx.fillStyle = ac[0] + "0.95)";
-            ctx.shadowBlur = 4;
-            ctx.shadowColor = ac[0] + "1)";
-            var fLabels = ["BASE", "SSJ", "SSJ2", "SSJ3", "SSG", "SSB", "UI SIGN", "MUI"];
-            ctx.fillText(fLabels[Math.min(gf, 7)], cx, drawPos.y - 6);
-            ctx.restore();
-            
-            // 7. MUI/Sans Dodge Counter Dots
-            if (gf >= 7 && typeof Player !== "undefined" && Player.getSansAutoDodges) {
-                var dodges = Player.getSansAutoDodges();
-                var dotY = drawPos.y + sh + 5;
-                var maxDots = Math.min(dodges, 10);
-                var totalW = maxDots * 3;
-                var startX = cx - totalW / 2;
-                ctx.save();
-                for (var d = 0; d < maxDots; d++) {
-                    ctx.fillStyle = "rgba(220, 220, 255, 0.8)";
-                    ctx.shadowBlur = 3;
-                    ctx.shadowColor = "#FFFFFF";
-                    ctx.beginPath();
-                    ctx.arc(startX + d * 3, dotY, 1.2, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-                ctx.restore();
-            }
-
-            // 8. Draw expansion shockwave ring from power-up transform
-            if (gokuTransformBurstAlpha > 0) {
-                ctx.save();
-                ctx.strokeStyle = gokuTransformBurstColor;
-                ctx.lineWidth = 3.0 * gokuTransformBurstAlpha;
-                ctx.shadowBlur = 12;
-                ctx.shadowColor = gokuTransformBurstColor;
-                ctx.beginPath();
-                ctx.arc(cx, cy, gokuTransformBurstRadius, 0, Math.PI * 2);
-                ctx.stroke();
-                ctx.restore();
-            }
-            
-        } else if (sClass === 19) { // Sans — Bone Orbit + Blue Eye Flame + Dodge Counter
-            var cx = drawPos.x + sw/2;
-            var cy = drawPos.y + sh/2;
-            var time = Date.now() / 1000;
-            
-            // Orbiting bone fragments
-            ctx.save();
-            ctx.translate(cx, cy);
-            ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
-            ctx.lineWidth = 2.0;
-            for (var bn = 0; bn < 4; bn++) {
-                var bnAngle = (bn * Math.PI / 2) + time * 1.2;
-                var bnDist = 14 + Math.sin(time * 2 + bn) * 2;
-                var bnX = Math.cos(bnAngle) * bnDist;
-                var bnY = Math.sin(bnAngle) * bnDist;
-                ctx.beginPath();
-                ctx.moveTo(bnX - 2, bnY);
-                ctx.lineTo(bnX + 2, bnY);
-                ctx.stroke();
-                // Bone end caps
-                ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
-                ctx.beginPath();
-                ctx.arc(bnX - 2, bnY, 1.2, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.beginPath();
-                ctx.arc(bnX + 2, bnY, 1.2, 0, Math.PI * 2);
-                ctx.fill();
-            }
-            ctx.restore();
-            
-            // Blue eye flame (left eye position, flickers)
-            ctx.save();
-            var eyeX = cx - 3;
-            var eyeY = cy - 2;
-            var eyeFlicker = Math.sin(time * 8) * 0.3 + 0.7;
-            var eyeGrad = ctx.createRadialGradient(eyeX, eyeY, 0, eyeX, eyeY, 6);
-            eyeGrad.addColorStop(0, "rgba(0, 200, 255, " + eyeFlicker + ")");
-            eyeGrad.addColorStop(0.5, "rgba(0, 100, 255, " + (eyeFlicker * 0.5) + ")");
-            eyeGrad.addColorStop(1, "rgba(0, 50, 255, 0)");
-            ctx.fillStyle = eyeGrad;
-            ctx.beginPath();
-            ctx.arc(eyeX, eyeY, 6, 0, Math.PI * 2);
-            ctx.fill();
-            // Flame trail upward
-            ctx.strokeStyle = "rgba(0, 180, 255, " + (eyeFlicker * 0.6) + ")";
-            ctx.lineWidth = 1.2;
-            ctx.beginPath();
-            ctx.moveTo(eyeX, eyeY - 2);
-            ctx.quadraticCurveTo(eyeX - 2 + Math.sin(time * 6) * 2, eyeY - 8, eyeX + Math.sin(time * 4) * 3, eyeY - 12);
-            ctx.stroke();
-            ctx.restore();
-            
-            // Dodge counter (remaining auto-dodges as small white dots)
-            if (typeof Player !== "undefined" && Player.getSansAutoDodges) {
-                var dodges = Player.getSansAutoDodges();
-                var dotY = drawPos.y + sh + 5;
-                var maxDots = Math.min(dodges, 15);
-                var totalW = maxDots * 3;
-                var startX = cx - totalW / 2;
-                ctx.save();
-                for (var d = 0; d < maxDots; d++) {
-                    ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
-                    ctx.beginPath();
-                    ctx.arc(startX + d * 3, dotY, 1, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-                ctx.restore();
-            }
         }
     }
 
@@ -890,23 +595,7 @@ var Soul = (function() {
         var sw = getWidth();
         var sh = getHeight();
 
-        // Draw Goku MUI/Sign afterimages
-        var gf = (typeof Player !== "undefined" && Player.getSoulClass && Player.getSoulClass() === 18 && typeof Player.getGokuForm === "function") ? Player.getGokuForm() : 0;
-        if (gf >= 6 && gokuAfterimages.length > 0) {
-            ctx.save();
-            for (var i = 0; i < gokuAfterimages.length; i++) {
-                var ai = gokuAfterimages[i];
-                var alpha = 0.25 * ((i + 1) / gokuAfterimages.length);
-                ctx.globalAlpha = alpha;
-                if (gf === 6) {
-                    ctx.filter = "hue-rotate(200deg) saturate(1.5) brightness(2.0)";
-                } else {
-                    ctx.filter = "grayscale(30%) brightness(2.5) contrast(1.3)";
-                }
-                ctx.drawImage(sprite, ai.x, ai.y, sw, sh);
-            }
-            ctx.restore();
-        }
+
 
         switch (state) {
             case STATE.OKAY:
@@ -1112,18 +801,6 @@ var Soul = (function() {
         });
     }
 
-    function triggerGokuTransformBurst(color) {
-        gokuTransformBurstRadius = 5;
-        gokuTransformBurstColor = color || "#FFD700";
-        gokuTransformBurstAlpha = 1.0;
-        if (typeof triggerShake === "function") {
-            triggerShake(6, 400); // Screen shake on transformation!
-        }
-        if (typeof Sound !== "undefined" && Sound.playSound) {
-            Sound.playSound("impact", true);
-        }
-    }
-
     return {
         init: init, setup: setup, reset: reset,
         setSoulMode: setSoulMode, getSoulMode: getSoulMode,
@@ -1135,8 +812,7 @@ var Soul = (function() {
         getPos: getPos, setPos: setPos, getWidth: getWidth, getHeight: getHeight,
         getState: getState, isOkay: isOkay, takeDamage: takeDamage,
         dualActive: false, getMirrorPos: getMirrorPos,
-        addFloatingText: addFloatingText,
-        triggerGokuTransformBurst: triggerGokuTransformBurst
+        addFloatingText: addFloatingText
     };
 }());
 

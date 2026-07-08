@@ -248,7 +248,7 @@ var main = {
         
         var bossIds = [
             "singularity", "seraphina", "paradox", "prism", 
-            "glitch", "void_maw", "bill", "galactus",
+            "glitch", "bill",
             "ramiel", "sachiel", "godzilla", "vader"
         ];
         
@@ -266,12 +266,12 @@ var main = {
             }
         }
         
-        // Pacifist: all 12 spareable bosses are spared (sparedCount === 12)
-        if (sparedCount === 12) {
+        // Pacifist: all 10 spareable bosses are spared (sparedCount === 10)
+        if (sparedCount === 10) {
             return "PACIFISTA";
         }
-        // Genocide: all 12 bosses are killed (killedCount === 12)
-        if (killedCount === 12) {
+        // Genocide: all 10 bosses are killed (killedCount === 10)
+        if (killedCount === 10) {
             return "GENOCIDA";
         }
         return "NEUTRAL";
@@ -321,7 +321,7 @@ var main = {
         var bosses = [
             "Anti-gravity", "Seraphina Vex", "RAMIEL", "PARADOJA",
             "SACHIEL", "GODZILLA", "DARTH VADER", "ERROR 404",
-            "COLOSO DE ESPEJOS", "EL HAMBRE CÓSMICA", "Bill Cipher", "GALACTUS"
+            "COLOSO DE ESPEJOS", "Bill Cipher"
         ];
 
         var triggers = (typeof Overworld !== "undefined" && Overworld.getTriggerList) ? Overworld.getTriggerList() : [];
@@ -336,9 +336,7 @@ var main = {
             "DARTH VADER": "vader",
             "ERROR 404": "glitch",
             "COLOSO DE ESPEJOS": "prism",
-            "EL HAMBRE CÓSMICA": "void_maw",
-            "Bill Cipher": "bill",
-            "GALACTUS": "galactus"
+            "Bill Cipher": "bill"
         };
 
         ctx.font = "12pt Determination Mono";

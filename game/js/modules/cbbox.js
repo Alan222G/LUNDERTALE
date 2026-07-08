@@ -53,8 +53,12 @@ var Cbbox = (function() {
     }
 
     function setSize(_newWidth, _newHeight, force) {
-        if (force) { width = _newWidth; height = _newHeight; }
-        else { newWidth = _newWidth; newHeight = _newHeight; }
+        newWidth = _newWidth;
+        newHeight = _newHeight;
+        if (force) {
+            width = _newWidth;
+            height = _newHeight;
+        }
     }
 
     return { init: init, setup: setup, update: update, draw: draw, getBound: getBound, setSize: setSize };

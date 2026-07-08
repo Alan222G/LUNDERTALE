@@ -368,6 +368,13 @@ var Combat = (function() {
                 if (typeof Overworld !== "undefined" && Overworld.markBossDefeated) {
                     Overworld.markBossDefeated(victoryType);
                 }
+                // Award a key for winning with a normal soul (ids 0-11)
+                if (typeof Overworld !== "undefined" && Overworld.addKey && typeof Player !== "undefined") {
+                    var soulId = Player.getSoulClass();
+                    if (soulId <= 11) {
+                        Overworld.addKey();
+                    }
+                }
                 Transition.start(function() {
                     main.gameState = main.GAME_STATE.OVERWORLD;
                     Overworld.setup(main.ctx);

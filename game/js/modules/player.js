@@ -35,7 +35,6 @@ var Player = (function() {
     var gojoRctTimer = 0;
     var rctChargeTurns = 0;
     var subaruRevives = 3;
-    var gokuForm = 0; // 0=Base,1=SSJ,2=SSJ2,3=SSJ3,4=SSG,5=SSB,6=UISign,7=MUI
     var combatTurnCount = 0;
     var sansAutoDodges = 10;
     var hitboxScaleOverride = 1.0;
@@ -73,7 +72,6 @@ var Player = (function() {
         gojoRctTimer = 0;
         rctChargeTurns = 0;
         subaruRevives = 3;
-        gokuForm = 0;
         combatTurnCount = 0;
         sansAutoDodges = 10;
         hitboxScaleOverride = 1.0;
@@ -109,8 +107,6 @@ var Player = (function() {
             case 15: hpMax = 70;  baseSpd = 1.0; baseAtk = 1.0; baseDef = 1.0; break; // Subaru (Retorno por Muerte)
             case 16: hpMax = 150; baseSpd = 1.0; baseAtk = 1.6; baseDef = 1.4; break; // All Might (One For All)
             case 17: hpMax = 100; baseSpd = 1.1; baseAtk = 1.3; baseDef = 0.9; break; // Itadori (Jujutsu)
-            case 18: hpMax = 20;  baseSpd = 1.0; baseAtk = 1.0; baseDef = 1.0; break; // Goku (Base Form)
-            case 19: hpMax = 50;  baseSpd = 1.0; baseAtk = 1.0; baseDef = 1.0; break; // Sans (Bad Time)
         }
         hpCur = hpMax;
         recalculateBuffs();
@@ -199,41 +195,6 @@ var Player = (function() {
         
         // Itadori RCT is handled by the shared RCT charge accumulator above
         
-        // Goku Transformation: auto-transform each turn
-        if (soulClass === 18 && gokuForm < 7) {
-            gokuForm++;
-            var formNames = ["SSJ", "SSJ2", "SSJ3", "SSG", "SSB", "UI Sign", "MUI"];
-            var formColors = ["#FFD700", "#FFE066", "#FFAA00", "#FF4444", "#00BFFF", "#C0C0C0", "#E0E0FF"];
-            // Apply form stats progressively
-            switch (gokuForm) {
-                case 1: baseSpd = 1.2; baseAtk = 1.5; baseDef = 1.2; break; // SSJ
-                case 2: baseSpd = 1.4; baseAtk = 2.0; baseDef = 1.4; break; // SSJ2
-                case 3: baseSpd = 1.6; baseAtk = 2.5; baseDef = 1.6; break; // SSJ3
-                case 4: baseSpd = 1.8; baseAtk = 3.0; baseDef = 1.8; break; // SSG
-                case 5: baseSpd = 2.0; baseAtk = 3.5; baseDef = 2.0; break; // SSB
-                case 6: baseSpd = 2.5; baseAtk = 4.0; baseDef = 2.5; break; // UI Sign
-                case 7: baseSpd = 3.0; baseAtk = 5.0; baseDef = 3.0; break; // MUI
-            }
-            recalculateBuffs();
-            if (typeof Soul !== "undefined" && Soul.addFloatingText) {
-                var sPos = Soul.getPos();
-                Soul.addFloatingText(formNames[gokuForm - 1], sPos.x + Soul.getWidth() / 2, sPos.y - 12, formColors[gokuForm - 1]);
-                if (Soul.triggerGokuTransformBurst) {
-                    Soul.triggerGokuTransformBurst(formColors[gokuForm - 1]);
-                }
-            }
-            console.log("GOKU: Transformed to " + formNames[gokuForm - 1] + "!");
-        }
-        // Goku MUI: grant 10 auto-dodges per turn (like Sans)
-        if (soulClass === 18 && gokuForm >= 7) {
-            sansAutoDodges = 10;
-        }
-        
-        // Sans: refresh 10 auto-dodges per turn
-        if (soulClass === 19) {
-            sansAutoDodges = 10;
-        }
-        
         // Decrement buff arrays
         for (var i = activeSpdBuffs.length - 1; i >= 0; i--) {
             activeSpdBuffs[i].turns--;
@@ -308,28 +269,6 @@ var Player = (function() {
 
     function damage(value, attackName) {
         if (invulnerableTurns > 0) return false; // Immune
-        
-        // Sans auto-dodge (10 per turn, instant teleport, NO immunity frames)
-        // Also Goku MUI (form 7) gets the same dodges
-        if ((soulClass === 19 || (soulClass === 18 && gokuForm >= 7)) && sansAutoDodges > 0) {
-            sansAutoDodges--;
-            Sound.playSound("ting", true);
-            // Teleport to random position in combat box (no invulnerability!)
-            if (typeof Soul !== "undefined" && Soul.getPos && typeof Cbbox !== "undefined") {
-                var bb = Cbbox.getBound();
-                var sw = Soul.getWidth();
-                var sh = Soul.getHeight();
-                var newX = bb[0] + Math.random() * (bb[2] - bb[0] - sw);
-                var newY = bb[1] + Math.random() * (bb[3] - bb[1] - sh);
-                Soul.setPos(newX, newY);
-            }
-            if (typeof Soul !== "undefined" && Soul.addFloatingText) {
-                var sPos = Soul.getPos();
-                var dodgeColor = soulClass === 18 ? "#E0E0FF" : "#FFFFFF";
-                Soul.addFloatingText("DODGE", sPos.x + Soul.getWidth() / 2, sPos.y - 12, dodgeColor);
-            }
-            return false; // Dodged! (no invulnerability set)
-        }
         
         if (shieldCharges > 0) {
             shieldCharges--;
@@ -569,7 +508,6 @@ var Player = (function() {
         getMahoragaDefStack: function() { return mahoragaDefStack; },
         getSubaruRevives: function() { return subaruRevives; },
         getSansAutoDodges: function() { return sansAutoDodges; },
-        getGokuForm: function() { return gokuForm; },
         getCombatTurnCount: function() { return combatTurnCount; },
         // Mahoraga: reset adaptation on boss phase change
         resetMahoragaAdaptation: function() {

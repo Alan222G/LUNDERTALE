@@ -218,12 +218,21 @@ var Inventory = (function() {
         return false;
     }
 
+    function addPotionByName(name) {
+        var item = allItems.find(function(i) { return i.name === name; });
+        if (item) {
+            return addItem(item);
+        }
+        return false;
+    }
+
     return {
         init: init, 
         getNames: getNames, getText: getText, getLength: getLength, 
         removeItem: removeItem, activate: activate,
         getAllNames: getAllNames, getAllText: getAllText, getAllLength: getAllLength,
         isEquipped: isEquipped, toggleEquip: toggleEquip, getEquippedCount: getEquippedCount,
-        getEquippedItemObject: getEquippedItemObject, addItem: addItem
+        getEquippedItemObject: getEquippedItemObject, addItem: addItem,
+        addPotionByName: addPotionByName
     };
 }());
