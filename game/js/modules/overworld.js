@@ -3088,5 +3088,13 @@ var Overworld = (function() {
         ctx.restore();
     }
 
+    function addKey() {
+        keysCount++;
+    }
+
+    function getKeysCount() {
+        return keysCount;
+    }
+
     return { init: init, setup: setup, update: update, draw: draw, markBossDefeated: markBossDefeated, resetBossTrigger: resetBossTrigger, getTriggerList: function() { return triggerList; }, addKey: addKey, getKeysCount: getKeysCount };
 }());
