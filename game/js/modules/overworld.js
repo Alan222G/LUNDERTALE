@@ -2481,11 +2481,11 @@ var Overworld = (function() {
                 ctx.font = "9pt 'Determination Mono', monospace";
                 ctx.shadowBlur = 0;
                 ctx.fillStyle = "#FFF";
-                ctx.fillText("Elige un cofre... 3 contienen almas especiales, 2 están vacíos.", 370, 90);
+                ctx.fillText("Elige el cofre del personaje que deseas desbloquear.", 370, 90);
                 ctx.fillText("🔑 Llaves: " + keysCount, 370, 110);
 
-                // Draw 5 chests
-                var chestStartX = 370 - (5 * 70) / 2 + 35;
+                // Draw chests
+                var chestStartX = 370 - (chestGameChests.length * 70) / 2 + 35;
                 for (var ci = 0; ci < chestGameChests.length; ci++) {
                     var chX = chestStartX + ci * 70;
                     var chY = 220;
@@ -2494,48 +2494,7 @@ var Overworld = (function() {
 
                     ctx.save();
                     ctx.translate(chX, chY + bobOff);
-
-                    // Selection glow
-                    if (isSelected) {
-                        ctx.shadowBlur = 20;
-                        ctx.shadowColor = "#FFD700";
-                        ctx.strokeStyle = "#FFD700";
-                        ctx.lineWidth = 3;
-                        ctx.strokeRect(-22, -18, 44, 38);
-                    }
-
-                    // Chest body
-                    ctx.fillStyle = isSelected ? "#CD853F" : "#8B4513";
-                    ctx.strokeStyle = "#5C2E0B";
-                    ctx.lineWidth = 2;
-                    ctx.fillRect(-18, -2, 36, 22);
-                    ctx.strokeRect(-18, -2, 36, 22);
-
-                    // Lid
-                    ctx.fillStyle = isSelected ? "#DEB887" : "#A0522D";
-                    ctx.fillRect(-21, -16, 42, 16);
-                    ctx.strokeRect(-21, -16, 42, 16);
-
-                    // Metal band
-                    ctx.fillStyle = "#FFD700";
-                    ctx.fillRect(-3, -16, 6, 36);
-                    ctx.fillRect(-21, -8, 42, 3);
-
-                    // Keyhole
-                    ctx.fillStyle = "#FFD700";
-                    ctx.beginPath();
-                    ctx.arc(0, 5, 4, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.fillStyle = "#000";
-                    ctx.fillRect(-1.5, 3, 3, 5);
-
-                    // Question mark
-                    ctx.shadowBlur = 0;
-                    ctx.font = "bold 14pt Arial";
-                    ctx.textAlign = "center";
-                    ctx.fillStyle = isSelected ? "#FFD700" : "#AA8844";
-                    ctx.fillText("?", 0, -22);
-
+                    drawCustomChest(ctx, chestGameChests[ci].content, isSelected, false);
                     ctx.restore();
                 }
 
@@ -2557,8 +2516,8 @@ var Overworld = (function() {
                 ctx.fillStyle = chestGameUnlockedChar ? "#00FF00" : "#FF4444";
                 ctx.fillText("COFRE MISTERIOSO", 370, 60);
 
-                // Draw all 5 chests - reveal the opened one
-                var chestStartX2 = 370 - (5 * 70) / 2 + 35;
+                // Draw all chests - reveal the opened one
+                var chestStartX2 = 370 - (chestGameChests.length * 70) / 2 + 35;
                 for (var ci2 = 0; ci2 < chestGameChests.length; ci2++) {
                     var chX2 = chestStartX2 + ci2 * 70;
                     var chY2 = 160;
@@ -2566,46 +2525,10 @@ var Overworld = (function() {
 
                     ctx.save();
                     ctx.translate(chX2, chY2);
-
-                    if (wasChosen) {
-                        // Opened chest - lid tilted open
-                        ctx.fillStyle = "#CD853F";
-                        ctx.strokeStyle = "#5C2E0B";
-                        ctx.lineWidth = 2;
-                        ctx.fillRect(-18, -2, 36, 22);
-                        ctx.strokeRect(-18, -2, 36, 22);
-
-                        // Open lid (tilted back)
-                        ctx.save();
-                        ctx.translate(-21, -2);
-                        ctx.rotate(-0.7);
-                        ctx.fillStyle = "#DEB887";
-                        ctx.fillRect(0, -14, 42, 14);
-                        ctx.strokeRect(0, -14, 42, 14);
-                        ctx.restore();
-
-                        // Glow from inside
-                        if (chestGameUnlockedChar) {
-                            var innerGlow = ctx.createRadialGradient(0, 5, 2, 0, 5, 25);
-                            innerGlow.addColorStop(0, "rgba(255, 215, 0, 0.8)");
-                            innerGlow.addColorStop(1, "rgba(255, 215, 0, 0)");
-                            ctx.fillStyle = innerGlow;
-                            ctx.beginPath();
-                            ctx.arc(0, 5, 25, 0, Math.PI * 2);
-                            ctx.fill();
-                        }
-                    } else {
-                        // Closed chest (dimmed)
+                    if (!wasChosen) {
                         ctx.globalAlpha = 0.4;
-                        ctx.fillStyle = "#6B3410";
-                        ctx.strokeStyle = "#3C1A08";
-                        ctx.lineWidth = 2;
-                        ctx.fillRect(-18, -2, 36, 22);
-                        ctx.strokeRect(-18, -2, 36, 22);
-                        ctx.fillStyle = "#7B4020";
-                        ctx.fillRect(-21, -16, 42, 16);
-                        ctx.strokeRect(-21, -16, 42, 16);
                     }
+                    drawCustomChest(ctx, chestGameChests[ci2].content, false, wasChosen);
                     ctx.restore();
                 }
 
@@ -2736,18 +2659,14 @@ var Overworld = (function() {
             lockedPool[rj] = tmp;
         }
 
-        // Create 5 chests: up to 3 contain characters, 2 are empty
-        var numPrizes = Math.min(3, lockedPool.length);
+        // Create chests: up to 5 locked characters, NO empty chests!
+        var numChests = Math.min(5, lockedPool.length);
         chestGameChests = [];
-        for (var cp = 0; cp < numPrizes; cp++) {
+        for (var cp = 0; cp < numChests; cp++) {
             chestGameChests.push({ content: lockedPool[cp], opened: false });
         }
-        // Fill remaining with empty chests to reach 5
-        while (chestGameChests.length < 5) {
-            chestGameChests.push({ content: null, opened: false });
-        }
 
-        // Shuffle the 5 chests
+        // Shuffle the chests
         for (var sh2 = chestGameChests.length - 1; sh2 > 0; sh2--) {
             var rj2 = Math.floor(Math.random() * (sh2 + 1));
             var tmp2 = chestGameChests[sh2];
@@ -2755,7 +2674,7 @@ var Overworld = (function() {
             chestGameChests[rj2] = tmp2;
         }
 
-        chestGameIndex = 2; // Start in center
+        chestGameIndex = Math.floor(chestGameChests.length / 2); // Start in center
         chestGameStatus = "select";
         chestGameActive = true;
         chestGameUnlockedChar = null;
@@ -2763,12 +2682,410 @@ var Overworld = (function() {
         Sound.playSound("button", true);
     }
 
-    function addKey() {
-        keysCount++;
+    function drawDefaultChest(ctx, isSelected, opened) {
+        // Selection glow
+        if (isSelected && !opened) {
+            ctx.save();
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = "#FFD700";
+            ctx.strokeStyle = "#FFD700";
+            ctx.lineWidth = 3;
+            ctx.strokeRect(-22, -18, 44, 38);
+            ctx.restore();
+        }
+
+        // Chest body
+        ctx.fillStyle = isSelected ? "#CD853F" : "#8B4513";
+        ctx.strokeStyle = "#5C2E0B";
+        ctx.lineWidth = 2;
+        ctx.fillRect(-18, -2, 36, 22);
+        ctx.strokeRect(-18, -2, 36, 22);
+
+        // Lid
+        if (opened) {
+            ctx.save();
+            ctx.translate(-21, -2);
+            ctx.rotate(-0.7);
+            ctx.fillStyle = "#DEB887";
+            ctx.strokeStyle = "#5C2E0B";
+            ctx.lineWidth = 2;
+            ctx.fillRect(0, -14, 42, 14);
+            ctx.strokeRect(0, -14, 42, 14);
+            ctx.restore();
+
+            // Glow from inside
+            var innerGlow = ctx.createRadialGradient(0, 5, 2, 0, 5, 25);
+            innerGlow.addColorStop(0, "rgba(255, 215, 0, 0.8)");
+            innerGlow.addColorStop(1, "rgba(255, 215, 0, 0)");
+            ctx.fillStyle = innerGlow;
+            ctx.beginPath();
+            ctx.arc(0, 5, 25, 0, Math.PI * 2);
+            ctx.fill();
+        } else {
+            ctx.fillStyle = isSelected ? "#DEB887" : "#A0522D";
+            ctx.fillRect(-21, -16, 42, 16);
+            ctx.strokeRect(-21, -16, 42, 16);
+
+            // Metal band
+            ctx.fillStyle = "#FFD700";
+            ctx.fillRect(-3, -16, 6, 36);
+            ctx.fillRect(-21, -8, 42, 3);
+
+            // Keyhole
+            ctx.fillStyle = "#FFD700";
+            ctx.beginPath();
+            ctx.arc(0, 5, 4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = "#000";
+            ctx.fillRect(-1.5, 3, 3, 5);
+        }
     }
 
-    function getKeysCount() {
-        return keysCount;
+    function drawCustomChest(ctx, content, isSelected, opened) {
+        if (!content) {
+            drawDefaultChest(ctx, isSelected, opened);
+            return;
+        }
+
+        var charId = content.id;
+        var time = Date.now() / 1000;
+
+        // Custom theme colors
+        var bodyColor, lidColor, strokeColor, accentColor;
+        switch (charId) {
+            case 12: // Mahoraga (White & Gold)
+                bodyColor = "#F5F5F7";
+                lidColor = "#FFFFFF";
+                strokeColor = "#D4AF37";
+                accentColor = "#FFD700";
+                break;
+            case 13: // Eva 01 (Purple & Neon Green)
+                bodyColor = "#4A2E80";
+                lidColor = "#5A33A8";
+                strokeColor = "#000000";
+                accentColor = "#39FF14";
+                break;
+            case 14: // Gojo (Prison Realm Cube - Dark Grey)
+                bodyColor = "#3E3F43";
+                lidColor = "#4E5054";
+                strokeColor = "#1A1A1A";
+                accentColor = "#FF3366";
+                break;
+            case 15: // Subaru (Dark Teal & Witch Shadow)
+                bodyColor = "#121C1E";
+                lidColor = "#1C2A2D";
+                strokeColor = "#0D0E10";
+                accentColor = "#9370DB";
+                break;
+            case 16: // All Might (Hero Blue, Red, Yellow)
+                bodyColor = "#0D47A1";
+                lidColor = "#1976D2";
+                strokeColor = "#B71C1C";
+                accentColor = "#FFEB3B";
+                break;
+            case 17: // Itadori (Maroon & Cursed Sparks)
+                bodyColor = "#3E1B20";
+                lidColor = "#5C262D";
+                strokeColor = "#1D0B0D";
+                accentColor = "#FF69B4";
+                break;
+            default:
+                bodyColor = "#8B4513";
+                lidColor = "#A0522D";
+                strokeColor = "#5C2E0B";
+                accentColor = "#FFD700";
+        }
+
+        // Draw selection glow
+        if (isSelected && !opened) {
+            ctx.save();
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = accentColor;
+            ctx.strokeStyle = accentColor;
+            ctx.lineWidth = 3;
+            ctx.strokeRect(-22, -18, 44, 38);
+            ctx.restore();
+        }
+
+        // Draw Chest Body
+        ctx.fillStyle = bodyColor;
+        ctx.strokeStyle = strokeColor;
+        ctx.lineWidth = 2;
+        ctx.fillRect(-18, -2, 36, 22);
+        ctx.strokeRect(-18, -2, 36, 22);
+
+        // Draw Lid (and opened lid)
+        if (opened) {
+            ctx.save();
+            ctx.translate(-21, -2);
+            ctx.rotate(-0.7);
+            ctx.fillStyle = lidColor;
+            ctx.strokeStyle = strokeColor;
+            ctx.lineWidth = 2;
+            ctx.fillRect(0, -14, 42, 14);
+            ctx.strokeRect(0, -14, 42, 14);
+            ctx.restore();
+
+            // Glow from inside
+            var innerGlow = ctx.createRadialGradient(0, 5, 2, 0, 5, 25);
+            innerGlow.addColorStop(0, accentColor);
+            innerGlow.addColorStop(1, "rgba(0, 0, 0, 0)");
+            ctx.fillStyle = innerGlow;
+            ctx.beginPath();
+            ctx.arc(0, 5, 25, 0, Math.PI * 2);
+            ctx.fill();
+        } else {
+            // Closed Lid
+            ctx.fillStyle = lidColor;
+            ctx.strokeStyle = strokeColor;
+            ctx.lineWidth = 2;
+            ctx.fillRect(-21, -16, 42, 16);
+            ctx.strokeRect(-21, -16, 42, 16);
+        }
+
+        // Draw Custom Hints/Details (pistas del personaje)
+        ctx.save();
+        switch (charId) {
+            case 12: // Mahoraga: Wings flanking + Adaptation wheel on top
+                // Wings (closed if closed, spread if opened)
+                ctx.fillStyle = "rgba(240, 240, 245, 0.9)";
+                ctx.strokeStyle = "#BDC3C7";
+                ctx.lineWidth = 1;
+                // Left wing
+                ctx.beginPath();
+                ctx.ellipse(-23, -5, 8, 14, opened ? -0.4 : 0.2, 0, Math.PI * 2);
+                ctx.fill(); ctx.stroke();
+                // Right wing
+                ctx.beginPath();
+                ctx.ellipse(23, -5, 8, 14, opened ? 0.4 : -0.2, 0, Math.PI * 2);
+                ctx.fill(); ctx.stroke();
+
+                // Adaptation Wheel on top of the lid (or above chest if open)
+                var wheelY = opened ? -30 : -22;
+                ctx.translate(0, wheelY);
+                ctx.rotate(time * 1.5);
+                ctx.strokeStyle = "#FFD700";
+                ctx.lineWidth = 1.5;
+                ctx.shadowBlur = isSelected ? 8 : 2;
+                ctx.shadowColor = "#FFD700";
+                ctx.beginPath();
+                ctx.arc(0, 0, 7, 0, Math.PI * 2);
+                ctx.stroke();
+                // Spokes
+                for (var sp = 0; sp < 8; sp++) {
+                    var spAngle = sp * Math.PI / 4;
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.lineTo(Math.cos(spAngle) * 7, Math.sin(spAngle) * 7);
+                    ctx.stroke();
+                }
+                break;
+
+            case 13: // Eva 01: Neon green stripes + orange AT Field behind + horn
+                // AT field behind the chest (if selected)
+                if (isSelected && !opened) {
+                    ctx.strokeStyle = "rgba(255, 140, 0, 0.6)";
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    for (var h = 0; h < 6; h++) {
+                        var hAngle = h * Math.PI / 3;
+                        var hx = Math.cos(hAngle) * 22;
+                        var hy = Math.sin(hAngle) * 22 - 6;
+                        if (h === 0) ctx.moveTo(hx, hy);
+                        else ctx.lineTo(hx, hy);
+                    }
+                    ctx.closePath();
+                    ctx.stroke();
+                }
+                
+                // Neon green bands on body
+                ctx.fillStyle = "#39FF14";
+                ctx.fillRect(-12, 2, 4, 14);
+                ctx.fillRect(8, 2, 4, 14);
+
+                // Horn protruding from center of lid (closed lid only)
+                if (!opened) {
+                    ctx.fillStyle = "#FF8C00"; // Orange horn
+                    ctx.strokeStyle = "#000";
+                    ctx.beginPath();
+                    ctx.moveTo(-3, -16);
+                    ctx.lineTo(0, -28);
+                    ctx.lineTo(3, -16);
+                    ctx.closePath();
+                    ctx.fill(); ctx.stroke();
+                }
+                break;
+
+            case 14: // Gojo: Prison Realm Eyes + Seals
+                // Cube styling - draw dark bands/squares
+                ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+                ctx.fillRect(-15, 2, 30, 4);
+                ctx.fillRect(-15, 12, 30, 4);
+
+                // Draw small blinking/moving eyes
+                var eyes = [
+                    {x: -10, y: 6, age: 0},
+                    {x: 10, y: 6, age: 1.5},
+                    {x: -6, y: -9, age: 3.0, lid: true},
+                    {x: 6, y: -9, age: 4.5, lid: true}
+                ];
+                for (var e = 0; e < eyes.length; e++) {
+                    var eye = eyes[e];
+                    if (eye.lid && opened) continue; // don't draw on open lid if open
+                    
+                    var blink = Math.sin(time * 3 + eye.age) > 0.85;
+                    ctx.save();
+                    ctx.translate(eye.x, eye.y);
+                    if (blink) {
+                        // Closed eye line
+                        ctx.strokeStyle = "#FF3366";
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(-3, 0);
+                        ctx.lineTo(3, 0);
+                        ctx.stroke();
+                    } else {
+                        // Open eye
+                        ctx.fillStyle = "#FFFFFF";
+                        ctx.beginPath();
+                        ctx.ellipse(0, 0, 3, 2, 0, 0, Math.PI * 2);
+                        ctx.fill();
+                        // Pupil (moving slightly)
+                        ctx.fillStyle = "#000000";
+                        var dx = Math.sin(time * 1.5 + e) * 0.8;
+                        ctx.beginPath();
+                        ctx.arc(dx, 0, 1.0, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    ctx.restore();
+                }
+                break;
+
+            case 15: // Subaru: Purple/Black Shadow Wisps + Yellow Cracks
+                // Shadow particles rising
+                ctx.globalCompositeOperation = "screen";
+                var shadowColor = "rgba(147, 112, 219, 0.3)";
+                for (var s = 0; s < 4; s++) {
+                    var sTime = (time * 0.5 + s / 4) % 1.0;
+                    var sx = Math.sin(s * 15 + time) * 12;
+                    var sy = -8 - sTime * 20;
+                    ctx.fillStyle = shadowColor;
+                    ctx.beginPath();
+                    ctx.arc(sx, sy, 3 + (1 - sTime) * 4, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.globalCompositeOperation = "source-over";
+
+                // Yellow cracked veins on the body
+                ctx.strokeStyle = "#FFD700";
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(-12, 10); ctx.lineTo(-6, 4); ctx.lineTo(0, 14);
+                ctx.moveTo(12, 12); ctx.lineTo(6, 6); ctx.lineTo(0, 14);
+                ctx.stroke();
+
+                // Unlocked silhouette of yellow eye
+                ctx.fillStyle = "rgba(255, 215, 0, 0.8)";
+                ctx.beginPath();
+                ctx.ellipse(0, 6, 4, 2, 0, 0, Math.PI * 2);
+                ctx.fill();
+                break;
+
+            case 16: // All Might: V-shaped hair tufts + red/white banner + golden belt
+                // Red/white stripes on chest body
+                ctx.fillStyle = "#B71C1C"; // Red stripe
+                ctx.fillRect(-15, 2, 6, 14);
+                ctx.fillRect(9, 2, 6, 14);
+                ctx.fillStyle = "#FFFFFF"; // White stripe
+                ctx.fillRect(-9, 2, 6, 14);
+                ctx.fillRect(3, 2, 6, 14);
+
+                // Golden Symbol buckle in center
+                ctx.fillStyle = "#FFEB3B";
+                ctx.strokeStyle = "#000";
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.rect(-3, 6, 6, 6);
+                ctx.fill(); ctx.stroke();
+
+                // Famous V-shaped blonde hair tufts on top of lid
+                if (!opened) {
+                    ctx.fillStyle = "#FFEB3B";
+                    ctx.strokeStyle = "#000";
+                    ctx.lineWidth = 1.2;
+                    // Left hair tuft
+                    ctx.beginPath();
+                    ctx.moveTo(-15, -16);
+                    ctx.quadraticCurveTo(-22, -30, -18, -34);
+                    ctx.quadraticCurveTo(-14, -28, -11, -16);
+                    ctx.closePath();
+                    ctx.fill(); ctx.stroke();
+                    // Right hair tuft
+                    ctx.beginPath();
+                    ctx.moveTo(15, -16);
+                    ctx.quadraticCurveTo(22, -30, 18, -34);
+                    ctx.quadraticCurveTo(14, -28, 11, -16);
+                    ctx.closePath();
+                    ctx.fill(); ctx.stroke();
+                }
+                break;
+
+            case 17: // Itadori: Talisman paper bands + pink/black cursed energy sparks
+                // Cursed energy sparks (floating particles)
+                ctx.globalCompositeOperation = "screen";
+                for (var spk = 0; spk < 3; spk++) {
+                    var spkTime = (time * 0.8 + spk / 3) % 1.0;
+                    var spkx = Math.cos(spk * 2 + time * 2) * 14;
+                    var spky = 6 - spkTime * 18;
+                    ctx.fillStyle = "rgba(255, 105, 180, " + (1.0 - spkTime) + ")";
+                    ctx.beginPath();
+                    ctx.arc(spkx, spky, 1.5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.globalCompositeOperation = "source-over";
+
+                // Yellow talisman papers (paper strips hanging across chest)
+                ctx.fillStyle = "#F0E68C"; // Khaki/yellow paper
+                ctx.strokeStyle = "#8B7D6B";
+                ctx.lineWidth = 0.8;
+                // Talisman 1 (angled left)
+                ctx.save();
+                ctx.translate(-8, 3);
+                ctx.rotate(-0.3);
+                ctx.fillRect(-2, -6, 4, 16);
+                ctx.strokeRect(-2, -6, 4, 16);
+                // Scribble on paper
+                ctx.fillStyle = "#000";
+                ctx.fillRect(-0.8, -3, 1.6, 2);
+                ctx.fillRect(-0.8, 1, 1.6, 2);
+                ctx.restore();
+                // Talisman 2 (angled right)
+                ctx.save();
+                ctx.translate(8, 5);
+                ctx.rotate(0.25);
+                ctx.fillStyle = "#F0E68C";
+                ctx.fillRect(-2, -6, 4, 16);
+                ctx.strokeRect(-2, -6, 4, 16);
+                ctx.fillStyle = "#000";
+                ctx.fillRect(-0.8, -3, 1.6, 2);
+                ctx.fillRect(-0.8, 1, 1.6, 2);
+                ctx.restore();
+                break;
+        }
+
+        // Draw general metal locks/keyholes on top of details if closed
+        if (!opened) {
+            // Keyhole plate
+            ctx.fillStyle = accentColor;
+            ctx.fillRect(-3, -2, 6, 12);
+            ctx.fillStyle = "#FFD700";
+            ctx.beginPath();
+            ctx.arc(0, 3, 2.2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = "#000";
+            ctx.fillRect(-0.8, 2.5, 1.6, 3.5);
+        }
+        ctx.restore();
     }
 
     return { init: init, setup: setup, update: update, draw: draw, markBossDefeated: markBossDefeated, resetBossTrigger: resetBossTrigger, getTriggerList: function() { return triggerList; }, addKey: addKey, getKeysCount: getKeysCount };
