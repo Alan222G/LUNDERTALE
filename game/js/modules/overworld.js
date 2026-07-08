@@ -668,36 +668,46 @@ var Overworld = (function() {
         ctx.translate(cx, cy);
         
         // 1. Draw a dark cosmic background backing for the portal (so it has presence)
-        var portalRadius = 26 + Math.sin(pTime * 4) * 2;
+        var portalRadius = 28 + Math.sin(pTime * 4) * 3;
         var gradOuter = ctx.createRadialGradient(0, 0, 2, 0, 0, portalRadius);
         gradOuter.addColorStop(0, "#000000");
-        gradOuter.addColorStop(0.4, color2);
-        gradOuter.addColorStop(0.8, color1);
+        gradOuter.addColorStop(0.3, color2);
+        gradOuter.addColorStop(0.7, color1);
         gradOuter.addColorStop(1, "rgba(0,0,0,0)");
         ctx.fillStyle = gradOuter;
         ctx.beginPath();
-        ctx.arc(0, 0, portalRadius + 10, 0, Math.PI * 2);
+        ctx.arc(0, 0, portalRadius + 12, 0, Math.PI * 2);
         ctx.fill();
 
-        // 2. Draw multiple layered swirling ellipses for a 3D gravitational disk effect
-        ctx.shadowBlur = 20;
+        // 2. Space distortion grid lines behind portal
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+        ctx.lineWidth = 0.8;
+        for (var g = 0; g < 4; g++) {
+            var gRad = ((pTime * 20 + g * 20) % 80);
+            ctx.beginPath();
+            ctx.arc(0, 0, gRad, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+ 
+        // 3. Draw multiple layered swirling ellipses for a 3D gravitational disk effect
+        ctx.shadowBlur = 25;
         ctx.shadowColor = color1;
         
-        var numLayers = 4;
+        var numLayers = 5;
         for (var l = 0; l < numLayers; l++) {
             ctx.save();
-            var angleScale = 1.0 + l * 0.15;
-            var rotSpeed = pTime * (1.5 + l * 0.5);
-            var w = 24 - l * 4;
-            var h = 10 - l * 1.5;
+            var angleScale = 1.0 + l * 0.12;
+            var rotSpeed = pTime * (2.0 + l * 0.4);
+            var w = 26 - l * 4.5;
+            var h = 11 - l * 1.8;
             
             // Add slight pulsing to scale
-            var pulse = 1.0 + Math.sin(pTime * 3 + l) * 0.08;
+            var pulse = 1.0 + Math.sin(pTime * 4 + l) * 0.08;
             ctx.scale(pulse, pulse);
             
             ctx.strokeStyle = color1;
-            ctx.lineWidth = 2.5 - l * 0.4;
-            ctx.globalAlpha = 0.5 + (l / numLayers) * 0.5;
+            ctx.lineWidth = 3.0 - l * 0.5;
+            ctx.globalAlpha = 0.4 + (l / numLayers) * 0.6;
             
             ctx.beginPath();
             ctx.ellipse(0, 0, w, h, rotSpeed, 0, Math.PI * 2);
@@ -705,34 +715,32 @@ var Overworld = (function() {
             ctx.restore();
         }
 
-        // 3. Draw a bright, glowing center core (white-hot singularity)
-        ctx.shadowBlur = 10;
+        // 4. Draw a bright, glowing center core (white-hot singularity)
+        ctx.shadowBlur = 15;
         ctx.shadowColor = "#FFF";
         ctx.fillStyle = "#FFF";
         ctx.beginPath();
-        ctx.ellipse(0, 0, 6, 3, pTime * 2, 0, Math.PI * 2);
+        ctx.ellipse(0, 0, 7, 3.5, pTime * 2.5, 0, Math.PI * 2);
         ctx.fill();
 
-        // 4. Orbiting dust/sparks getting sucked into the portal
-        ctx.shadowBlur = 6;
+        // 5. Orbiting dust/sparks getting sucked into the portal
+        ctx.shadowBlur = 8;
         ctx.shadowColor = color2;
-        var numSparks = 8;
+        var numSparks = 12;
         for (var i = 0; i < numSparks; i++) {
-            // Spiral inward logic based on time + index
             var baseAngle = i * (Math.PI * 2 / numSparks);
-            var spiralTime = (pTime * 0.5 + i * 0.125) % 1.0; // moves from 0 (outer) to 1 (inner)
-            var currentRadiusW = 32 * (1.0 - spiralTime) + 4;
-            var currentRadiusH = 16 * (1.0 - spiralTime) + 2;
-            var angle = baseAngle + spiralTime * Math.PI * 3; // spirals around
+            var spiralTime = (pTime * 0.4 + i * 0.08) % 1.0; // moves from 0 (outer) to 1 (inner)
+            var currentRadiusW = 36 * (1.0 - spiralTime) + 4;
+            var currentRadiusH = 18 * (1.0 - spiralTime) + 2;
+            var angle = baseAngle + spiralTime * Math.PI * 3.5; // spirals around
             
             var px = Math.cos(angle) * currentRadiusW;
             var py = Math.sin(angle) * currentRadiusH;
             
-            // Fades out as it gets close to center or when it first spawns
             var sparkAlpha = Math.sin(spiralTime * Math.PI); 
-            ctx.fillStyle = "rgba(255, 255, 255, " + sparkAlpha + ")";
+            ctx.fillStyle = "rgba(255, 255, 255, " + (sparkAlpha * 0.9) + ")";
             ctx.beginPath();
-            ctx.arc(px, py, 1.5 + (1.0 - spiralTime) * 1.5, 0, Math.PI * 2);
+            ctx.arc(px, py, 1.2 + (1.0 - spiralTime) * 1.8, 0, Math.PI * 2);
             ctx.fill();
         }
         
@@ -1320,15 +1328,15 @@ var Overworld = (function() {
                 var sTime = animTimer;
                 
                 // Update sparkle particles
-                if (starParticles.length < 12) {
+                if (starParticles.length < 15) {
                     starParticles.push({
                         x: scx + (Math.random() - 0.5) * 50,
                         y: scy + (Math.random() - 0.5) * 50,
-                        vx: (Math.random() - 0.5) * 0.5,
-                        vy: -Math.random() * 0.8 - 0.2,
+                        vx: (Math.random() - 0.5) * 0.4,
+                        vy: -Math.random() * 0.6 - 0.2,
                         life: Math.random() * 2 + 1,
                         maxLife: Math.random() * 2 + 1,
-                        size: Math.random() * 2 + 1
+                        size: Math.random() * 1.5 + 0.8
                     });
                 }
                 for (var sp = starParticles.length - 1; sp >= 0; sp--) {
@@ -1340,11 +1348,11 @@ var Overworld = (function() {
                         starParticles[sp] = {
                             x: scx + (Math.random() - 0.5) * 50,
                             y: scy + (Math.random() - 0.5) * 50,
-                            vx: (Math.random() - 0.5) * 0.5,
-                            vy: -Math.random() * 0.8 - 0.2,
+                            vx: (Math.random() - 0.5) * 0.4,
+                            vy: -Math.random() * 0.6 - 0.2,
                             life: Math.random() * 2 + 1,
                             maxLife: Math.random() * 2 + 1,
-                            size: Math.random() * 2 + 1
+                            size: Math.random() * 1.5 + 0.8
                         };
                     }
                 }
@@ -1355,80 +1363,78 @@ var Overworld = (function() {
                     var alpha = p.life / p.maxLife;
                     ctx.save();
                     ctx.globalAlpha = alpha * 0.8;
-                    ctx.shadowBlur = 6;
-                    ctx.shadowColor = "#FFD700";
-                    ctx.fillStyle = "#FFFACD";
+                    ctx.shadowBlur = 4;
+                    ctx.shadowColor = "#00FFFF";
+                    ctx.fillStyle = "#E0FFFF";
                     ctx.beginPath();
                     ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
                     ctx.fill();
                     ctx.restore();
                 }
                 
-                // Draw pulsing glow aura
-                var pulse = 0.6 + Math.sin(sTime * 3) * 0.4;
-                ctx.save();
-                ctx.globalAlpha = pulse * 0.3;
-                var auraGrad = ctx.createRadialGradient(scx, scy, 5, scx, scy, 40);
-                auraGrad.addColorStop(0, "#FFD700");
-                auraGrad.addColorStop(0.5, "rgba(255, 215, 0, 0.3)");
-                auraGrad.addColorStop(1, "rgba(255, 215, 0, 0)");
-                ctx.fillStyle = auraGrad;
-                ctx.beginPath();
-                ctx.arc(scx, scy, 40, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
-                
-                // Draw 5-point star
                 ctx.save();
                 ctx.translate(scx, scy);
-                var starScale = 1 + Math.sin(sTime * 3) * 0.08;
-                ctx.scale(starScale, starScale);
-                ctx.rotate(Math.sin(sTime * 0.5) * 0.1);
+
+                // 1. Draw merchant desk
+                ctx.fillStyle = "#4E3629"; // Dark wood
+                ctx.strokeStyle = "#2B1E17";
+                ctx.lineWidth = 2;
+                ctx.fillRect(-24, 0, 48, 16);
+                ctx.strokeRect(-24, 0, 48, 16);
+                // Desk trim
+                ctx.fillStyle = "#A0522D";
+                ctx.fillRect(-22, 1, 44, 3);
                 
-                ctx.shadowBlur = 20;
-                ctx.shadowColor = "#FFD700";
-                ctx.fillStyle = "#FFD700";
-                ctx.beginPath();
-                for (var s = 0; s < 5; s++) {
-                    var outerAngle = (s * 2 * Math.PI / 5) - Math.PI / 2;
-                    var innerAngle = outerAngle + Math.PI / 5;
-                    var outerR = 16;
-                    var innerR = 7;
-                    if (s === 0) {
-                        ctx.moveTo(Math.cos(outerAngle) * outerR, Math.sin(outerAngle) * outerR);
-                    } else {
-                        ctx.lineTo(Math.cos(outerAngle) * outerR, Math.sin(outerAngle) * outerR);
-                    }
-                    ctx.lineTo(Math.cos(innerAngle) * innerR, Math.sin(innerAngle) * innerR);
-                }
-                ctx.closePath();
-                ctx.fill();
+                // 2. Draw shelves behind the desk
+                ctx.fillStyle = "#2F211A";
+                ctx.fillRect(-20, -18, 40, 18);
+                ctx.fillStyle = "#8B4513";
+                ctx.fillRect(-20, -10, 40, 2); // Shelf board
                 
-                // Inner white highlight
-                ctx.shadowBlur = 0;
-                ctx.globalAlpha = 0.5 + Math.sin(sTime * 4) * 0.3;
-                ctx.fillStyle = "#FFF";
-                ctx.beginPath();
-                for (var s = 0; s < 5; s++) {
-                    var outerAngle = (s * 2 * Math.PI / 5) - Math.PI / 2;
-                    var innerAngle = outerAngle + Math.PI / 5;
-                    if (s === 0) {
-                        ctx.moveTo(Math.cos(outerAngle) * 9, Math.sin(outerAngle) * 9);
-                    } else {
-                        ctx.lineTo(Math.cos(outerAngle) * 9, Math.sin(outerAngle) * 9);
-                    }
-                    ctx.lineTo(Math.cos(innerAngle) * 4, Math.sin(innerAngle) * 4);
+                // 3. Draw mini glowing jars containing souls on the shelf
+                var colors = ["#FF3333", "#33FF33", "#3333FF", "#FFFF33", "#FF33FF"];
+                for (var j = 0; j < 4; j++) {
+                    var jx = -15 + j * 10;
+                    var jy = -16;
+                    // Jar shape
+                    ctx.fillStyle = "rgba(200, 240, 255, 0.6)";
+                    ctx.fillRect(jx - 3, jy, 6, 6);
+                    ctx.fillStyle = colors[j % colors.length];
+                    ctx.beginPath();
+                    ctx.arc(jx, jy + 3, 1.5, 0, Math.PI * 2);
+                    ctx.fill();
                 }
+
+                // 4. Draw central holographic terminal projecting a pulsing heart
+                ctx.fillStyle = "#00FFFF";
+                ctx.fillRect(-5, -2, 10, 2);
+                
+                // Pulsing holographic heart
+                ctx.save();
+                ctx.translate(0, -14 + Math.sin(sTime * 4) * 2);
+                var heartScale = 0.7 + Math.sin(sTime * 4) * 0.1;
+                ctx.scale(heartScale, heartScale);
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = "#FF00FF";
+                // Rainbow color changing over time
+                var hue = (sTime * 60) % 360;
+                ctx.fillStyle = "hsla(" + hue + ", 100%, 70%, 0.85)";
+                ctx.beginPath();
+                ctx.moveTo(0, -4);
+                ctx.bezierCurveTo(3, -8, 7, -5, 0, 4);
+                ctx.bezierCurveTo(-7, -5, -3, -8, 0, -4);
                 ctx.closePath();
                 ctx.fill();
                 ctx.restore();
                 
-                // Text label with glow
+                ctx.restore();
+                
+                // Text label with neon cyan glow
                 ctx.save();
-                ctx.shadowBlur = 8;
-                ctx.shadowColor = "#FFD700";
-                ctx.fillStyle = "#FFF";
-                ctx.font = "10pt Determination Mono";
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = "#00FFFF";
+                ctx.fillStyle = "#E0FFFF";
+                ctx.font = "bold 9pt 'Determination Mono', monospace";
                 ctx.textAlign = "center";
                 ctx.fillText("SOUL CATALOG", scx, npc.y + npc.h + 18);
                 ctx.restore();
@@ -1481,46 +1487,82 @@ var Overworld = (function() {
                 ctx.save();
 
                 // Glow aura behind chest
-                var chestPulse = 0.4 + Math.sin(cTime * 2.5) * 0.3;
+                var chestPulse = 0.5 + Math.sin(cTime * 3) * 0.2;
                 ctx.globalAlpha = chestPulse;
-                var chestGlow = ctx.createRadialGradient(ccx, ccy, 3, ccx, ccy, 30);
+                var chestGlow = ctx.createRadialGradient(ccx, ccy, 3, ccx, ccy, 35);
                 chestGlow.addColorStop(0, "#FF8C00");
-                chestGlow.addColorStop(0.5, "rgba(255, 140, 0, 0.3)");
-                chestGlow.addColorStop(1, "rgba(255, 140, 0, 0)");
+                chestGlow.addColorStop(0.6, "rgba(255, 100, 0, 0.25)");
+                chestGlow.addColorStop(1, "rgba(255, 100, 0, 0)");
                 ctx.fillStyle = chestGlow;
                 ctx.beginPath();
-                ctx.arc(ccx, ccy, 30, 0, Math.PI * 2);
+                ctx.arc(ccx, ccy, 35, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.globalAlpha = 1;
 
                 // Chest body
-                var chestBob = Math.sin(cTime * 2) * 2;
+                var chestBob = Math.sin(cTime * 2.5) * 2.5;
                 ctx.translate(ccx, ccy + chestBob);
 
                 // Bottom box
-                ctx.fillStyle = "#8B4513";
-                ctx.strokeStyle = "#5C2E0B";
+                ctx.fillStyle = "#5C2E0B"; // Darker base
+                ctx.strokeStyle = "#2D1402";
                 ctx.lineWidth = 1.5;
                 ctx.fillRect(-12, -2, 24, 14);
                 ctx.strokeRect(-12, -2, 24, 14);
 
                 // Lid
-                ctx.fillStyle = "#A0522D";
+                ctx.fillStyle = "#8B4513";
                 ctx.fillRect(-14, -10, 28, 10);
                 ctx.strokeRect(-14, -10, 28, 10);
 
-                // Metal band
+                // Metal trim
                 ctx.fillStyle = "#FFD700";
-                ctx.fillRect(-2, -10, 4, 22);
+                ctx.fillRect(-14, -10, 3, 22);
+                ctx.fillRect(11, -10, 3, 22);
                 ctx.fillRect(-14, -5, 28, 2);
 
-                // Lock/keyhole
-                ctx.fillStyle = "#FFD700";
+                // Golden Chain Lock (X pattern across the chest)
+                ctx.strokeStyle = "#FFD700";
+                ctx.lineWidth = 1.5;
+                ctx.shadowBlur = 5;
+                ctx.shadowColor = "#FFD700";
                 ctx.beginPath();
-                ctx.arc(0, 2, 3, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.fillStyle = "#000";
-                ctx.fillRect(-1, 1, 2, 3);
+                ctx.moveTo(-11, -9); ctx.lineTo(11, 11);
+                ctx.moveTo(11, -9); ctx.lineTo(-11, 11);
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+
+                // Center padlock
+                ctx.fillStyle = "#C0C0C0"; // Silver lock
+                ctx.strokeStyle = "#555";
+                ctx.lineWidth = 1;
+                ctx.fillRect(-3, -1, 6, 6);
+                ctx.strokeRect(-3, -1, 6, 6);
+                ctx.beginPath();
+                ctx.arc(0, -1, 2.5, Math.PI, 0);
+                ctx.stroke();
+
+                // Orbiting keys
+                for (var k = 0; k < 3; k++) {
+                    var kAngle = cTime * 2.5 + k * (Math.PI * 2 / 3);
+                    var kx = Math.cos(kAngle) * 22;
+                    var ky = Math.sin(kAngle) * 8 - 4;
+                    
+                    ctx.save();
+                    ctx.translate(kx, ky);
+                    ctx.rotate(kAngle + Math.PI/4);
+                    
+                    ctx.shadowBlur = 6;
+                    ctx.shadowColor = "#FFD700";
+                    ctx.fillStyle = "#FFD700";
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 2.2, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillRect(0, -1, 5, 2);
+                    ctx.fillRect(3, 1, 1, 2);
+                    ctx.fillRect(5, 1, 1, 2);
+                    ctx.restore();
+                }
 
                 ctx.restore();
 
@@ -1529,7 +1571,7 @@ var Overworld = (function() {
                 ctx.font = "bold 9pt 'Determination Mono', monospace";
                 ctx.textAlign = "center";
                 ctx.fillStyle = "#FFD700";
-                ctx.shadowBlur = 6;
+                ctx.shadowBlur = 8;
                 ctx.shadowColor = "#FFD700";
                 ctx.fillText("🔑 x" + keysCount, ccx, npc.y + npc.h + 16);
                 ctx.restore();
