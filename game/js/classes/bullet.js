@@ -112,12 +112,30 @@ Bullet.prototype.draw = function(ctx) {
     var centerY = this.y + this.height / 2;
     var radius = this.width / 2;
 
+    // Draw motion trail/tail if moving with velocity
+    if (this.useVelocity) {
+        var vLen = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+        if (vLen > 10) {
+            ctx.save();
+            ctx.globalAlpha = this.fadeTick * 0.4;
+            ctx.strokeStyle = this.color;
+            ctx.lineWidth = this.width * 0.6;
+            ctx.lineCap = "round";
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            // Draw tail backwards
+            ctx.lineTo(centerX - (this.vx / vLen) * 12, centerY - (this.vy / vLen) * 12);
+            ctx.stroke();
+            ctx.restore();
+        }
+    }
+
     // Glowing aura
     ctx.shadowBlur = 10;
-    ctx.shadowColor = "#B000FF";
+    ctx.shadowColor = this.color;
     
     ctx.fillStyle = "#000000"; // Pure black center
-    ctx.strokeStyle = "#00FFFF"; // Cyan edge
+    ctx.strokeStyle = this.color; // Edge colored dynamically
     ctx.lineWidth = 1.5;
     
     ctx.beginPath();
