@@ -35,6 +35,11 @@ SpiralShotPattern.prototype.update = function(dt) {
     this.ringTimer += dt;
     this.angleOffset += this.spinSpeed * dt;
 
+    // Dynamically update center of battle box as it animates
+    var bb = Cbbox.getBound();
+    this.centerX = (bb[0] + bb[2]) / 2;
+    this.centerY = (bb[1] + bb[3]) / 2;
+
     // Spawn new ring
     if (this.ringTimer >= this.ringInterval && this.ringCount < this.maxRings) {
         this.ringTimer -= this.ringInterval;

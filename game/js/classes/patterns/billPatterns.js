@@ -1380,6 +1380,11 @@ BillDimensionalRiftPattern.prototype.update = function(dt) {
         this.portalRadius = maxRadius * (1.0 - closeT);
         this.fadeAlpha = 1.0 - closeT;
         this.pullStrength = 55 * (1.0 - closeT);
+        // Force-clear debris once portal fully closed to prevent isOver() from hanging
+        if (closeT >= 1.0) {
+            this.debris = [];
+            this.pullStrength = 0;
+        }
     }
 
     // Rotate arms
@@ -1604,7 +1609,8 @@ BillDimensionalRiftPattern.prototype.draw = function(ctx) {
 };
 BillDimensionalRiftPattern.prototype.isOver = function() {
     if (this.elapsed >= this.duration + 5) return true;
-    return this.elapsed >= this.duration && this.debris.length === 0 && this.fadeAlpha <= 0.01;
+    // Debris is force-cleared at end of closing phase, so just check elapsed + fadeAlpha
+    return this.elapsed >= this.duration && this.fadeAlpha <= 0.01;
 };
 
 // 11. billWeirdmageddonRain: Weirdmageddon Sky Tear â€” damaging zigzag cracks sweep across the box
@@ -2042,6 +2048,10 @@ BillShadowClonesPattern.prototype.update = function(dt) {
         var outT = (this.elapsed - (this.duration - 1.5)) / 1.5;
         outT = Math.min(outT, 1.0);
         this.fadeAlpha = 1.0 - outT;
+        // Force-clear candy zones once fully faded to prevent isOver() hang
+        if (outT >= 1.0) {
+            this.candyZones = [];
+        }
         this.bubbleTargetRadius = maxR + outT * 40;
     }
 
@@ -2256,7 +2266,8 @@ BillShadowClonesPattern.prototype.draw = function(ctx) {
 };
 BillShadowClonesPattern.prototype.isOver = function() {
     if (this.elapsed >= this.duration + 5) return true;
-    return this.elapsed >= this.duration && this.candyZones.length === 0 && this.fadeAlpha <= 0.01;
+    // candyZones are force-cleared at end of outro, so just check elapsed + fadeAlpha
+    return this.elapsed >= this.duration && this.fadeAlpha <= 0.01;
 };
 
 // 14. billTeleportSlam: Bill teleports and slams down, causing shockwaves
@@ -3102,7 +3113,12 @@ BillGravityChaosPattern.prototype.draw = function(ctx) {
 };
 BillGravityChaosPattern.prototype.isOver = function() {
     if (this.elapsed >= this.duration + 5) return true;
-    return this.elapsed >= this.duration && this.tears.length === 0 && this.eyeLaser === null;
+    // Force-clear lingering elements once past duration
+    if (this.elapsed >= this.duration) {
+        this.tears = [];
+        this.eyeLaser = null;
+    }
+    return this.elapsed >= this.duration;
 };
 
 // 20. billNightmareVortex: Central suction while fire lasers rotate

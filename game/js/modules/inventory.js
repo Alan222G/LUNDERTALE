@@ -226,6 +226,30 @@ var Inventory = (function() {
         return false;
     }
 
+    var battleStartEquipped = [];
+
+    function saveBattleStartEquipped() {
+        battleStartEquipped = [];
+        for (var i = 0; i < equippedItems.length; i++) {
+            battleStartEquipped.push(equippedItems[i]);
+        }
+    }
+
+    function restoreBattleStartEquipped() {
+        equippedItems = [];
+        for (var i = 0; i < battleStartEquipped.length; i++) {
+            equippedItems.push(battleStartEquipped[i]);
+        }
+    }
+
+    function wasAnyItemUsed() {
+        if (equippedItems.length !== battleStartEquipped.length) return true;
+        for (var i = 0; i < equippedItems.length; i++) {
+            if (equippedItems[i].name !== battleStartEquipped[i].name) return true;
+        }
+        return false;
+    }
+
     return {
         init: init, 
         getNames: getNames, getText: getText, getLength: getLength, 
@@ -233,6 +257,9 @@ var Inventory = (function() {
         getAllNames: getAllNames, getAllText: getAllText, getAllLength: getAllLength,
         isEquipped: isEquipped, toggleEquip: toggleEquip, getEquippedCount: getEquippedCount,
         getEquippedItemObject: getEquippedItemObject, addItem: addItem,
-        addPotionByName: addPotionByName
+        addPotionByName: addPotionByName,
+        saveBattleStartEquipped: saveBattleStartEquipped,
+        restoreBattleStartEquipped: restoreBattleStartEquipped,
+        wasAnyItemUsed: wasAnyItemUsed
     };
 }());

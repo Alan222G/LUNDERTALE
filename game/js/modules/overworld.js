@@ -45,6 +45,10 @@ var Overworld = (function() {
     var chestGameUnlockedChar = null; // Unlocked character name
     var chestGameMessage = "";
 
+    // Replenish Items State Variables
+    var showEquipPrompt = false;
+    var equipPromptSelection = 0; // 0 = SÍ, 1 = NO
+
     var bgImage = new Image();
     bgImage.src = "Resources/Fondo del overworld Best.png";
     
@@ -53,6 +57,15 @@ var Overworld = (function() {
     var seraFrames = [];
     var activeBossTriggerIndex = -1; // Track which boss trigger is in combat    
     function loadImg(src) { var i = new Image(); i.src = src; return i; }
+
+    // Chest sprite images mapped by character ID
+    var chestSprites = {};
+    chestSprites[12] = loadImg("assets/chests/Mahoraga Chest.png");
+    chestSprites[13] = loadImg("assets/chests/Eva01 Chest.png");
+    chestSprites[14] = loadImg("assets/chests/Gojo Chest.png");
+    chestSprites[15] = loadImg("assets/chests/Subaru Chest.png");
+    chestSprites[16] = loadImg("assets/chests/ALL MIGHT CHEST.png");
+    chestSprites[17] = loadImg("assets/chests/Itadori Chest.png");
 
     var currentSubWorld = 0; // 0 = Main, 1 = Originals, 2 = Guests
     var signpostActive = false;
@@ -101,9 +114,9 @@ var Overworld = (function() {
             subWorld: 0
         });
 
-        // Create Chest Game NPC (Cofre Misterioso)
+        // Create Chest Game NPC (Cofre Misterioso) — Bottom center
         npcList.push({
-            x: 260, y: 120, w: 36, h: 36,
+            x: 370, y: 450, w: 36, h: 36,
             isChestGame: true,
             subWorld: 0
         });
@@ -477,6 +490,35 @@ var Overworld = (function() {
         if (!active || Transition.isActive()) return;
         animTimer += dt;
         
+        if (showEquipPrompt) {
+            if (myKeys.keydown[myKeys.KEYBOARD.KEY_LEFT] || myKeys.keydown[myKeys.KEYBOARD.KEY_A] ||
+                myKeys.keydown[myKeys.KEYBOARD.KEY_RIGHT] || myKeys.keydown[myKeys.KEYBOARD.KEY_D]) {
+                myKeys.keydown[myKeys.KEYBOARD.KEY_LEFT] = false;
+                myKeys.keydown[myKeys.KEYBOARD.KEY_A] = false;
+                myKeys.keydown[myKeys.KEYBOARD.KEY_RIGHT] = false;
+                myKeys.keydown[myKeys.KEYBOARD.KEY_D] = false;
+                equipPromptSelection = 1 - equipPromptSelection;
+                Sound.playSound("select", true);
+            } else if (myKeys.isConfirm()) {
+                myKeys.keydown[myKeys.KEYBOARD.KEY_Z] = false;
+                myKeys.keydown[myKeys.KEYBOARD.KEY_ENTER] = false;
+                if (equipPromptSelection === 0) {
+                    if (typeof Inventory !== "undefined") {
+                        Inventory.restoreBattleStartEquipped();
+                    }
+                    Sound.playSound("heal", true);
+                } else {
+                    Sound.playSound("button", true);
+                }
+                showEquipPrompt = false;
+            } else if (myKeys.isCancel()) {
+                myKeys.keydown[myKeys.KEYBOARD.KEY_X] = false;
+                Sound.playSound("button", true);
+                showEquipPrompt = false;
+            }
+            return;
+        }
+        
         if (signpostActive) {
             Writer.update(dt);
             if (myKeys.isConfirm()) {
@@ -568,9 +610,19 @@ var Overworld = (function() {
                     if (selectedChest.content !== null) {
                         // Found a special character!
                         chestGameUnlockedChar = selectedChest.content;
-                        unlockedSpecials.push(selectedChest.content.id);
-                        // Add to catalogOptions
-                        catalogOptions.push(selectedChest.content);
+                        if (unlockedSpecials.indexOf(selectedChest.content.id) === -1) {
+                            unlockedSpecials.push(selectedChest.content.id);
+                        }
+                        var alreadyInCatalog = false;
+                        for (var copt = 0; copt < catalogOptions.length; copt++) {
+                            if (catalogOptions[copt].id === selectedChest.content.id) {
+                                alreadyInCatalog = true;
+                                break;
+                            }
+                        }
+                        if (!alreadyInCatalog) {
+                            catalogOptions.push(selectedChest.content);
+                        }
                         chestGameMessage = "¡Desbloqueaste a " + selectedChest.content.name + "!";
                         Sound.playSound("heal", true);
                     } else {
@@ -2632,6 +2684,52 @@ var Overworld = (function() {
             Writer.drawText(ctx);
         }
 
+        if (showEquipPrompt) {
+            ctx.save();
+            // Modal shadow overlay over entire map
+            ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
+            ctx.fillRect(0, 0, 640, 480);
+
+            // Dialogue box (black box, white border)
+            ctx.fillStyle = "#FFF";
+            ctx.fillRect(100, 150, 440, 180);
+            ctx.fillStyle = "#000";
+            ctx.fillRect(104, 154, 432, 172);
+
+            // Title text
+            ctx.font = "14pt 'Determination Mono', monospace";
+            ctx.fillStyle = "#FFF";
+            ctx.textAlign = "center";
+            ctx.fillText("¿Volver a equipar los mismos objetos", 320, 195);
+            ctx.fillText("usados en esta batalla?", 320, 225);
+
+            // Buttons: [ SÍ ] and [ NO ]
+            ctx.font = "16pt 'Determination Mono', monospace";
+            
+            // SÍ
+            ctx.fillStyle = equipPromptSelection === 0 ? "#FFD700" : "#FFF";
+            ctx.fillText("SÍ", 240, 285);
+            
+            // NO
+            ctx.fillStyle = equipPromptSelection === 1 ? "#FFD700" : "#FFF";
+            ctx.fillText("NO", 400, 285);
+
+            // Heart icon next to selected option
+            ctx.save();
+            ctx.fillStyle = "#FF0000";
+            var heartX = equipPromptSelection === 0 ? 210 : 370;
+            var heartY = 277;
+            ctx.beginPath();
+            ctx.moveTo(heartX, heartY - 4);
+            ctx.bezierCurveTo(heartX + 3, heartY - 8, heartX + 7, heartY - 5, heartX, heartY + 4);
+            ctx.bezierCurveTo(heartX - 7, heartY - 5, heartX - 3, heartY - 8, heartX, heartY - 4);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+
+            ctx.restore();
+        }
+
         ctx.restore();
     }
 
@@ -2678,11 +2776,15 @@ var Overworld = (function() {
         }
 
         if (lockedPool.length === 0) {
-            chestGameActive = true;
-            chestGameStatus = "all_unlocked";
-            chestGameMessage = "¡Ya desbloqueaste todos los personajes especiales!";
-            Sound.playSound("button", true);
-            return;
+            // All specials unlocked! Recycle the full pool so they can appear again
+            for (var ri = 0; ri < specialIds.length; ri++) {
+                for (var rai = 0; rai < allCatalogOptions.length; rai++) {
+                    if (allCatalogOptions[rai].id === specialIds[ri]) {
+                        lockedPool.push(allCatalogOptions[rai]);
+                        break;
+                    }
+                }
+            }
         }
 
         if (keysCount <= 0) {
@@ -2791,343 +2893,83 @@ var Overworld = (function() {
 
         var charId = content.id;
         var time = Date.now() / 1000;
+        var sprite = chestSprites[charId];
 
-        // Custom theme colors
-        var bodyColor, lidColor, strokeColor, accentColor;
+        // Accent colors for glow per character
+        var accentColor;
         switch (charId) {
-            case 12: // Mahoraga (White & Gold)
-                bodyColor = "#F5F5F7";
-                lidColor = "#FFFFFF";
-                strokeColor = "#D4AF37";
-                accentColor = "#FFD700";
-                break;
-            case 13: // Eva 01 (Purple & Neon Green)
-                bodyColor = "#4A2E80";
-                lidColor = "#5A33A8";
-                strokeColor = "#000000";
-                accentColor = "#39FF14";
-                break;
-            case 14: // Gojo (Prison Realm Cube - Dark Grey)
-                bodyColor = "#3E3F43";
-                lidColor = "#4E5054";
-                strokeColor = "#1A1A1A";
-                accentColor = "#FF3366";
-                break;
-            case 15: // Subaru (Dark Teal & Witch Shadow)
-                bodyColor = "#121C1E";
-                lidColor = "#1C2A2D";
-                strokeColor = "#0D0E10";
-                accentColor = "#9370DB";
-                break;
-            case 16: // All Might (Hero Blue, Red, Yellow)
-                bodyColor = "#0D47A1";
-                lidColor = "#1976D2";
-                strokeColor = "#B71C1C";
-                accentColor = "#FFEB3B";
-                break;
-            case 17: // Itadori (Maroon & Cursed Sparks)
-                bodyColor = "#3E1B20";
-                lidColor = "#5C262D";
-                strokeColor = "#1D0B0D";
-                accentColor = "#FF69B4";
-                break;
-            default:
-                bodyColor = "#8B4513";
-                lidColor = "#A0522D";
-                strokeColor = "#5C2E0B";
-                accentColor = "#FFD700";
+            case 12: accentColor = "#FFD700"; break; // Mahoraga
+            case 13: accentColor = "#39FF14"; break; // Eva 01
+            case 14: accentColor = "#FF3366"; break; // Gojo
+            case 15: accentColor = "#9370DB"; break; // Subaru
+            case 16: accentColor = "#FFEB3B"; break; // All Might
+            case 17: accentColor = "#FF69B4"; break; // Itadori
+            default: accentColor = "#FFD700";
         }
 
-        // Draw selection glow
-        if (isSelected && !opened) {
+        // If sprite is loaded and ready, use it
+        if (sprite && sprite.complete && sprite.naturalWidth > 0) {
+            var sprW = 56;  // Display width
+            var sprH = 56;  // Display height
+
+            // Selection glow
+            if (isSelected && !opened) {
+                ctx.save();
+                ctx.shadowBlur = 22;
+                ctx.shadowColor = accentColor;
+                // Pulsing glow
+                var glowPulse = 0.6 + Math.sin(time * 4) * 0.4;
+                ctx.globalAlpha = glowPulse;
+                ctx.shadowBlur = 18 + Math.sin(time * 6) * 6;
+                ctx.strokeStyle = accentColor;
+                ctx.lineWidth = 2.5;
+                ctx.strokeRect(-sprW / 2 - 3, -sprH / 2 - 3, sprW + 6, sprH + 6);
+                ctx.restore();
+            }
+
+            // Draw the chest sprite
             ctx.save();
-            ctx.shadowBlur = 20;
-            ctx.shadowColor = accentColor;
-            ctx.strokeStyle = accentColor;
-            ctx.lineWidth = 3;
-            ctx.strokeRect(-22, -18, 44, 38);
-            ctx.restore();
-        }
+            if (opened) {
+                // Opened: tilt lid back and add inner glow
+                ctx.save();
+                ctx.globalAlpha = 0.85;
+                ctx.translate(0, -4);
+                ctx.rotate(-0.15);
+                ctx.drawImage(sprite, -sprW / 2, -sprH / 2, sprW, sprH);
+                ctx.restore();
 
-        // Draw Chest Body
-        ctx.fillStyle = bodyColor;
-        ctx.strokeStyle = strokeColor;
-        ctx.lineWidth = 2;
-        ctx.fillRect(-18, -2, 36, 22);
-        ctx.strokeRect(-18, -2, 36, 22);
-
-        // Draw Lid (and opened lid)
-        if (opened) {
-            ctx.save();
-            ctx.translate(-21, -2);
-            ctx.rotate(-0.7);
-            ctx.fillStyle = lidColor;
-            ctx.strokeStyle = strokeColor;
-            ctx.lineWidth = 2;
-            ctx.fillRect(0, -14, 42, 14);
-            ctx.strokeRect(0, -14, 42, 14);
-            ctx.restore();
-
-            // Glow from inside
-            var innerGlow = ctx.createRadialGradient(0, 5, 2, 0, 5, 25);
-            innerGlow.addColorStop(0, accentColor);
-            innerGlow.addColorStop(1, "rgba(0, 0, 0, 0)");
-            ctx.fillStyle = innerGlow;
-            ctx.beginPath();
-            ctx.arc(0, 5, 25, 0, Math.PI * 2);
-            ctx.fill();
-        } else {
-            // Closed Lid
-            ctx.fillStyle = lidColor;
-            ctx.strokeStyle = strokeColor;
-            ctx.lineWidth = 2;
-            ctx.fillRect(-21, -16, 42, 16);
-            ctx.strokeRect(-21, -16, 42, 16);
-        }
-
-        // Draw Custom Hints/Details (pistas del personaje)
-        ctx.save();
-        switch (charId) {
-            case 12: // Mahoraga: Wings flanking + Adaptation wheel on top
-                // Wings (closed if closed, spread if opened)
-                ctx.fillStyle = "rgba(240, 240, 245, 0.9)";
-                ctx.strokeStyle = "#BDC3C7";
-                ctx.lineWidth = 1;
-                // Left wing
+                // Inner glow emanating from chest
+                var innerGlow = ctx.createRadialGradient(0, 8, 2, 0, 8, 30);
+                innerGlow.addColorStop(0, accentColor);
+                innerGlow.addColorStop(0.5, accentColor.substring(0, 7) + "44");
+                innerGlow.addColorStop(1, "rgba(0, 0, 0, 0)");
+                ctx.fillStyle = innerGlow;
                 ctx.beginPath();
-                ctx.ellipse(-23, -5, 8, 14, opened ? -0.4 : 0.2, 0, Math.PI * 2);
-                ctx.fill(); ctx.stroke();
-                // Right wing
-                ctx.beginPath();
-                ctx.ellipse(23, -5, 8, 14, opened ? 0.4 : -0.2, 0, Math.PI * 2);
-                ctx.fill(); ctx.stroke();
-
-                // Adaptation Wheel on top of the lid (or above chest if open)
-                var wheelY = opened ? -30 : -22;
-                ctx.translate(0, wheelY);
-                ctx.rotate(time * 1.5);
-                ctx.strokeStyle = "#FFD700";
-                ctx.lineWidth = 1.5;
-                ctx.shadowBlur = isSelected ? 8 : 2;
-                ctx.shadowColor = "#FFD700";
-                ctx.beginPath();
-                ctx.arc(0, 0, 7, 0, Math.PI * 2);
-                ctx.stroke();
-                // Spokes
-                for (var sp = 0; sp < 8; sp++) {
-                    var spAngle = sp * Math.PI / 4;
-                    ctx.beginPath();
-                    ctx.moveTo(0, 0);
-                    ctx.lineTo(Math.cos(spAngle) * 7, Math.sin(spAngle) * 7);
-                    ctx.stroke();
-                }
-                break;
-
-            case 13: // Eva 01: Neon green stripes + orange AT Field behind + horn
-                // AT field behind the chest (if selected)
-                if (isSelected && !opened) {
-                    ctx.strokeStyle = "rgba(255, 140, 0, 0.6)";
-                    ctx.lineWidth = 1.5;
-                    ctx.beginPath();
-                    for (var h = 0; h < 6; h++) {
-                        var hAngle = h * Math.PI / 3;
-                        var hx = Math.cos(hAngle) * 22;
-                        var hy = Math.sin(hAngle) * 22 - 6;
-                        if (h === 0) ctx.moveTo(hx, hy);
-                        else ctx.lineTo(hx, hy);
-                    }
-                    ctx.closePath();
-                    ctx.stroke();
-                }
-                
-                // Neon green bands on body
-                ctx.fillStyle = "#39FF14";
-                ctx.fillRect(-12, 2, 4, 14);
-                ctx.fillRect(8, 2, 4, 14);
-
-                // Horn protruding from center of lid (closed lid only)
-                if (!opened) {
-                    ctx.fillStyle = "#FF8C00"; // Orange horn
-                    ctx.strokeStyle = "#000";
-                    ctx.beginPath();
-                    ctx.moveTo(-3, -16);
-                    ctx.lineTo(0, -28);
-                    ctx.lineTo(3, -16);
-                    ctx.closePath();
-                    ctx.fill(); ctx.stroke();
-                }
-                break;
-
-            case 14: // Gojo: Prison Realm Eyes + Seals
-                // Cube styling - draw dark bands/squares
-                ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
-                ctx.fillRect(-15, 2, 30, 4);
-                ctx.fillRect(-15, 12, 30, 4);
-
-                // Draw small blinking/moving eyes
-                var eyes = [
-                    {x: -10, y: 6, age: 0},
-                    {x: 10, y: 6, age: 1.5},
-                    {x: -6, y: -9, age: 3.0, lid: true},
-                    {x: 6, y: -9, age: 4.5, lid: true}
-                ];
-                for (var e = 0; e < eyes.length; e++) {
-                    var eye = eyes[e];
-                    if (eye.lid && opened) continue; // don't draw on open lid if open
-                    
-                    var blink = Math.sin(time * 3 + eye.age) > 0.85;
-                    ctx.save();
-                    ctx.translate(eye.x, eye.y);
-                    if (blink) {
-                        // Closed eye line
-                        ctx.strokeStyle = "#FF3366";
-                        ctx.lineWidth = 1;
-                        ctx.beginPath();
-                        ctx.moveTo(-3, 0);
-                        ctx.lineTo(3, 0);
-                        ctx.stroke();
-                    } else {
-                        // Open eye
-                        ctx.fillStyle = "#FFFFFF";
-                        ctx.beginPath();
-                        ctx.ellipse(0, 0, 3, 2, 0, 0, Math.PI * 2);
-                        ctx.fill();
-                        // Pupil (moving slightly)
-                        ctx.fillStyle = "#000000";
-                        var dx = Math.sin(time * 1.5 + e) * 0.8;
-                        ctx.beginPath();
-                        ctx.arc(dx, 0, 1.0, 0, Math.PI * 2);
-                        ctx.fill();
-                    }
-                    ctx.restore();
-                }
-                break;
-
-            case 15: // Subaru: Purple/Black Shadow Wisps + Yellow Cracks
-                // Shadow particles rising
-                ctx.globalCompositeOperation = "screen";
-                var shadowColor = "rgba(147, 112, 219, 0.3)";
-                for (var s = 0; s < 4; s++) {
-                    var sTime = (time * 0.5 + s / 4) % 1.0;
-                    var sx = Math.sin(s * 15 + time) * 12;
-                    var sy = -8 - sTime * 20;
-                    ctx.fillStyle = shadowColor;
-                    ctx.beginPath();
-                    ctx.arc(sx, sy, 3 + (1 - sTime) * 4, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-                ctx.globalCompositeOperation = "source-over";
-
-                // Yellow cracked veins on the body
-                ctx.strokeStyle = "#FFD700";
-                ctx.lineWidth = 1;
-                ctx.beginPath();
-                ctx.moveTo(-12, 10); ctx.lineTo(-6, 4); ctx.lineTo(0, 14);
-                ctx.moveTo(12, 12); ctx.lineTo(6, 6); ctx.lineTo(0, 14);
-                ctx.stroke();
-
-                // Unlocked silhouette of yellow eye
-                ctx.fillStyle = "rgba(255, 215, 0, 0.8)";
-                ctx.beginPath();
-                ctx.ellipse(0, 6, 4, 2, 0, 0, Math.PI * 2);
+                ctx.arc(0, 8, 30, 0, Math.PI * 2);
                 ctx.fill();
-                break;
+            } else {
+                // Closed: draw normally with subtle bob if selected
+                var bob = isSelected ? Math.sin(time * 5) * 3 : 0;
+                ctx.translate(0, bob);
+                ctx.drawImage(sprite, -sprW / 2, -sprH / 2, sprW, sprH);
+            }
+            ctx.restore();
 
-            case 16: // All Might: V-shaped hair tufts + red/white banner + golden belt
-                // Red/white stripes on chest body
-                ctx.fillStyle = "#B71C1C"; // Red stripe
-                ctx.fillRect(-15, 2, 6, 14);
-                ctx.fillRect(9, 2, 6, 14);
-                ctx.fillStyle = "#FFFFFF"; // White stripe
-                ctx.fillRect(-9, 2, 6, 14);
-                ctx.fillRect(3, 2, 6, 14);
-
-                // Golden Symbol buckle in center
-                ctx.fillStyle = "#FFEB3B";
-                ctx.strokeStyle = "#000";
-                ctx.lineWidth = 1;
-                ctx.beginPath();
-                ctx.rect(-3, 6, 6, 6);
-                ctx.fill(); ctx.stroke();
-
-                // Famous V-shaped blonde hair tufts on top of lid
-                if (!opened) {
-                    ctx.fillStyle = "#FFEB3B";
-                    ctx.strokeStyle = "#000";
-                    ctx.lineWidth = 1.2;
-                    // Left hair tuft
-                    ctx.beginPath();
-                    ctx.moveTo(-15, -16);
-                    ctx.quadraticCurveTo(-22, -30, -18, -34);
-                    ctx.quadraticCurveTo(-14, -28, -11, -16);
-                    ctx.closePath();
-                    ctx.fill(); ctx.stroke();
-                    // Right hair tuft
-                    ctx.beginPath();
-                    ctx.moveTo(15, -16);
-                    ctx.quadraticCurveTo(22, -30, 18, -34);
-                    ctx.quadraticCurveTo(14, -28, 11, -16);
-                    ctx.closePath();
-                    ctx.fill(); ctx.stroke();
-                }
-                break;
-
-            case 17: // Itadori: Talisman paper bands + pink/black cursed energy sparks
-                // Cursed energy sparks (floating particles)
-                ctx.globalCompositeOperation = "screen";
-                for (var spk = 0; spk < 3; spk++) {
-                    var spkTime = (time * 0.8 + spk / 3) % 1.0;
-                    var spkx = Math.cos(spk * 2 + time * 2) * 14;
-                    var spky = 6 - spkTime * 18;
-                    ctx.fillStyle = "rgba(255, 105, 180, " + (1.0 - spkTime) + ")";
-                    ctx.beginPath();
-                    ctx.arc(spkx, spky, 1.5, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-                ctx.globalCompositeOperation = "source-over";
-
-                // Yellow talisman papers (paper strips hanging across chest)
-                ctx.fillStyle = "#F0E68C"; // Khaki/yellow paper
-                ctx.strokeStyle = "#8B7D6B";
-                ctx.lineWidth = 0.8;
-                // Talisman 1 (angled left)
+            // Character name label below (if selected)
+            if (isSelected && !opened) {
                 ctx.save();
-                ctx.translate(-8, 3);
-                ctx.rotate(-0.3);
-                ctx.fillRect(-2, -6, 4, 16);
-                ctx.strokeRect(-2, -6, 4, 16);
-                // Scribble on paper
-                ctx.fillStyle = "#000";
-                ctx.fillRect(-0.8, -3, 1.6, 2);
-                ctx.fillRect(-0.8, 1, 1.6, 2);
+                ctx.font = "bold 7pt 'Determination Mono', monospace";
+                ctx.textAlign = "center";
+                ctx.fillStyle = accentColor;
+                ctx.shadowBlur = 6;
+                ctx.shadowColor = accentColor;
+                ctx.fillText("???", 0, sprH / 2 + 12);
                 ctx.restore();
-                // Talisman 2 (angled right)
-                ctx.save();
-                ctx.translate(8, 5);
-                ctx.rotate(0.25);
-                ctx.fillStyle = "#F0E68C";
-                ctx.fillRect(-2, -6, 4, 16);
-                ctx.strokeRect(-2, -6, 4, 16);
-                ctx.fillStyle = "#000";
-                ctx.fillRect(-0.8, -3, 1.6, 2);
-                ctx.fillRect(-0.8, 1, 1.6, 2);
-                ctx.restore();
-                break;
+            }
+        } else {
+            // Fallback: programmatic chest if sprite not loaded
+            drawDefaultChest(ctx, isSelected, opened);
         }
-
-        // Draw general metal locks/keyholes on top of details if closed
-        if (!opened) {
-            // Keyhole plate
-            ctx.fillStyle = accentColor;
-            ctx.fillRect(-3, -2, 6, 12);
-            ctx.fillStyle = "#FFD700";
-            ctx.beginPath();
-            ctx.arc(0, 3, 2.2, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = "#000";
-            ctx.fillRect(-0.8, 2.5, 1.6, 3.5);
-        }
-        ctx.restore();
     }
 
     function addKey() {
@@ -3138,5 +2980,12 @@ var Overworld = (function() {
         return keysCount;
     }
 
-    return { init: init, setup: setup, update: update, draw: draw, markBossDefeated: markBossDefeated, resetBossTrigger: resetBossTrigger, getTriggerList: function() { return triggerList; }, addKey: addKey, getKeysCount: getKeysCount };
+    function triggerEquipPrompt() {
+        if (typeof Inventory !== "undefined" && Inventory.wasAnyItemUsed()) {
+            showEquipPrompt = true;
+            equipPromptSelection = 0; // Default to SÍ
+        }
+    }
+
+    return { init: init, setup: setup, update: update, draw: draw, markBossDefeated: markBossDefeated, resetBossTrigger: resetBossTrigger, getTriggerList: function() { return triggerList; }, addKey: addKey, getKeysCount: getKeysCount, triggerEquipPrompt: triggerEquipPrompt };
 }());

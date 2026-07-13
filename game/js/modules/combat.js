@@ -24,6 +24,9 @@ var Combat = (function() {
         selectStateOther = 0;
         gravityDmgTimer = 0;
         victoryType = "killed";
+        if (typeof Inventory !== "undefined") {
+            Inventory.saveBattleStartEquipped();
+        }
         Cbbox.setup(574, 140);
         Cgroup.setup(bossId);
 
@@ -210,11 +213,13 @@ var Combat = (function() {
                             Overworld.resetBossTrigger();
                         }
                         Player.init();
-                        Inventory.init();
                         BossController.reset();
                         Sound.playSound("flash", true);
                         Transition.start("overworld", function() {
                             main.gameState = main.GAME_STATE.OVERWORLD;
+                            if (typeof Overworld !== "undefined" && Overworld.triggerEquipPrompt) {
+                                Overworld.triggerEquipPrompt();
+                            }
                             Overworld.setup(main.ctx);
                         });
                         combatState = -1;
@@ -341,7 +346,9 @@ var Combat = (function() {
                         if (selectStateOther === 0) {
                             deaths++;
                             Player.init();
-                            Inventory.init();
+                            if (typeof Inventory !== "undefined") {
+                                Inventory.restoreBattleStartEquipped();
+                            }
                             BossController.reset();
                             init(Cgroup.getBossId());
                             setup(main.ctx);
@@ -351,11 +358,13 @@ var Combat = (function() {
                                 Overworld.resetBossTrigger();
                             }
                             Player.init();
-                            Inventory.init();
                             BossController.reset();
                             Sound.playSound("flash", true);
                             Transition.start("overworld", function() {
                                 main.gameState = main.GAME_STATE.OVERWORLD;
+                                if (typeof Overworld !== "undefined" && Overworld.triggerEquipPrompt) {
+                                    Overworld.triggerEquipPrompt();
+                                }
                                 Overworld.setup(main.ctx);
                             });
                         }
@@ -377,6 +386,9 @@ var Combat = (function() {
                 }
                 Transition.start(function() {
                     main.gameState = main.GAME_STATE.OVERWORLD;
+                    if (typeof Overworld !== "undefined" && Overworld.triggerEquipPrompt) {
+                        Overworld.triggerEquipPrompt();
+                    }
                     Overworld.setup(main.ctx);
                 });
                 combatState = -1;
@@ -570,23 +582,36 @@ var Combat = (function() {
                 break;
 
             case COMBAT_STATE.DEATH:
-                Soul.draw(ctx);
-                // Death screen
+                // Full-screen dark overlay to cover boss, battle box, and all game elements
                 ctx.save();
+                var deathFade = Math.min(deathTimer / 0.8, 1.0); // Fade in over 0.8s
+                ctx.globalAlpha = deathFade * 0.92;
+                ctx.fillStyle = "#000000";
+                ctx.fillRect(0, 0, 740, 580);
+                ctx.restore();
+
+                // Death screen content (always on top)
+                ctx.save();
+                ctx.globalAlpha = deathFade;
                 ctx.font = "32pt Determination Mono";
                 ctx.fillStyle = "#F00";
                 ctx.textAlign = "center";
-                ctx.fillText("YOU DIED", 370, 250);
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = "rgba(255, 0, 0, 0.6)";
+                ctx.fillText("YOU DIED", 370, 220);
+                ctx.shadowBlur = 0;
                 
                 if (deathTimer > 1.0) {
+                    var menuFade = Math.min((deathTimer - 1.0) / 0.5, 1.0);
+                    ctx.globalAlpha = menuFade;
                     ctx.font = "16pt Determination Mono";
                     ctx.fillStyle = selectStateOther === 0 ? "#FF0" : "#FFF";
-                    ctx.fillText("Try Again", 370, 290);
+                    ctx.fillText("Try Again", 370, 270);
                     ctx.fillStyle = selectStateOther === 1 ? "#FF0" : "#FFF";
-                    ctx.fillText("Return to Overworld", 370, 330);
+                    ctx.fillText("Return to Overworld", 370, 310);
                     // Draw mini soul next to selection
-                    ctx.globalAlpha = 1.0;
-                    var soulY = selectStateOther === 0 ? 283 : 323;
+                    ctx.globalAlpha = menuFade;
+                    var soulY = selectStateOther === 0 ? 263 : 303;
                     Soul.drawAt(ctx, new Vect(260, soulY, 0));
                 }
                 ctx.restore();

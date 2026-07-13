@@ -15,8 +15,8 @@ var BossController = (function() {
 
     function init() {
         patternMap = {
-            "bulletRain": function(cfg) { return new BulletRainPattern(cfg || { speed: 3, damVal: 4, rotation: 0, fadeSpeed: 0.3, color: "#FFF", bulletWidth: 14, bulletHeight: 14, duration: 5 }); },
-            "wallsOBullet": function(cfg) { return new WallsOBulletPattern(cfg || { speed: 2, damVal: 4, rotation: 0, fadeSpeed: 0.5, color: "#FFF", bulletWidth: 14, bulletHeight: 14, maxWaves: 4 }); },
+            "bulletRain": function(cfg) { return new BulletRainPattern(cfg || { speed: 3, damVal: 4, rotation: 0, fadeSpeed: 0.3, color: "#0FF", bulletWidth: 14, bulletHeight: 14, duration: 5 }); },
+            "wallsOBullet": function(cfg) { return new WallsOBulletPattern(cfg || { speed: 2, damVal: 4, rotation: 0, fadeSpeed: 0.5, color: "#0FF", bulletWidth: 14, bulletHeight: 14, maxWaves: 4 }); },
             "closingWalls": function(cfg) { return new ClosingWallsPattern(cfg || { speed: 2.5, damVal: 5, rotation: 0, fadeSpeed: 0.4, color: "#FFF", bulletWidth: 14, bulletHeight: 14, maxWaves: 3 }); },
             "crusher": function(cfg) { return new CrusherPattern(cfg || { speed: 4, damVal: 6, rotation: 180, fadeSpeed: 0.5, color: "#FFF", bulletWidth: 14, bulletHeight: 14, duration: 3 }); },
             "spiralShot": function(cfg) { return new SpiralShotPattern(cfg || { damVal: 4, color: "#0FF", bulletWidth: 8, bulletHeight: 8, numBullets: 10, ringInterval: 0.5, maxRings: 6, spinSpeed: 1.5, bulletSpeed: 100, duration: 5 }); },
