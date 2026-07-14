@@ -2545,9 +2545,9 @@ var Overworld = (function() {
         // Draw Chest Game Overlay
         if (chestGameActive) {
             ctx.save();
-            // Dark backdrop
+            // Dark backdrop covering the ENTIRE 740x580 canvas
             ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
-            ctx.fillRect(0, 0, 740, 480);
+            ctx.fillRect(0, 0, main.WIDTH, main.HEIGHT);
 
             // Title
             ctx.font = "bold 16pt 'Determination Mono', monospace";
@@ -2562,27 +2562,32 @@ var Overworld = (function() {
                 ctx.font = "11pt 'Determination Mono', monospace";
                 ctx.shadowBlur = 0;
                 ctx.fillStyle = "#FFF";
-                ctx.fillText(chestGameMessage, 370, 240);
+                ctx.fillText(chestGameMessage, 370, 260);
                 ctx.font = "9pt 'Determination Mono', monospace";
                 ctx.fillStyle = "#888";
-                ctx.fillText("[Z/ENTER] Cerrar", 370, 340);
+                ctx.fillText("[Z/ENTER] Cerrar", 370, 360);
             } else if (chestGameStatus === "select") {
                 // Title
                 ctx.shadowColor = "#FF8C00";
                 ctx.fillStyle = "#FFD700";
-                ctx.fillText("COFRE MISTERIOSO", 370, 60);
+                ctx.fillText("COFRE MISTERIOSO", 370, 70);
 
                 ctx.font = "9pt 'Determination Mono', monospace";
                 ctx.shadowBlur = 0;
                 ctx.fillStyle = "#FFF";
-                ctx.fillText("Elige el cofre del personaje que deseas desbloquear.", 370, 90);
-                ctx.fillText("🔑 Llaves: " + keysCount, 370, 110);
+                ctx.fillText("Elige el cofre del personaje que deseas desbloquear.", 370, 105);
+                ctx.fillText("🔑 Llaves: " + keysCount, 370, 130);
 
-                // Draw chests
-                var chestStartX = 370 - (chestGameChests.length * 70) / 2 + 35;
+                // Draw chests in a curved arc (zoomed/closer)
+                var cx = 370;
+                var cy = 300;
+                var radiusX = 200;
+                var radiusY = 50;
+
                 for (var ci = 0; ci < chestGameChests.length; ci++) {
-                    var chX = chestStartX + ci * 70;
-                    var chY = 220;
+                    var theta = -Math.PI * 0.8 + (ci / (chestGameChests.length - 1)) * Math.PI * 0.6;
+                    var chX = cx + Math.cos(theta) * radiusX;
+                    var chY = cy + Math.sin(theta) * radiusY;
                     var isSelected = (ci === chestGameIndex);
                     var bobOff = isSelected ? Math.sin(animTimer * 5) * 6 : 0;
 
@@ -2592,35 +2597,41 @@ var Overworld = (function() {
                     ctx.restore();
                 }
 
-                // Selection arrow
-                var arrowX = chestStartX + chestGameIndex * 70;
+                // Selection arrow above the selected chest
+                var selectedTheta = -Math.PI * 0.8 + (chestGameIndex / (chestGameChests.length - 1)) * Math.PI * 0.6;
+                var arrowX = cx + Math.cos(selectedTheta) * radiusX;
+                var arrowY = cy + Math.sin(selectedTheta) * radiusY - 65;
                 ctx.font = "14pt Arial";
                 ctx.textAlign = "center";
                 ctx.fillStyle = "#FFD700";
-                ctx.fillText("▼", arrowX, 170);
+                ctx.fillText("▼", arrowX, arrowY);
 
                 // Instructions
                 ctx.font = "9pt 'Determination Mono', monospace";
                 ctx.fillStyle = "#888";
-                ctx.fillText("[◄ ►] Mover   [Z] Abrir   [X] Cancelar", 370, 340);
+                ctx.fillText("[◄ ►] Mover   [Z] Abrir   [X] Cancelar", 370, 410);
 
             } else if (chestGameStatus === "opened") {
                 // Show result
                 ctx.shadowColor = chestGameUnlockedChar ? "#00FF00" : "#FF0000";
                 ctx.fillStyle = chestGameUnlockedChar ? "#00FF00" : "#FF4444";
-                ctx.fillText("COFRE MISTERIOSO", 370, 60);
+                ctx.fillText("COFRE MISTERIOSO", 370, 70);
 
-                // Draw all chests - reveal the opened one
-                var chestStartX2 = 370 - (chestGameChests.length * 70) / 2 + 35;
+                // Draw all chests in the same arc - reveal the opened one
+                var cx = 370;
+                var cy = 300;
+                var radiusX = 200;
+                var radiusY = 50;
                 for (var ci2 = 0; ci2 < chestGameChests.length; ci2++) {
-                    var chX2 = chestStartX2 + ci2 * 70;
-                    var chY2 = 160;
+                    var theta2 = -Math.PI * 0.8 + (ci2 / (chestGameChests.length - 1)) * Math.PI * 0.6;
+                    var chX2 = cx + Math.cos(theta2) * radiusX;
+                    var chY2 = cy + Math.sin(theta2) * radiusY;
                     var wasChosen = (ci2 === chestGameIndex);
 
                     ctx.save();
                     ctx.translate(chX2, chY2);
                     if (!wasChosen) {
-                        ctx.globalAlpha = 0.4;
+                        ctx.globalAlpha = 0.35;
                     }
                     drawCustomChest(ctx, chestGameChests[ci2].content, false, wasChosen);
                     ctx.restore();
@@ -2635,36 +2646,36 @@ var Overworld = (function() {
                     ctx.shadowBlur = 15;
                     ctx.shadowColor = rainbowColor;
                     ctx.fillStyle = rainbowColor;
-                    ctx.fillText("★ " + chestGameUnlockedChar.name + " ★", 370, 260);
+                    ctx.fillText("★ " + chestGameUnlockedChar.name + " ★", 370, 410);
 
                     ctx.font = "10pt 'Determination Mono', monospace";
                     ctx.shadowBlur = 0;
                     ctx.fillStyle = "#FFF";
-                    ctx.fillText(chestGameMessage, 370, 290);
+                    ctx.fillText(chestGameMessage, 370, 440);
 
                     ctx.font = "8pt 'Determination Mono', monospace";
                     ctx.fillStyle = "#AAA";
                     var descLines = chestGameUnlockedChar.desc.split(". ");
                     for (var dl = 0; dl < descLines.length; dl++) {
-                        ctx.fillText(descLines[dl] + (dl < descLines.length - 1 ? "." : ""), 370, 315 + dl * 16);
+                        ctx.fillText(descLines[dl] + (dl < descLines.length - 1 ? "." : ""), 370, 465 + dl * 14);
                     }
                 } else {
                     ctx.font = "bold 14pt 'Determination Mono', monospace";
                     ctx.shadowBlur = 8;
                     ctx.shadowColor = "#FF0000";
                     ctx.fillStyle = "#FF4444";
-                    ctx.fillText("¡VACÍO!", 370, 260);
+                    ctx.fillText("¡VACÍO!", 370, 410);
 
                     ctx.font = "10pt 'Determination Mono', monospace";
                     ctx.shadowBlur = 0;
                     ctx.fillStyle = "#AAA";
-                    ctx.fillText(chestGameMessage, 370, 290);
+                    ctx.fillText(chestGameMessage, 370, 440);
                 }
 
                 ctx.font = "9pt 'Determination Mono', monospace";
                 ctx.shadowBlur = 0;
                 ctx.fillStyle = "#888";
-                ctx.fillText("[Z/ENTER] Cerrar", 370, 400);
+                ctx.fillText("[Z/ENTER] Cerrar", 370, 520);
             }
 
             ctx.restore();
@@ -2686,39 +2697,39 @@ var Overworld = (function() {
 
         if (showEquipPrompt) {
             ctx.save();
-            // Modal shadow overlay over entire map
+            // Modal shadow overlay covering the ENTIRE 740x580 canvas
             ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
-            ctx.fillRect(0, 0, 640, 480);
+            ctx.fillRect(0, 0, main.WIDTH, main.HEIGHT);
 
-            // Dialogue box (black box, white border)
+            // Dialogue box (black box, white border) - Centered in 740x580
             ctx.fillStyle = "#FFF";
-            ctx.fillRect(100, 150, 440, 180);
+            ctx.fillRect(150, 200, 440, 180);
             ctx.fillStyle = "#000";
-            ctx.fillRect(104, 154, 432, 172);
+            ctx.fillRect(154, 204, 432, 172);
 
             // Title text
             ctx.font = "14pt 'Determination Mono', monospace";
             ctx.fillStyle = "#FFF";
             ctx.textAlign = "center";
-            ctx.fillText("¿Volver a equipar los mismos objetos", 320, 195);
-            ctx.fillText("usados en esta batalla?", 320, 225);
+            ctx.fillText("¿Volver a equipar los mismos objetos", 370, 245);
+            ctx.fillText("usados en esta batalla?", 370, 275);
 
             // Buttons: [ SÍ ] and [ NO ]
             ctx.font = "16pt 'Determination Mono', monospace";
             
             // SÍ
             ctx.fillStyle = equipPromptSelection === 0 ? "#FFD700" : "#FFF";
-            ctx.fillText("SÍ", 240, 285);
+            ctx.fillText("SÍ", 290, 335);
             
             // NO
             ctx.fillStyle = equipPromptSelection === 1 ? "#FFD700" : "#FFF";
-            ctx.fillText("NO", 400, 285);
+            ctx.fillText("NO", 450, 335);
 
             // Heart icon next to selected option
             ctx.save();
             ctx.fillStyle = "#FF0000";
-            var heartX = equipPromptSelection === 0 ? 210 : 370;
-            var heartY = 277;
+            var heartX = equipPromptSelection === 0 ? 260 : 420;
+            var heartY = 327;
             ctx.beginPath();
             ctx.moveTo(heartX, heartY - 4);
             ctx.bezierCurveTo(heartX + 3, heartY - 8, heartX + 7, heartY - 5, heartX, heartY + 4);
@@ -2887,7 +2898,10 @@ var Overworld = (function() {
 
     function drawCustomChest(ctx, content, isSelected, opened) {
         if (!content) {
+            ctx.save();
+            ctx.scale(2.0, 2.0);
             drawDefaultChest(ctx, isSelected, opened);
+            ctx.restore();
             return;
         }
 
@@ -2909,21 +2923,21 @@ var Overworld = (function() {
 
         // If sprite is loaded and ready, use it
         if (sprite && sprite.complete && sprite.naturalWidth > 0) {
-            var sprW = 56;  // Display width
-            var sprH = 56;  // Display height
+            var sprW = 90;  // Display width (increased from 56)
+            var sprH = 90;  // Display height (increased from 56)
 
             // Selection glow
             if (isSelected && !opened) {
                 ctx.save();
-                ctx.shadowBlur = 22;
+                ctx.shadowBlur = 24;
                 ctx.shadowColor = accentColor;
                 // Pulsing glow
                 var glowPulse = 0.6 + Math.sin(time * 4) * 0.4;
                 ctx.globalAlpha = glowPulse;
-                ctx.shadowBlur = 18 + Math.sin(time * 6) * 6;
+                ctx.shadowBlur = 22 + Math.sin(time * 6) * 6;
                 ctx.strokeStyle = accentColor;
-                ctx.lineWidth = 2.5;
-                ctx.strokeRect(-sprW / 2 - 3, -sprH / 2 - 3, sprW + 6, sprH + 6);
+                ctx.lineWidth = 3.5;
+                ctx.strokeRect(-sprW / 2 - 5, -sprH / 2 - 5, sprW + 10, sprH + 10);
                 ctx.restore();
             }
 
@@ -2933,19 +2947,19 @@ var Overworld = (function() {
                 // Opened: tilt lid back and add inner glow
                 ctx.save();
                 ctx.globalAlpha = 0.85;
-                ctx.translate(0, -4);
+                ctx.translate(0, -6);
                 ctx.rotate(-0.15);
                 ctx.drawImage(sprite, -sprW / 2, -sprH / 2, sprW, sprH);
                 ctx.restore();
 
                 // Inner glow emanating from chest
-                var innerGlow = ctx.createRadialGradient(0, 8, 2, 0, 8, 30);
+                var innerGlow = ctx.createRadialGradient(0, 12, 3, 0, 12, 45);
                 innerGlow.addColorStop(0, accentColor);
                 innerGlow.addColorStop(0.5, accentColor.substring(0, 7) + "44");
                 innerGlow.addColorStop(1, "rgba(0, 0, 0, 0)");
                 ctx.fillStyle = innerGlow;
                 ctx.beginPath();
-                ctx.arc(0, 8, 30, 0, Math.PI * 2);
+                ctx.arc(0, 12, 45, 0, Math.PI * 2);
                 ctx.fill();
             } else {
                 // Closed: draw normally with subtle bob if selected
@@ -2958,17 +2972,20 @@ var Overworld = (function() {
             // Character name label below (if selected)
             if (isSelected && !opened) {
                 ctx.save();
-                ctx.font = "bold 7pt 'Determination Mono', monospace";
+                ctx.font = "bold 8pt 'Determination Mono', monospace";
                 ctx.textAlign = "center";
                 ctx.fillStyle = accentColor;
                 ctx.shadowBlur = 6;
                 ctx.shadowColor = accentColor;
-                ctx.fillText("???", 0, sprH / 2 + 12);
+                ctx.fillText("???", 0, sprH / 2 + 15);
                 ctx.restore();
             }
         } else {
             // Fallback: programmatic chest if sprite not loaded
+            ctx.save();
+            ctx.scale(2.0, 2.0);
             drawDefaultChest(ctx, isSelected, opened);
+            ctx.restore();
         }
     }
 
