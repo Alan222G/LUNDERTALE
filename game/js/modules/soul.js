@@ -171,10 +171,6 @@ var Soul = (function() {
         else if (sClass === 17) ctx.filter = "hue-rotate(330deg) saturate(2.5) brightness(1.3)"; // Itadori Cursed Pink
         else if (sClass === 18) ctx.filter = "hue-rotate(45deg) saturate(2.5) brightness(1.3)"; // Ultimate Artist (Golden Ratio)
         else if (sClass === 19) ctx.filter = "hue-rotate(130deg) saturate(2.0) brightness(1.2)"; // Ultimate Kindest (Emerald)
-        else if (sClass === 20) ctx.filter = "hue-rotate(0deg) saturate(3.0) contrast(1.5)"; // Ultimate Brawler (Crimson)
-        else if (sClass === 21) ctx.filter = "hue-rotate(280deg) saturate(2.5) brightness(0.9)"; // Kuromi (Violet)
-        else if (sClass === 22) ctx.filter = "hue-rotate(30deg) saturate(2.2) brightness(1.1)"; // Shooky (Cookie Amber)
-        else if (sClass === 23) ctx.filter = "hue-rotate(340deg) saturate(2.8) brightness(1.3)"; // Tata (Alien Heart)
 
     }
 
@@ -640,103 +636,6 @@ var Soul = (function() {
             ctx.font = "8px sans-serif";
             ctx.fillStyle = "rgba(0, 255, 130, " + (0.5 + Math.sin(time * 3) * 0.3) + ")";
             ctx.fillText("\u2665", cx + Math.sin(time * 1.5) * 10, cy - sh * 0.8 + Math.sin(time * 2.5) * 4);
-            ctx.restore();
-        } else if (sClass === 20) { // Ultimate Brawler — Crimson fury stacks ring
-            var cx = drawPos.x + sw/2;
-            var cy = drawPos.y + sh/2;
-            var time = Date.now() / 1000;
-            var stacks = (typeof Player !== "undefined" && Player.getBrawlerAtkStack) ? Player.getBrawlerAtkStack() : 0;
-            // Red pulse aura
-            ctx.save();
-            var furyAlpha = 0.1 + stacks * 0.03;
-            var furyGrad = ctx.createRadialGradient(cx, cy, 2, cx, cy, sw * (1.2 + stacks * 0.08));
-            furyGrad.addColorStop(0, "rgba(255, 50, 50, " + furyAlpha + ")");
-            furyGrad.addColorStop(1, "rgba(255, 0, 0, 0)");
-            ctx.fillStyle = furyGrad;
-            ctx.beginPath();
-            ctx.arc(cx, cy, sw * (1.2 + stacks * 0.08), 0, Math.PI * 2);
-            ctx.fill();
-            ctx.restore();
-            // Stack indicator
-            if (stacks > 0) {
-                ctx.save();
-                ctx.font = "bold 7px monospace";
-                ctx.textAlign = "center";
-                ctx.fillStyle = "#FF4444";
-                ctx.fillText("+" + (stacks * 5) + "% ATK", cx, drawPos.y + sh + 9);
-                ctx.restore();
-            }
-        } else if (sClass === 21) { // Kuromi — Gothic purple mischief particles
-            var cx = drawPos.x + sw/2;
-            var cy = drawPos.y + sh/2;
-            var time = Date.now() / 1000;
-            // Purple mischief swirl
-            ctx.save();
-            ctx.strokeStyle = "rgba(180, 0, 255, 0.4)";
-            ctx.lineWidth = 1.2;
-            ctx.beginPath();
-            for (var k = 0; k < 3; k++) {
-                var kAngle = time * 1.5 + (k * Math.PI * 2 / 3);
-                var kR = sw * 1.0;
-                var kx = cx + Math.cos(kAngle) * kR;
-                var ky = cy + Math.sin(kAngle) * kR;
-                ctx.moveTo(kx, ky);
-                ctx.arc(kx, ky, 2, 0, Math.PI * 2);
-            }
-            ctx.stroke();
-            ctx.restore();
-            // Skull icon
-            ctx.save();
-            ctx.font = "7px sans-serif";
-            ctx.fillStyle = "rgba(200, 100, 255, " + (0.6 + Math.sin(time * 4) * 0.3) + ")";
-            ctx.fillText("\u2620", cx - 3, drawPos.y - 4);
-            ctx.restore();
-        } else if (sClass === 22) { // Shooky — Amber crumb trail
-            var cx = drawPos.x + sw/2;
-            var cy = drawPos.y + sh/2;
-            var time = Date.now() / 1000;
-            var isLow = (typeof Player !== "undefined" && Player.isShookyLowHP && Player.isShookyLowHP());
-            // Cookie crumb particles
-            ctx.save();
-            ctx.fillStyle = isLow ? "rgba(255, 200, 50, 0.7)" : "rgba(200, 150, 50, 0.5)";
-            for (var c = 0; c < 4; c++) {
-                var cAngle = time * 2 + c * 1.5;
-                var cDist = sw * 0.8 + Math.sin(cAngle * 0.7) * 3;
-                var crx = cx + Math.cos(cAngle) * cDist;
-                var cry = cy + Math.sin(cAngle) * cDist;
-                ctx.fillRect(crx - 1, cry - 1, 2, 2);
-            }
-            ctx.restore();
-            // Low HP speed indicator
-            if (isLow) {
-                ctx.save();
-                ctx.font = "bold 7px monospace";
-                ctx.textAlign = "center";
-                ctx.fillStyle = "#FFD700";
-                ctx.fillText("TURBO", cx, drawPos.y + sh + 9);
-                ctx.restore();
-            }
-        } else if (sClass === 23) { // Tata — Pink morphing barrier orbit
-            var cx = drawPos.x + sw/2;
-            var cy = drawPos.y + sh/2;
-            var time = Date.now() / 1000;
-            var hasBarrier = (typeof Player !== "undefined" && Player.hasTataMorphBarrier && Player.hasTataMorphBarrier());
-            // Orbiting heart
-            ctx.save();
-            var tAngle = time * 2.0;
-            var tR = sw * 1.3;
-            var tx = cx + Math.cos(tAngle) * tR;
-            var ty = cy + Math.sin(tAngle) * tR;
-            ctx.font = "9px sans-serif";
-            ctx.fillStyle = hasBarrier ? "rgba(255, 105, 180, 0.9)" : "rgba(255, 105, 180, 0.3)";
-            ctx.fillText("\u2665", tx - 4, ty + 4);
-            ctx.restore();
-            // Barrier status
-            ctx.save();
-            ctx.font = "bold 7px monospace";
-            ctx.textAlign = "center";
-            ctx.fillStyle = hasBarrier ? "#FF69B4" : "#666666";
-            ctx.fillText(hasBarrier ? "BARRERA \u2714" : "BARRERA ...", cx, drawPos.y + sh + 9);
             ctx.restore();
         }
     }

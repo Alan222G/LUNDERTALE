@@ -32,11 +32,7 @@ var Overworld = (function() {
         { id: 16, name: "All Might", desc: "One For All. HP:150, ATK:+60%, DEF:+40%. Símbolo de la Paz. Tu HP Máximo decae -3/turno (mín 60)." },
         { id: 17, name: "Itadori", desc: "Jujutsu. HP:100, VEL:+10%, ATK:+30%. Black Flash (20% crit 2.5x), Sangre Perforante (sangrado al enemigo), RCT cada 8 turnos." },
         { id: 18, name: "Ultimate Artist", desc: "Técnica 7:3. HP:110, VEL:+15%, ATK:+35%. Golpe Crítico del 30% (2.5x daño) y Escudo de Precisión cada 3 turnos." },
-        { id: 19, name: "Ultimate Kindest", desc: "Bondad Suprema. HP:120, VEL:-5%, DEF:+60% (Resistencia Superior). Acciones de SPARE llenan la barra 2.5x más rápido y absorbe 15% de daño como cura." },
-        { id: 20, name: "Ultimate Brawler", desc: "Fuerza Brutal. HP:110, VEL:+20%, ATK:+50%, DEF:+10%. Acumula +5% ATK por golpe (máx +45%) e invulnerabilidad en golpes pesados." },
-        { id: 21, name: "Kuromi", desc: "Travesura Gótica. HP:105, VEL:+25%, ATK:+15%. 20% probabilidad de ralentizar balas al 50% (balas moradas) + 15% probabilidad de crítico." },
-        { id: 22, name: "Shooky", desc: "División de Migas. HP:100, VEL:+40%, ATK:+5%. Alma 20% más pequeña, +40% velocidad si HP < 50%, e inmunidad total a veneno y sangrado." },
-        { id: 23, name: "Tata", desc: "Corazón Moldeable. HP:115, VEL:+10%, ATK:+20%, DEF:+5%. Al recibir daño genera Barrera Moldeable que absorbe el siguiente golpe y refleja 30% a la piedad." }
+        { id: 19, name: "Ultimate Kindest", desc: "Bondad Suprema. HP:120, VEL:-5%, DEF:+60% (Resistencia Superior). Acciones de SPARE llenan la barra 2.5x más rápido y absorbe 15% de daño como cura." }
     ];
 
     var catalogOptions = [];
@@ -127,10 +123,10 @@ var Overworld = (function() {
             subWorld: 0
         });
 
-        // Initialize catalog with normal souls (ids 0-11) and base stock souls (ids 18-23)
+        // Initialize catalog with normal souls (ids 0-11) and Ultimate hearts (ids 18-19)
         catalogOptions = [];
         for (var ci = 0; ci < allCatalogOptions.length; ci++) {
-            if (allCatalogOptions[ci].id <= 11 || allCatalogOptions[ci].id >= 18) {
+            if (allCatalogOptions[ci].id <= 11 || (allCatalogOptions[ci].id >= 18 && allCatalogOptions[ci].id <= 19)) {
                 catalogOptions.push(allCatalogOptions[ci]);
             }
         }
@@ -1765,27 +1761,9 @@ var Overworld = (function() {
                         ctx.restore();
                     }
                     
-                    // Draw name - rainbow for special characters (id >= 12)
-                    var isSpecial = catalogOptions[i].id >= 12;
-                    if (isSpecial) {
-                        var nameStr = "★ " + catalogOptions[i].name + " ★";
-                        ctx.save();
-                        ctx.font = "10pt 'Determination Mono', monospace";
-                        ctx.textAlign = "left";
-                        var nameX = 370;
-                        for (var ch = 0; ch < nameStr.length; ch++) {
-                            var charHue = ((animTimer * 120) + ch * 25) % 360;
-                            ctx.fillStyle = "hsl(" + charHue + ", 100%, " + ((i === catalogIndex) ? "65%" : "50%") + ")";
-                            ctx.shadowBlur = (i === catalogIndex) ? 8 : 3;
-                            ctx.shadowColor = ctx.fillStyle;
-                            ctx.fillText(nameStr[ch], nameX, yPos);
-                            nameX += ctx.measureText(nameStr[ch]).width;
-                        }
-                        ctx.restore();
-                    } else {
-                        ctx.fillStyle = (i === catalogIndex) ? "#FF0" : "#FFF";
-                        ctx.fillText(catalogOptions[i].name, 370, yPos);
-                    }
+                    // Draw name — clean white text for all souls, yellow when selected
+                    ctx.fillStyle = (i === catalogIndex) ? "#FF0" : "#FFF";
+                    ctx.fillText(catalogOptions[i].name, 370, yPos);
                 }
                 
                 // Scroll arrows

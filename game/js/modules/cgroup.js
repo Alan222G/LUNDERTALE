@@ -941,7 +941,7 @@ var Cgroup = (function() {
                 spriteId: "asriel",
                 attacks: [
                     "billEyeLasers", "billCipherWheel", "billDealBlueFire", "billHatDrop", "billCaneSwack", "billTriangleBeams", "billPyramidTrap",
-                    "billMadnessBubbles", "billTimeGlitch", "billDimensionalRift", "billWeirdmageddonRain", "billFloatingPyramids", "billShadowClones", "billTeleportSlam",
+                    "billMadnessBubbles", "billTimeGlitch", "billWeirdmageddonRain", "billFloatingPyramids", "billShadowClones", "billTeleportSlam",
                     "billAngryRedNova", "billFistSlam", "billTeethChirp", "billCataclysmRays", "billGravityChaos", "billNightmareVortex", "billArmageddon"
                 ],
                 phases: [
@@ -952,13 +952,13 @@ var Cgroup = (function() {
                         speech: ["¡HOLA, SACO\nDE HUESOS!", "¿QUIERES HACER\nUN TRATO?", "LA REALIDAD\nES UNA ILUSION.", "¡COMPRA ORO!"]
                     },
                     {
-                        patterns: ["billMadnessBubbles", "billCipherWheel", "billTimeGlitch", "billDimensionalRift", "billWeirdmageddonRain", "billFloatingPyramids", "billShadowClones", "billTeleportSlam"],
+                        patterns: ["billMadnessBubbles", "billTimeGlitch", "billWeirdmageddonRain", "billFloatingPyramids", "billShadowClones", "billTeleportSlam"],
                         soulMode: "red",
                         renderType: "bill_madness",
                         speech: ["¡BIENVENIDOS\nA RAROAGEDON!", "¡EL TIEMPO SE\nHA CONGELADO!", "¡LA LOCURA\nREINA AQUÍ!"]
                     },
                     {
-                        patterns: ["billAngryRedNova", "billCipherWheel", "billFistSlam", "billTeethChirp", "billCataclysmRays", "billGravityChaos", "billNightmareVortex", "billArmageddon"],
+                        patterns: ["billAngryRedNova", "billFistSlam", "billTeethChirp", "billCataclysmRays", "billGravityChaos", "billNightmareVortex", "billArmageddon"],
                         soulMode: "blue",
                         renderType: "bill_angry",
                         speech: ["¡ESTOY\nHARTODE TI!", "¡TE CONVERTIRÉ\nEN CENIZAS!", "¡EL JUEGO\nSE ACABÓ!"]

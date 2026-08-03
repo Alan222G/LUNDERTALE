@@ -204,8 +204,10 @@ var BossController = (function() {
             w = 280; h = 280; // Enough space for expanding rings
         } else if (patternName === "heavenlyRays") {
             w = 240; h = 240; // Perfect for laser grid
-        } else if (patternName === "accretionSpiral" || patternName === "billCipherWheel") {
-            w = 480; h = 480; // Large square for spiral & Zodiac Wheel chaos
+        } else if (patternName === "accretionSpiral") {
+            w = 300; h = 300; // Large square for spiral chaos
+        } else if (patternName === "billCipherWheel") {
+            w = 300; h = 300; // Square for Zodiac Wheel
         } else if (patternName === "particleBeam") {
             w = 420; h = 300; // Extra wide for beam sweep
         } else if (patternName === "atField") {

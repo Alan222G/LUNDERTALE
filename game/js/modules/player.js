@@ -40,18 +40,11 @@ var Player = (function() {
     var hitboxScaleOverride = 1.0;
     var hitboxScaleTurns = 0;
 
-    // New Heart States (IDs 18-23)
+    // New Heart States (IDs 18-19)
     var artistCritRate = 0;         // Ultimate Artist (18): crit chance
     var artistShieldTurnCounter = 0; // Shield every 3 turns
     var kindestMercyMult = 1.0;     // Ultimate Kindest (19): mercy fill multiplier
     var kindestAbsorbRate = 0;      // % of damage absorbed as healing
-    var brawlerAtkStack = 0;        // Ultimate Brawler (20): stacking ATK bonus
-    var brawlerMaxStack = 9;        // Max stacks (9 * 5% = +45%)
-    var kuromiBulletSlow = 0;       // Kuromi (21): bullet slow chance
-    var kuromiCritRate = 0;         // Kuromi crit rate
-    var shookyShrinkScale = 1.0;   // Shooky (22): hitbox scale
-    var tataMorphBarrier = false;   // Tata (23): morphing barrier active
-    var tataMorphCooldown = 0;      // Cooldown after barrier use
     var critBuff = 0;               // Temporary crit buff from items
     var critBuffTurns = 0;
     
@@ -97,12 +90,6 @@ var Player = (function() {
         artistShieldTurnCounter = 0;
         kindestMercyMult = 1.0;
         kindestAbsorbRate = 0;
-        brawlerAtkStack = 0;
-        kuromiBulletSlow = 0;
-        kuromiCritRate = 0;
-        shookyShrinkScale = 1.0;
-        tataMorphBarrier = false;
-        tataMorphCooldown = 0;
         critBuff = 0;
         critBuffTurns = 0;
         
@@ -115,10 +102,6 @@ var Player = (function() {
         if (soulClass === 8) { magnetActive = true; } // Magnetic Heart
         if (soulClass === 18) { artistCritRate = 0.30; artistShieldTurnCounter = 0; } // Ultimate Artist
         if (soulClass === 19) { kindestMercyMult = 2.5; kindestAbsorbRate = 0.15; } // Ultimate Kindest
-        if (soulClass === 20) { brawlerAtkStack = 0; } // Ultimate Brawler
-        if (soulClass === 21) { kuromiBulletSlow = 0.20; kuromiCritRate = 0.15; } // Kuromi
-        if (soulClass === 22) { shookyShrinkScale = 0.80; } // Shooky (20% smaller hitbox)
-        if (soulClass === 23) { tataMorphBarrier = true; tataMorphCooldown = 0; } // Tata
     }
 
     function setSoulClass(classId) {
@@ -144,10 +127,6 @@ var Player = (function() {
             case 17: hpMax = 100; baseSpd = 1.1; baseAtk = 1.3; baseDef = 0.9; break; // Itadori (Jujutsu)
             case 18: hpMax = 110; baseSpd = 1.15; baseAtk = 1.35; baseDef = 1.0; break; // Ultimate Artist (Nanami 7:3)
             case 19: hpMax = 120; baseSpd = 0.95; baseAtk = 0.8; baseDef = 1.6; break; // Ultimate Kindest (Mercy Tank)
-            case 20: hpMax = 110; baseSpd = 1.2; baseAtk = 1.5; baseDef = 1.1; break; // Ultimate Brawler (Offensive Stack)
-            case 21: hpMax = 105; baseSpd = 1.25; baseAtk = 1.15; baseDef = 0.95; break; // Kuromi (Stock Base)
-            case 22: hpMax = 100; baseSpd = 1.40; baseAtk = 1.05; baseDef = 0.90; break; // Shooky (Stock Base)
-            case 23: hpMax = 115; baseSpd = 1.10; baseAtk = 1.20; baseDef = 1.05; break; // Tata (Stock Base)
         }
         hpCur = hpMax;
         recalculateBuffs();
@@ -357,44 +336,6 @@ var Player = (function() {
                     Soul.addFloatingText("ADAPTED +" + displayPct + "%", sPos.x + Soul.getWidth() / 2, sPos.y - 12, "#FFD700");
                 }
                 console.log("MAHORAGA ADAPTED: Stack " + mahoragaDefStack + " (+" + (mahoragaDefStack * 10) + "% DEF)");
-            }
-        }
-
-        // Tata Morphing Barrier (23): absorb next hit and reflect 30% to mercy
-        if (soulClass === 23 && tataMorphBarrier) {
-            tataMorphBarrier = false;
-            tataMorphCooldown = 2; // Regenerates after 2 turns
-            Sound.playSound("ting", true);
-            var enemy = Cgroup.getEnemy(0);
-            if (enemy) {
-                var reflectVal = Math.ceil(value * 0.30);
-                enemy.mercyHP = Math.max(0, enemy.mercyHP - reflectVal);
-            }
-            if (typeof Soul !== "undefined" && Soul.addFloatingText) {
-                var sPos = Soul.getPos();
-                Soul.addFloatingText("BARRERA", sPos.x + Soul.getWidth() / 2, sPos.y - 12, "#FF69B4");
-            }
-            return false; // Absorbed by morphing barrier
-        }
-
-        // Ultimate Brawler (20): stack +5% ATK per hit (max +45%)
-        if (soulClass === 20) {
-            if (brawlerAtkStack < brawlerMaxStack) {
-                brawlerAtkStack++;
-                baseAtk += 0.05;
-                recalculateBuffs();
-                if (typeof Soul !== "undefined" && Soul.addFloatingText) {
-                    var sPos = Soul.getPos();
-                    Soul.addFloatingText("FURIA +" + (brawlerAtkStack * 5) + "%", sPos.x + Soul.getWidth() / 2, sPos.y - 12, "#FF4444");
-                }
-            }
-            // Heavy hit invulnerability (if incoming damage >= 12, gain 1 frame of invuln)
-            if (value >= 12) {
-                invulnerableTurns = 1;
-                if (typeof Soul !== "undefined" && Soul.addFloatingText) {
-                    var sPos = Soul.getPos();
-                    Soul.addFloatingText("¡AGUANTE!", sPos.x + Soul.getWidth() / 2, sPos.y - 20, "#FFD700");
-                }
             }
         }
 
@@ -659,34 +600,6 @@ var Player = (function() {
         },
         // Ultimate Kindest (19): mercy multiplier
         getKindestMercyMult: function() { return (soulClass === 19) ? kindestMercyMult : 1.0; },
-        // Ultimate Brawler (20)
-        getBrawlerAtkStack: function() { return brawlerAtkStack; },
-        // Kuromi (21): bullet slow
-        getKuromiBulletSlow: function() { return (soulClass === 21) ? kuromiBulletSlow : 0; },
-        getKuromiCritRate: function() { return (soulClass === 21) ? kuromiCritRate : 0; },
-        rollKuromiCrit: function() {
-            return (soulClass === 21) && Math.random() < kuromiCritRate;
-        },
-        // Shooky (22): hitbox scale + speed boost at low HP
-        getShookyHitboxScale: function() { return (soulClass === 22) ? shookyShrinkScale : 1.0; },
-        isShookyLowHP: function() { return (soulClass === 22 && hpCur < hpMax * 0.5); },
-        getShookySpeedBoost: function() {
-            return (soulClass === 22 && hpCur < hpMax * 0.5) ? 0.40 : 0;
-        },
-        // Tata (23): morphing barrier
-        hasTataMorphBarrier: function() { return tataMorphBarrier; },
-        tickTataCooldown: function() {
-            if (soulClass === 23 && !tataMorphBarrier && tataMorphCooldown > 0) {
-                tataMorphCooldown--;
-                if (tataMorphCooldown <= 0) {
-                    tataMorphBarrier = true;
-                    if (typeof Soul !== "undefined" && Soul.addFloatingText) {
-                        var sPos = Soul.getPos();
-                        Soul.addFloatingText("BARRERA ✦", sPos.x + Soul.getWidth() / 2, sPos.y - 12, "#FF69B4");
-                    }
-                }
-            }
-        },
         // Crit buff from items
         addCritBuff: function(rate, turns) { critBuff = rate; critBuffTurns = turns; },
         getCritBuff: function() { return critBuff; },
@@ -698,9 +611,7 @@ var Player = (function() {
         addRegen: function(amount, turns) { regenAmount = amount; regenTurns = turns; },
         // Expose getHP
         getHP: function() { return hpCur; },
-        // Poison immunity for Shooky
         addPoison: function(val) {
-            if (soulClass === 22) return; // Shooky immune
             selfPoison += val;
         }
     };
