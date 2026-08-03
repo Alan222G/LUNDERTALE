@@ -826,7 +826,19 @@ var Cgroup = (function() {
     function getText() { return enemies[0].getRandomText(); }
     function getActs(idx) { return enemies[idx].acts; }
     function getRes(eIdx, aIdx) {
-        if (enemies[eIdx].actFunctions[aIdx]) enemies[eIdx].actFunctions[aIdx]();
+        var preMercy = enemies[eIdx] ? enemies[eIdx].mercyHP : 0;
+        if (enemies[eIdx] && enemies[eIdx].actFunctions[aIdx]) enemies[eIdx].actFunctions[aIdx]();
+        if (typeof Player !== "undefined" && Player.getKindestMercyMult) {
+            var mult = Player.getKindestMercyMult();
+            if (mult > 1.0 && enemies[eIdx] && enemies[eIdx].mercyHP !== undefined) {
+                var postMercy = enemies[eIdx].mercyHP;
+                var mercyDiff = preMercy - postMercy;
+                if (mercyDiff > 0) {
+                    var extraMercy = Math.floor(mercyDiff * (mult - 1.0));
+                    enemies[eIdx].mercyHP = Math.max(0, postMercy - extraMercy);
+                }
+            }
+        }
         return enemies[eIdx].actResponses[aIdx];
     }
     function getDamagePos(idx) { return enemies[idx].damagePos; }
@@ -839,6 +851,23 @@ var Cgroup = (function() {
     function getEnemy(idx) { return enemies[idx]; }
 
     function dealDamage(idx, damage) {
+        if (typeof Player !== "undefined") {
+            if (Player.rollArtistCrit && Player.rollArtistCrit()) {
+                damage = Math.floor(damage * 2.5);
+                if (typeof Soul !== "undefined" && Soul.addFloatingText) {
+                    var sPos = Soul.getPos();
+                    Soul.addFloatingText("¡7:3 CRÍTICO!", sPos.x + Soul.getWidth() / 2, sPos.y - 20, "#FFD700");
+                }
+                Sound.playSound("laser", true);
+            } else if (Player.rollKuromiCrit && Player.rollKuromiCrit()) {
+                damage = Math.floor(damage * 1.8);
+                if (typeof Soul !== "undefined" && Soul.addFloatingText) {
+                    var sPos = Soul.getPos();
+                    Soul.addFloatingText("¡TRAVESURA!", sPos.x + Soul.getWidth() / 2, sPos.y - 20, "#BA55D3");
+                }
+                Sound.playSound("ting", true);
+            }
+        }
         return enemies[idx].dealDamage(damage);
     }
 
@@ -923,13 +952,13 @@ var Cgroup = (function() {
                         speech: ["¡HOLA, SACO\nDE HUESOS!", "¿QUIERES HACER\nUN TRATO?", "LA REALIDAD\nES UNA ILUSION.", "¡COMPRA ORO!"]
                     },
                     {
-                        patterns: ["billMadnessBubbles", "billTimeGlitch", "billDimensionalRift", "billWeirdmageddonRain", "billFloatingPyramids", "billShadowClones", "billTeleportSlam"],
+                        patterns: ["billMadnessBubbles", "billCipherWheel", "billTimeGlitch", "billDimensionalRift", "billWeirdmageddonRain", "billFloatingPyramids", "billShadowClones", "billTeleportSlam"],
                         soulMode: "red",
                         renderType: "bill_madness",
                         speech: ["¡BIENVENIDOS\nA RAROAGEDON!", "¡EL TIEMPO SE\nHA CONGELADO!", "¡LA LOCURA\nREINA AQUÍ!"]
                     },
                     {
-                        patterns: ["billAngryRedNova", "billFistSlam", "billTeethChirp", "billCataclysmRays", "billGravityChaos", "billNightmareVortex", "billArmageddon"],
+                        patterns: ["billAngryRedNova", "billCipherWheel", "billFistSlam", "billTeethChirp", "billCataclysmRays", "billGravityChaos", "billNightmareVortex", "billArmageddon"],
                         soulMode: "blue",
                         renderType: "bill_angry",
                         speech: ["¡ESTOY\nHARTODE TI!", "¡TE CONVERTIRÉ\nEN CENIZAS!", "¡EL JUEGO\nSE ACABÓ!"]

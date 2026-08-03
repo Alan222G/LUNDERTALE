@@ -61,5 +61,13 @@ var Cbbox = (function() {
         }
     }
 
-    return { init: init, setup: setup, update: update, draw: draw, getBound: getBound, setSize: setSize };
+    function resetDefault(force) {
+        setSize(574, 140, force);
+    }
+
+    function isDefaultSize() {
+        return newWidth === 574 && newHeight === 140 && width === 574 && height === 140;
+    }
+
+    return { init: init, setup: setup, update: update, draw: draw, getBound: getBound, setSize: setSize, resetDefault: resetDefault, isDefaultSize: isDefaultSize };
 }());

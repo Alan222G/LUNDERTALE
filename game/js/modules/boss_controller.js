@@ -143,7 +143,15 @@ var BossController = (function() {
             "crystallineRay": function(cfg) { return new CrystallineRayPattern(cfg || { damVal: 8, duration: 7.0 }); },
             // --- Custom Bill Cipher Attacks ---
             "billEyeLasers": function(cfg) { return new BillEyeLasersPattern(cfg || { damVal: 8, duration: 7.5 }); },
-            "billCipherWheel": function(cfg) { return new BillCipherWheelPattern(cfg || { damVal: 8, duration: 7.5 }); },
+            "billCipherWheel": function(cfg) {
+                cfg = cfg || {};
+                var ph = 1;
+                if (typeof Cgroup !== "undefined" && Cgroup.getEnemy) {
+                    var _e = Cgroup.getEnemy(0);
+                    if (_e && _e.currentPhase !== undefined) ph = _e.currentPhase + 1;
+                }
+                return new BillCipherWheelPattern({ damVal: 8 + (ph - 1) * 2, duration: 8.5, phase: ph });
+            },
             "billDealBlueFire": function(cfg) { return new BillDealBlueFirePattern(cfg || { damVal: 8, duration: 7.5 }); },
             "billHatDrop": function(cfg) { return new BillHatDropPattern(cfg || { damVal: 8, duration: 7.5 }); },
             "billCaneSwack": function(cfg) { return new BillCaneSwackPattern(cfg || { damVal: 8, duration: 7.5 }); },
@@ -196,8 +204,8 @@ var BossController = (function() {
             w = 280; h = 280; // Enough space for expanding rings
         } else if (patternName === "heavenlyRays") {
             w = 240; h = 240; // Perfect for laser grid
-        } else if (patternName === "accretionSpiral") {
-            w = 300; h = 300; // Large square for spiral chaos
+        } else if (patternName === "accretionSpiral" || patternName === "billCipherWheel") {
+            w = 480; h = 480; // Large square for spiral & Zodiac Wheel chaos
         } else if (patternName === "particleBeam") {
             w = 420; h = 300; // Extra wide for beam sweep
         } else if (patternName === "atField") {

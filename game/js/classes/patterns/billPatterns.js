@@ -227,7 +227,8 @@ BillEyeLasersPattern.prototype.isOver = function() {
 // 2. billCipherWheel: Zodiac Wheel Attack â€” 10 cipher wheel symbols orbit and fire laser beams
 var BillCipherWheelPattern = function(config) {
     BulletPattern.call(this, config);
-    this.duration = config.duration || 9.0;
+    this.phase = config.phase || 1;
+    this.duration = config.duration || 9.5;
     this.elapsed = 0;
     this.damVal = config.damVal || 8;
     this.wheelAngle = 0;
@@ -235,9 +236,27 @@ var BillCipherWheelPattern = function(config) {
     this.symbols = []; // { index, angle, glowing, fireTimer, laserActive, laserAlpha }
     this.activeSymbol = -1;
     this.switchTimer = 0;
-    this.switchInterval = 0.7;
-    this.laserWarning = 0.45;
-    this.laserDuration = 0.35;
+    
+    // Phase scaling (like Seraphine Vex difficulty progression)
+    if (this.phase === 1) {
+        this.rotSpeed = 0.38;
+        this.switchInterval = 0.60;
+        this.simultaneousCount = 1;
+        this.laserWarning = 0.40;
+        this.laserDuration = 0.35;
+    } else if (this.phase === 2) {
+        this.rotSpeed = 0.65;
+        this.switchInterval = 0.42;
+        this.simultaneousCount = 2;
+        this.laserWarning = 0.30;
+        this.laserDuration = 0.30;
+    } else {
+        this.rotSpeed = 0.95;
+        this.switchInterval = 0.28;
+        this.simultaneousCount = 3;
+        this.laserWarning = 0.22;
+        this.laserDuration = 0.25;
+    }
 };
 BillCipherWheelPattern.prototype = Object.create(BulletPattern.prototype);
 BillCipherWheelPattern.prototype.generateBullets = function(battleBox) {
@@ -248,7 +267,8 @@ BillCipherWheelPattern.prototype.generateBullets = function(battleBox) {
     var bb = Cbbox.getBound();
     var boxW = bb[2] - bb[0];
     var boxH = bb[3] - bb[1];
-    this.wheelRadius = Math.min(boxW, boxH) * 0.42;
+    // Dynamic large wheel radius (up to ~205px radius in 480x480 box)
+    this.wheelRadius = Math.min(boxW, boxH) * 0.43;
     this.symbols = [];
     var names = ["star", "crescent", "hand", "glasses", "icebag", "llama", "shootingstar", "heart", "pinetree", "question"];
     for (var i = 0; i < 10; i++) {
@@ -263,7 +283,7 @@ BillCipherWheelPattern.prototype.generateBullets = function(battleBox) {
         });
     }
     this.activeSymbol = -1;
-    this.switchTimer = 0.3;
+    this.switchTimer = 0.2;
 };
 BillCipherWheelPattern.prototype.update = function(dt) {
     this.elapsed += dt;
@@ -271,25 +291,27 @@ BillCipherWheelPattern.prototype.update = function(dt) {
     var bb = Cbbox.getBound();
     var cx = (bb[0] + bb[2]) / 2;
     var cy = (bb[1] + bb[3]) / 2;
-    // Slowly rotate the whole wheel
-    this.wheelAngle += 0.35 * dt;
+    
+    // Rotate the wheel based on phase speed
+    this.wheelAngle += this.rotSpeed * dt;
+    
     // Handle symbol activation cycle
-    if (this.elapsed < this.duration - 1.5) {
+    if (this.elapsed < this.duration - 1.2) {
         this.switchTimer -= dt;
         if (this.switchTimer <= 0) {
             this.switchTimer = this.switchInterval;
-            // Pick a new symbol to activate (avoid same twice in a row)
-            var prev = this.activeSymbol;
-            var tries = 0;
-            do {
-                this.activeSymbol = Math.floor(Math.random() * 10);
-                tries++;
-            } while (this.activeSymbol === prev && tries < 5);
-            var sym = this.symbols[this.activeSymbol];
-            sym.glowing = true;
-            sym.fireTimer = this.laserWarning;
-            sym.laserActive = 0;
-            sym.laserAlpha = 1.0;
+            
+            // Activate simultaneousCount symbols based on phase
+            for (var c = 0; c < this.simultaneousCount; c++) {
+                var randIdx = Math.floor(Math.random() * 10);
+                var sym = this.symbols[randIdx];
+                if (!sym.glowing) {
+                    sym.glowing = true;
+                    sym.fireTimer = this.laserWarning;
+                    sym.laserActive = 0;
+                    sym.laserAlpha = 1.0;
+                }
+            }
             Sound.playSound("ting", true);
         }
     }
@@ -303,15 +325,16 @@ BillCipherWheelPattern.prototype.update = function(dt) {
                     // Fire the laser
                     s.laserActive = this.laserDuration;
                     Sound.playSound("laser", true);
-                    if (typeof triggerShake !== "undefined") triggerShake(3, 80);
+                    if (typeof triggerShake !== "undefined") triggerShake(4, 90);
                     // Spawn particles at symbol position
                     var sAngle = s.baseAngle + this.wheelAngle;
                     var sx = cx + Math.cos(sAngle) * this.wheelRadius;
                     var sy = cy + Math.sin(sAngle) * this.wheelRadius;
-                    for (var p = 0; p < 6; p++) {
-                        spawnBillParticle(sx, sy, (Math.random() - 0.5) * 75, (Math.random() - 0.5) * 75, 9 + Math.random() * 5, 0.7, "#FF3333", 12, {
+                    for (var p = 0; p < 7; p++) {
+                        var pColor = this.phase === 3 ? "#FF0055" : (this.phase === 2 ? "#FF8800" : "#FF3333");
+                        spawnBillParticle(sx, sy, (Math.random() - 0.5) * 85, (Math.random() - 0.5) * 85, 9 + Math.random() * 5, 0.7, pColor, 12, {
                             type: 'glyph',
-                            rotSpeed: (Math.random() - 0.5) * 4
+                            rotSpeed: (Math.random() - 0.5) * 5
                         });
                     }
                 }
@@ -325,14 +348,15 @@ BillCipherWheelPattern.prototype.update = function(dt) {
             }
         }
     }
-    // Ambient particles along the wheel rim
-    if (this.elapsed < this.duration - 1.0 && Math.random() < 0.4) {
+    // Ambient particles along the large wheel rim
+    if (this.elapsed < this.duration - 1.0 && Math.random() < (0.4 + this.phase * 0.15)) {
         var rAngle = Math.random() * Math.PI * 2;
         var rx = cx + Math.cos(rAngle) * this.wheelRadius;
         var ry = cy + Math.sin(rAngle) * this.wheelRadius;
-        spawnBillParticle(rx, ry, (Math.random() - 0.5) * 15, (Math.random() - 0.5) * 15, 5 + Math.random() * 4, 0.8, "#00FFFF", 6, {
+        var rimColor = this.phase === 3 ? "#FF0000" : (this.phase === 2 ? "#FFD700" : "#00FFFF");
+        spawnBillParticle(rx, ry, (Math.random() - 0.5) * 20, (Math.random() - 0.5) * 20, 5 + Math.random() * 4, 0.8, rimColor, 8, {
             type: 'star',
-            rotSpeed: (Math.random() - 0.5) * 3
+            rotSpeed: (Math.random() - 0.5) * 4
         });
     }
 };

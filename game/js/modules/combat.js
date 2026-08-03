@@ -96,6 +96,9 @@ var Combat = (function() {
 
         switch (combatState) {
             case COMBAT_STATE.MAIN:
+                if (typeof Cbbox !== "undefined" && Cbbox.isDefaultSize && !Cbbox.isDefaultSize()) {
+                    Cbbox.resetDefault(true);
+                }
                 if (Cbbox.update(dt)) {
                     Writer.update(dt);
                     if (myKeys.isRight()) {
@@ -323,6 +326,13 @@ var Combat = (function() {
 
                     combatState = COMBAT_STATE.MAIN;
                     Writer.setupText(Cgroup.getText());
+
+                    // Tick per-turn passives for new hearts
+                    if (typeof Player !== "undefined") {
+                        if (Player.tickArtistShield) Player.tickArtistShield();    // Ultimate Artist: Precision Shield every 3 turns
+                        if (Player.tickTataCooldown) Player.tickTataCooldown();      // Tata: Morphing Barrier cooldown
+                        if (Player.tickCritBuff) Player.tickCritBuff();              // Item crit buff decay
+                    }
                 }
 
                 // Check death
