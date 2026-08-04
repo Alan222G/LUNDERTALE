@@ -738,8 +738,11 @@ var Overworld = (function() {
             }
             
             if (!t.triggered && !t.needsExit && overlapping) {
-                if (t.bossId.indexOf("portal") === -1) {
+                if (t.bossId.indexOf("portal") === -1 && !t.isUltimateBoss) {
                     t.triggered = true; // Lock trigger during combat
+                }
+                if (t.isUltimateBoss) {
+                    t.needsExit = true; // Require player to step off and back on to re-read
                 }
                 activeBossTriggerIndex = i;
                 t.action();
@@ -947,6 +950,62 @@ var Overworld = (function() {
 
             var time = Date.now() / 1000;
             
+            if (t.isUltimateBoss) {
+                if (areAllBaseBossesDefeated()) {
+                    ctx.save();
+                    var ucx = t.x + t.w / 2;
+                    var ucy = t.y + t.h / 2;
+                    
+                    // Crimson dark radial aura behind envelope
+                    var shadowPulse = Math.sin(time * 3) * 4;
+                    var shadowGrad = ctx.createRadialGradient(ucx, ucy, 5, ucx, ucy, 45 + shadowPulse);
+                    shadowGrad.addColorStop(0, "rgba(255, 0, 0, 0.6)");
+                    shadowGrad.addColorStop(0.5, "rgba(100, 0, 50, 0.3)");
+                    shadowGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+                    ctx.fillStyle = shadowGrad;
+                    ctx.beginPath();
+                    ctx.arc(ucx, ucy, 45 + shadowPulse, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Golden / Crimson Mail Envelope icon with red glow
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = "#FFD700";
+                    
+                    // Envelope body
+                    ctx.fillStyle = "#FFD700";
+                    ctx.fillRect(ucx - 14, ucy - 9, 28, 18);
+                    ctx.strokeStyle = "#8B4513";
+                    ctx.lineWidth = 1.5;
+                    ctx.strokeRect(ucx - 14, ucy - 9, 28, 18);
+
+                    // Flap lines
+                    ctx.beginPath();
+                    ctx.moveTo(ucx - 14, ucy - 9);
+                    ctx.lineTo(ucx, ucy);
+                    ctx.lineTo(ucx + 14, ucy - 9);
+                    ctx.stroke();
+
+                    // Glowing heart seal
+                    ctx.fillStyle = "#FF0000";
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = "#FF0000";
+                    ctx.beginPath();
+                    ctx.arc(ucx, ucy + 2, 3.5, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Label
+                    ctx.font = "bold 9pt 'Determination Mono', monospace";
+                    ctx.textAlign = "center";
+                    ctx.fillStyle = "#FFD700";
+                    ctx.shadowBlur = 8;
+                    ctx.shadowColor = "#FFD700";
+                    ctx.fillText("CARTA FINAL (ULTIMATE ENEMY)", ucx, t.y - 12);
+                    
+                    ctx.restore();
+                }
+                continue;
+            }
+
             if (!t.triggered) {
                 ctx.save();
                 var gcx = t.x + t.w / 2;
@@ -1459,48 +1518,6 @@ var Overworld = (function() {
                         ctx.stroke();
                         
                         ctx.restore();
-                    } else if (t.isUltimateBoss) {
-                        if (areAllBaseBossesDefeated()) {
-                            ctx.save();
-                            var ucx = t.x + t.w / 2;
-                            var ucy = t.y + t.h / 2;
-                            
-                            // Golden / Crimson Mail Envelope icon with red glow
-                            ctx.shadowBlur = 15;
-                            ctx.shadowColor = "#FFD700";
-                            
-                            // Envelope body
-                            ctx.fillStyle = "#FFD700";
-                            ctx.fillRect(ucx - 14, ucy - 9, 28, 18);
-                            ctx.strokeStyle = "#8B4513";
-                            ctx.lineWidth = 1.5;
-                            ctx.strokeRect(ucx - 14, ucy - 9, 28, 18);
-
-                            // Flap lines
-                            ctx.beginPath();
-                            ctx.moveTo(ucx - 14, ucy - 9);
-                            ctx.lineTo(ucx, ucy);
-                            ctx.lineTo(ucx + 14, ucy - 9);
-                            ctx.stroke();
-
-                            // Glowing heart seal
-                            ctx.fillStyle = "#FF0000";
-                            ctx.shadowBlur = 10;
-                            ctx.shadowColor = "#FF0000";
-                            ctx.beginPath();
-                            ctx.arc(ucx, ucy + 2, 3.5, 0, Math.PI * 2);
-                            ctx.fill();
-
-                            // Label
-                            ctx.font = "bold 9pt 'Determination Mono', monospace";
-                            ctx.textAlign = "center";
-                            ctx.fillStyle = "#FFD700";
-                            ctx.shadowBlur = 8;
-                            ctx.shadowColor = "#FFD700";
-                            ctx.fillText("CARTA FINAL (ULTIMATE ENEMY)", ucx, t.y - 12);
-                            
-                            ctx.restore();
-                        }
                     } else if (img && img.complete) {
                         ctx.drawImage(img, t.x, t.y, t.w, t.h);
                     } else {
@@ -1519,12 +1536,10 @@ var Overworld = (function() {
                         ctx.fill();
                     }
                     
-                    if (!t.isUltimateBoss) {
-                        ctx.font = "8pt Determination Mono";
-                        ctx.textAlign = "center";
-                        ctx.fillStyle = "#FFF";
-                        ctx.fillText(t.label, gcx, t.y - 5);
-                    }
+                    ctx.font = "8pt Determination Mono";
+                    ctx.textAlign = "center";
+                    ctx.fillStyle = "#FFF";
+                    ctx.fillText(t.label, gcx, t.y - 5);
                     
                     ctx.restore();
                 }
