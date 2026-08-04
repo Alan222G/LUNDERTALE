@@ -46,7 +46,7 @@ var Combat = (function() {
             Sound.playSound("bgm_paradox", true);
         } else if (bossId === "godzilla") {
             Sound.playSound("bgm_godzilla", true);
-        } else if (bossId === "prism") {
+        } else if (bossId === "prism" || bossId === "ultimate_enemy") {
             Sound.playSound("bgm_prism", true);
         } else if (bossId === "singularity" || bossId === "vader") {
             Sound.playSound("bgm_singularity", true);
@@ -383,6 +383,10 @@ var Combat = (function() {
                 break;
 
             case COMBAT_STATE.WIN:
+                // Persist current inventory setup upon victory (items used stay consumed / inventory saved)
+                if (typeof Inventory !== "undefined" && Inventory.saveBattleStartEquipped) {
+                    Inventory.saveBattleStartEquipped();
+                }
                 // Mark boss as defeated in overworld ONLY on victory!
                 if (typeof Overworld !== "undefined" && Overworld.markBossDefeated) {
                     Overworld.markBossDefeated(victoryType);

@@ -28,6 +28,8 @@ var Cgroup = (function() {
             setupPrism();
         } else if (currentBossId === "bill") {
             setupBillCipher();
+        } else if (currentBossId === "ultimate_enemy") {
+            setupUltimateEnemy();
         } else {
             setupSingularity();
         }
@@ -976,6 +978,81 @@ var Cgroup = (function() {
             })
         ];
         enemies[0].bubblePos = enemies[0].damagePos.getAdd(new Vect(60, -160, 0));
+        mercies = ["Spare", "Flee"];
+    function setupUltimateEnemy() {
+        enemies = [
+            new Enemy({
+                name: "Ultimate Enemy",
+                checkText: "* Tu mayor enemigo no es una sombra externa...\n* Eres tú mismo, tus dudas y tus expectativas.\n* ¡Demuestra tu verdadera determinación!",
+                maxHP: 9999,
+                curHP: 9999,
+                renderType: "ultimate_shadow",
+                atk: 30,
+                def: 25,
+                defense: 1.5,
+                spareable: true,
+                acts: ["Check", "Reflect", "Accept", "Persevere", "Overcome", "Flee"],
+                actResponses: [
+                    "* ULTIMATE ENEMY - ATK 30 DEF 25\n* La manifestación de todas tus dudas y expectativas.\n* Mirarte al espejo requiere valentía.",
+                    "* Miras profundamente a la sombra...\n* Reconoces tus propios miedos y los aceptas con paz.",
+                    "* Aceptas que cometer errores es parte de crecer.\n* La sombra pierde su peso sobre tu alma.",
+                    "* Te recuerdas a ti mismo que caer no es el final.\n* La clave es levantarse sin importar cuántas veces pierdas.",
+                    "* Sientes una inmensa gratitud hacia quienes te acompañaron en este viaje.\n* Tu corazón brilla con una determinación indestructible.",
+                    "* Te das la vuelta con serenidad..."
+                ],
+                actFunctions: [
+                    function() { console.log("Checked Ultimate Enemy"); },
+                    function() { enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 25); },
+                    function() { enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 25); },
+                    function() { enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 25); },
+                    function() { enemies[0].mercyHP = Math.max(0, enemies[0].mercyHP - 25); },
+                    function() {
+                        Sound.playSound("flash", true);
+                        Transition.start("overworld", function() {
+                            main.gameState = main.GAME_STATE.OVERWORLD;
+                            Overworld.setup(main.ctx);
+                        });
+                    }
+                ],
+                texts: [
+                    "* The shadow of your mind looms large.",
+                    "* You stare into the mirror of your soul.",
+                    "* Floating thoughts drift like stardust.",
+                    "* The ultimate battle is within yourself."
+                ],
+                speech: [
+                    "¿QUIÉN ERES\nREALMENTE?",
+                    "TUS MIEDOS\nNO TE DEFINEN.",
+                    "¡SIGUE\nADELANTE!",
+                    "EL VIAJE\nCONTINÚA."
+                ],
+                attacks: ["accretionSpiral", "eventHorizon", "cataclysmRays", "armageddon", "timeReverseWave", "billCipherWheel"],
+                phases: [
+                    {
+                        patterns: ["accretionSpiral", "cataclysmRays", "timeReverseWave"],
+                        soulMode: "red",
+                        renderType: "ultimate_shadow",
+                        speech: ["MIRA EN TU\nINTERIOR...", "CADA CAÍDA\nES APRENDIZAJE."]
+                    },
+                    {
+                        patterns: ["eventHorizon", "billCipherWheel", "armageddon"],
+                        soulMode: "blue",
+                        renderType: "ultimate_shadow_angry",
+                        speech: ["¡NO LE TEMAS\nAL FRACASO!", "¡TU DETERMINACIÓN\nES INFINITA!"]
+                    }
+                ],
+                phaseHP: [9999, 12000],
+                karmaEnabled: false,
+                jitterEnabled: true,
+                damagePos: new Vect(370, 240, 0),
+                damageVel: 120,
+                bubbleOff: 35,
+                mercyHP: 100,
+                xpReward: 9999,
+                goldReward: 9999
+            })
+        ];
+        enemies[0].bubblePos = enemies[0].damagePos.getAdd(new Vect(70, -150, 0));
         mercies = ["Spare", "Flee"];
         defends = [];
     }

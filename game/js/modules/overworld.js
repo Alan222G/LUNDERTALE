@@ -186,8 +186,13 @@ var Overworld = (function() {
             action: function() {
                 Transition.start("overworld", function() {
                     currentSubWorld = 0;
-                    player.x = 200;
-                    player.y = 350;
+                    if (areAllBaseBossesDefeated()) {
+                        player.x = 370;
+                        player.y = 450;
+                    } else {
+                        player.x = 200;
+                        player.y = 350;
+                    }
                     resetNeedsExit();
                 });
             }
@@ -203,10 +208,55 @@ var Overworld = (function() {
             action: function() {
                 Transition.start("overworld", function() {
                     currentSubWorld = 0;
-                    player.x = 540;
-                    player.y = 350;
+                    if (areAllBaseBossesDefeated()) {
+                        player.x = 370;
+                        player.y = 450;
+                    } else {
+                        player.x = 540;
+                        player.y = 350;
+                    }
                     resetNeedsExit();
                 });
+            }
+        });
+
+        // --- SECRET FINAL BOSS (Subworld 0 - Ultimate Enemy) ---
+        triggerList.push({
+            x: 370, y: 240, w: 40, h: 40,
+            triggered: false,
+            bossId: "ultimate_enemy",
+            label: "Ultimate Enemy",
+            subWorld: 0,
+            color: "rgba(255, 0, 0, 0.8)",
+            isUltimateBoss: true,
+            action: function() {
+                var self = this;
+                activeBossTriggerIndex = triggerList.indexOf(self);
+                var manifestoText = 
+                    "* UN MENSAJE DESDE EL CORAZÓN DE LUNDERTALE...\n\n" +
+                    "* Este proyecto fue construido con un inmenso cariño, pasión y nostalgia en cada línea de código.\n\n" +
+                    "* Al llegar al final de este viaje, descubres una gran verdad:\n" +
+                    "* El mayor enemigo en LA VIDA no son las sombras externas... sino tú mismo.\n" +
+                    "* Tus pensamientos, tus dudas, tus altas expectativas y las formas en que te percibes a ti y a todo lo que te rodea.\n\n" +
+                    "* GRACIAS DE CORAZÓN A TODOS POR SU COMPAÑÍA EN ESTE VIAJE.\n\n" +
+                    "* Un agradecimiento muy especial y eterno a mi Profesor de Computación, PROFE ÁNGEL, por inspirar la pasión por la tecnología y la enseñanza.\n\n" +
+                    "* Y a mis grandes mejores amigos, YANKARLO MORÁN y MILTON MENDOZA, por su amistad incondicional, risas y apoyo constante.\n\n" +
+                    "* Recuerda siempre: seguir adelante, sin importar cuántas veces caigas o si pierdes, esa es la verdadera clave de la vida.\n\n" +
+                    "* ¡Llegó la hora de enfrentar a tu mayor rival... TU PROPIA DETERMINACIÓN!";
+                
+                signpostActive = true;
+                Writer.setupText(manifestoText);
+                
+                var checkFinishedInterval = setInterval(function() {
+                    if (!signpostActive) {
+                        clearInterval(checkFinishedInterval);
+                        Transition.start(function() {
+                            main.gameState = main.GAME_STATE.COMBAT;
+                            Combat.init(self.bossId);
+                            Combat.setup(main.ctx);
+                        });
+                    }
+                }, 100);
             }
         });
 
@@ -1337,6 +1387,91 @@ var Overworld = (function() {
                         ctx.stroke();
                         
                         ctx.restore();
+                if (t.isUltimateBoss) {
+                    if (!areAllBaseBossesDefeated()) continue; // Only visible when all 10 base bosses are defeated!
+                    
+                    ctx.save();
+                    var shadowPulse = Math.sin(time * 3) * 4;
+                    var ucx = t.x + t.w / 2;
+                    var ucy = t.y + t.h / 2;
+                    
+                    // Crimson dark radial aura
+                    var shadowGrad = ctx.createRadialGradient(ucx, ucy, 5, ucx, ucy, 45 + shadowPulse);
+                    shadowGrad.addColorStop(0, "rgba(255, 0, 0, 0.6)");
+                    shadowGrad.addColorStop(0.5, "rgba(100, 0, 50, 0.3)");
+                    shadowGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+                    ctx.fillStyle = shadowGrad;
+                    ctx.beginPath();
+                    ctx.arc(ucx, ucy, 45 + shadowPulse, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Shadow entity body silhouette
+                    ctx.fillStyle = "#0A0A0F";
+                    ctx.strokeStyle = "#FF0000";
+                    ctx.lineWidth = 2;
+                    ctx.shadowBlur = 12;
+                    ctx.shadowColor = "#FF0000";
+                    
+                    // Head
+                    ctx.beginPath();
+                    ctx.arc(ucx, ucy - 16, 12, 0, Math.PI * 2);
+                    ctx.fill(); ctx.stroke();
+                    
+                    // Torso / Cloak
+                    ctx.beginPath();
+                    ctx.moveTo(ucx - 16, ucy + 18);
+                    ctx.lineTo(ucx + 16, ucy + 18);
+                    ctx.lineTo(ucx, ucy - 6);
+                    ctx.closePath();
+                    ctx.fill(); ctx.stroke();
+                    
+                    // Glowing red eyes
+                    ctx.fillStyle = "#FF0000";
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = "#FF0000";
+                    ctx.beginPath(); ctx.arc(ucx - 4, ucy - 17, 2.5, 0, Math.PI * 2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(ucx + 4, ucy - 17, 2.5, 0, Math.PI * 2); ctx.fill();
+
+                    // Label
+                    ctx.font = "bold 9pt 'Determination Mono', monospace";
+                    ctx.textAlign = "center";
+                    ctx.fillStyle = "#FF3333";
+                    ctx.shadowBlur = 8;
+                    ctx.shadowColor = "#FF0000";
+                    ctx.fillText("ULTIMATE ENEMY", ucx, t.y - 12);
+                    
+                    ctx.restore();
+                    continue;
+                }
+
+                if (!t.triggered) {
+                    ctx.save();
+                    var gcx = t.x + t.w / 2;
+                    var gcy = t.y + t.h / 2;
+                    
+                    if (t.bossId && t.bossId.startsWith("portal_")) {
+                        // Enhanced Portal Glow FX
+                        var pPulse = Math.sin(time * 4) * 5;
+                        var pColor1 = t.bossId === "portal_originals" ? "#9D4EDD" : "#00F0FF";
+                        var pColor2 = t.bossId === "portal_originals" ? "#7B2CBF" : "#0077FF";
+                        
+                        var pGrad = ctx.createRadialGradient(gcx, gcy, 2, gcx, gcy, 28 + pPulse);
+                        pGrad.addColorStop(0, pColor1);
+                        pGrad.addColorStop(0.6, pColor2);
+                        pGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+                        ctx.fillStyle = pGrad;
+                        ctx.beginPath();
+                        ctx.arc(gcx, gcy, 28 + pPulse, 0, Math.PI * 2);
+                        ctx.fill();
+
+                        // Swirling energy ring
+                        ctx.strokeStyle = pColor1;
+                        ctx.lineWidth = 2;
+                        ctx.shadowBlur = 10;
+                        ctx.shadowColor = pColor1;
+                        ctx.beginPath();
+                        ctx.arc(gcx, gcy, 14 + Math.sin(time * 6) * 2, 0, Math.PI * 2);
+                        ctx.stroke();
                     } else if (img && img.complete) {
                         ctx.drawImage(img, t.x, t.y, t.w, t.h);
                     } else {
@@ -2728,6 +2863,20 @@ var Overworld = (function() {
         ctx.restore();
     }
 
+    function areAllBaseBossesDefeated() {
+        var baseBosses = ["singularity", "seraphina", "paradox", "glitch", "prism", "bill", "ramiel", "sachiel", "godzilla", "vader"];
+        var count = 0;
+        for (var i = 0; i < baseBosses.length; i++) {
+            for (var t = 0; t < triggerList.length; t++) {
+                if (triggerList[t].bossId === baseBosses[i] && triggerList[t].triggered) {
+                    count++;
+                    break;
+                }
+            }
+        }
+        return count >= 10;
+    }
+
     function markBossDefeated(status) {
         if (activeBossTriggerIndex >= 0 && activeBossTriggerIndex < triggerList.length) {
             triggerList[activeBossTriggerIndex].triggered = true;
@@ -2988,5 +3137,5 @@ var Overworld = (function() {
         }
     }
 
-    return { init: init, setup: setup, update: update, draw: draw, markBossDefeated: markBossDefeated, resetBossTrigger: resetBossTrigger, getTriggerList: function() { return triggerList; }, addKey: addKey, getKeysCount: getKeysCount, triggerEquipPrompt: triggerEquipPrompt };
+    return { init: init, setup: setup, update: update, draw: draw, markBossDefeated: markBossDefeated, resetBossTrigger: resetBossTrigger, getTriggerList: function() { return triggerList; }, addKey: addKey, getKeysCount: getKeysCount, triggerEquipPrompt: triggerEquipPrompt, areAllBaseBossesDefeated: areAllBaseBossesDefeated };
 }());

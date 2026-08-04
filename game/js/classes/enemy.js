@@ -253,9 +253,9 @@ Enemy.prototype.draw = function(ctx) {
         ctx.save(); ctx.translate(370, 160); ctx.scale(1.4, 1.4); ctx.translate(-370, -160);
         this.drawSachielBeast(ctx);
         ctx.restore();
-    } else if (this.renderType === "sachiel_angelic") {
+    } else if (this.renderType === "ultimate_shadow" || this.renderType === "ultimate_shadow_angry") {
         ctx.save(); ctx.translate(370, 160); ctx.scale(1.4, 1.4); ctx.translate(-370, -160);
-        this.drawSachielAngelic(ctx);
+        this.drawUltimateShadow(ctx);
         ctx.restore();
     } else if (this.active) {
         for (var i = 0; i < this.animations.length; i++) {
@@ -5628,6 +5628,119 @@ Enemy.prototype.drawBillCipher = function(ctx) {
     ctx.strokeRect(-18, 0, 36, 4);
     ctx.restore();
     
+    ctx.restore();
+};
+
+Enemy.prototype.drawUltimateShadow = function(ctx) {
+    ctx.save();
+    var cx = 370;
+    var cy = 160;
+    var time = Date.now() / 1000;
+    var isAngry = (this.renderType === "ultimate_shadow_angry");
+
+    // Breathing float animation
+    var floatY = Math.sin(time * 2.5) * 6;
+    ctx.translate(cx + this.jitterX, cy + floatY + this.jitterY);
+
+    // 1. Dark aura gradient pulse
+    ctx.save();
+    var auraR = isAngry ? 85 + Math.sin(time * 5) * 10 : 70 + Math.sin(time * 3) * 6;
+    var auraGrad = ctx.createRadialGradient(0, 0, 10, 0, 0, auraR);
+    var c1 = isAngry ? "rgba(255, 0, 60, 0.4)" : "rgba(100, 0, 200, 0.35)";
+    var c2 = isAngry ? "rgba(150, 0, 40, 0.15)" : "rgba(40, 0, 80, 0.15)";
+    auraGrad.addColorStop(0, c1);
+    auraGrad.addColorStop(0.6, c2);
+    auraGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+    ctx.fillStyle = auraGrad;
+    ctx.beginPath();
+    ctx.arc(0, 0, auraR, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // 2. Swirling shadow tendril particles
+    ctx.save();
+    ctx.fillStyle = isAngry ? "rgba(255, 0, 50, 0.7)" : "rgba(160, 30, 255, 0.6)";
+    for (var t = 0; t < 8; t++) {
+        var tAngle = time * 2 + (t * Math.PI / 4);
+        var tDist = 35 + Math.sin(tAngle * 2) * 15;
+        var tx = Math.cos(tAngle) * tDist;
+        var ty = Math.sin(tAngle) * tDist;
+        var tSize = 2 + Math.sin(time * 4 + t) * 1.5;
+        ctx.beginPath();
+        ctx.arc(tx, ty, Math.max(1, tSize), 0, Math.PI * 2);
+        ctx.fill();
+    }
+    ctx.restore();
+
+    // 3. Shadow Silhouette Body
+    ctx.save();
+    ctx.fillStyle = "#0A0A0F";
+    ctx.strokeStyle = isAngry ? "#FF0033" : "#7B2CBF";
+    ctx.lineWidth = isAngry ? 2.5 : 1.8;
+    if (isAngry) {
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = "#FF0000";
+    } else {
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = "#9D4EDD";
+    }
+
+    // Shadow Head
+    ctx.beginPath();
+    ctx.ellipse(0, -30, 22, 26, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Shadow Cloak / Torso
+    ctx.beginPath();
+    ctx.moveTo(0, -5);
+    ctx.quadraticCurveTo(-35, 20, -42, 60);
+    ctx.quadraticCurveTo(-20, 55, 0, 65);
+    ctx.quadraticCurveTo(20, 55, 42, 60);
+    ctx.quadraticCurveTo(35, 20, 0, -5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+
+    // 4. Piercing Red Glowing Eyes
+    ctx.save();
+    var eyeAlpha = 0.85 + Math.sin(time * 6) * 0.15;
+    ctx.fillStyle = "#FF0000";
+    ctx.shadowBlur = isAngry ? 16 : 10;
+    ctx.shadowColor = "#FF0000";
+
+    // Left Eye
+    ctx.beginPath();
+    ctx.arc(-8, -32, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Right Eye
+    ctx.beginPath();
+    ctx.arc(8, -32, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Eye Slit/Glare
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect(-9, -33, 2, 2);
+    ctx.fillRect(7, -33, 2, 2);
+    ctx.restore();
+
+    // 5. Void Heart Core in Chest
+    ctx.save();
+    var corePulse = 0.7 + Math.sin(time * 4) * 0.3;
+    ctx.fillStyle = isAngry ? "rgba(255, 0, 80, " + corePulse + ")" : "rgba(255, 215, 0, " + corePulse + ")";
+    ctx.shadowBlur = 12;
+    ctx.shadowColor = isAngry ? "#FF0055" : "#FFD700";
+    ctx.beginPath();
+    ctx.moveTo(0, 15);
+    ctx.bezierCurveTo(-6, 10, -12, 10, -12, 16);
+    ctx.bezierCurveTo(-12, 22, 0, 28, 0, 34);
+    ctx.bezierCurveTo(0, 28, 12, 22, 12, 16);
+    ctx.bezierCurveTo(12, 10, 6, 10, 0, 15);
+    ctx.fill();
+    ctx.restore();
+
     ctx.restore();
 };
 
