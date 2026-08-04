@@ -682,32 +682,57 @@ var Combat = (function() {
         ctx.font = "14pt 'Determination Mono', monospace";
 
         if (em.spareable) {
-            // Draw progress bar
-            var barWidth = 200;
-            var barHeight = 12;
+            var barWidth = 220;
+            var barHeight = 14;
             var x = 370 - barWidth / 2;
             var y = 315;
+            var progress = Math.max(0, Math.min(1.0, (em.totalMercyHP - em.mercyHP) / em.totalMercyHP));
             
-            // Background (dark grey)
-            ctx.fillStyle = "#333";
+            // Background with subtle gradient
+            var bgGrad = ctx.createLinearGradient(x, y, x, y + barHeight);
+            bgGrad.addColorStop(0, "#1a1a2e");
+            bgGrad.addColorStop(1, "#16213e");
+            ctx.fillStyle = bgGrad;
             ctx.fillRect(x, y, barWidth, barHeight);
             
-            // Border
+            // Progress fill with gold gradient
+            if (progress > 0) {
+                var fillGrad = ctx.createLinearGradient(x, y, x + barWidth * progress, y + barHeight);
+                fillGrad.addColorStop(0, "#FFD700");
+                fillGrad.addColorStop(0.5, "#FFA500");
+                fillGrad.addColorStop(1, "#FFD700");
+                ctx.fillStyle = fillGrad;
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = "rgba(255, 215, 0, 0.5)";
+                ctx.fillRect(x + 1, y + 1, (barWidth - 2) * progress, barHeight - 2);
+                ctx.shadowBlur = 0;
+                
+                // Animated shimmer highlight
+                var shimX = x + ((Date.now() / 8) % (barWidth * progress));
+                if (shimX < x + barWidth * progress) {
+                    ctx.save();
+                    ctx.globalAlpha = 0.3;
+                    ctx.fillStyle = "#FFF";
+                    ctx.fillRect(shimX, y + 1, 12, barHeight - 2);
+                    ctx.restore();
+                }
+            }
+            
+            // Border with glow
             ctx.strokeStyle = "#FFF";
             ctx.lineWidth = 1.5;
             ctx.strokeRect(x, y, barWidth, barHeight);
-            
-            // Progress percentage
-            var progress = Math.max(0, Math.min(1.0, (em.totalMercyHP - em.mercyHP) / em.totalMercyHP));
-            ctx.fillStyle = "#FFD700"; // Gold / Yellow
-            ctx.fillRect(x + 1, y + 1, (barWidth - 2) * progress, barHeight - 2);
 
-            // Text label
+            // Percentage text
+            var pct = Math.floor(progress * 100);
             ctx.fillStyle = "#FFD700";
-            ctx.fillText("SPARE", 370, y - 8);
+            ctx.shadowBlur = 6;
+            ctx.shadowColor = "rgba(255, 215, 0, 0.6)";
+            ctx.fillText("SPARE " + pct + "%", 370, y - 8);
         } else {
-            // Not spareable (Godzilla, Ramiel, Sachiel, Darth Vader)
-            ctx.fillStyle = "#888";
+            ctx.fillStyle = "#666";
+            ctx.shadowBlur = 4;
+            ctx.shadowColor = "rgba(255, 0, 0, 0.3)";
             ctx.fillText("SPARE: IMPOSIBLE", 370, 310);
         }
         ctx.restore();

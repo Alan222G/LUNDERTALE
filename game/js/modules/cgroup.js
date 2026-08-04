@@ -959,7 +959,7 @@ var Cgroup = (function() {
                     },
                     {
                         patterns: ["billAngryRedNova", "billFistSlam", "billTeethChirp", "billCataclysmRays", "billGravityChaos", "billNightmareVortex", "billArmageddon"],
-                        soulMode: "blue",
+                        soulMode: "red",
                         renderType: "bill_angry",
                         speech: ["¡ESTOY\nHARTODE TI!", "¡TE CONVERTIRÉ\nEN CENIZAS!", "¡EL JUEGO\nSE ACABÓ!"]
                     }

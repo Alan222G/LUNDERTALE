@@ -788,47 +788,61 @@ var Overworld = (function() {
         ctx.save();
         ctx.translate(cx, cy);
         
-        // 1. Draw a dark cosmic background backing for the portal (so it has presence)
+        // 0. Outer pulsing energy ring
+        var ringPulse = 0.6 + Math.sin(pTime * 3) * 0.4;
+        ctx.save();
+        ctx.globalAlpha = ringPulse * 0.4;
+        ctx.strokeStyle = color1;
+        ctx.lineWidth = 1.5;
+        ctx.shadowBlur = 18;
+        ctx.shadowColor = color1;
+        ctx.beginPath();
+        ctx.arc(0, 0, 42 + Math.sin(pTime * 5) * 3, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+
+        // 1. Draw a dark cosmic background backing for the portal
         var portalRadius = 28 + Math.sin(pTime * 4) * 3;
-        var gradOuter = ctx.createRadialGradient(0, 0, 2, 0, 0, portalRadius);
+        var gradOuter = ctx.createRadialGradient(0, 0, 2, 0, 0, portalRadius + 14);
         gradOuter.addColorStop(0, "#000000");
-        gradOuter.addColorStop(0.3, color2);
-        gradOuter.addColorStop(0.7, color1);
+        gradOuter.addColorStop(0.2, color2);
+        gradOuter.addColorStop(0.5, color1);
+        gradOuter.addColorStop(0.8, color2);
         gradOuter.addColorStop(1, "rgba(0,0,0,0)");
         ctx.fillStyle = gradOuter;
         ctx.beginPath();
-        ctx.arc(0, 0, portalRadius + 12, 0, Math.PI * 2);
+        ctx.arc(0, 0, portalRadius + 14, 0, Math.PI * 2);
         ctx.fill();
 
         // 2. Space distortion grid lines behind portal
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
-        ctx.lineWidth = 0.8;
-        for (var g = 0; g < 4; g++) {
-            var gRad = ((pTime * 20 + g * 20) % 80);
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+        ctx.lineWidth = 0.6;
+        for (var g = 0; g < 5; g++) {
+            var gRad = ((pTime * 18 + g * 18) % 85);
+            ctx.globalAlpha = 1.0 - (gRad / 85);
             ctx.beginPath();
             ctx.arc(0, 0, gRad, 0, Math.PI * 2);
             ctx.stroke();
         }
+        ctx.globalAlpha = 1.0;
  
         // 3. Draw multiple layered swirling ellipses for a 3D gravitational disk effect
         ctx.shadowBlur = 25;
         ctx.shadowColor = color1;
         
-        var numLayers = 5;
+        var numLayers = 6;
         for (var l = 0; l < numLayers; l++) {
             ctx.save();
-            var angleScale = 1.0 + l * 0.12;
-            var rotSpeed = pTime * (2.0 + l * 0.4);
-            var w = 26 - l * 4.5;
-            var h = 11 - l * 1.8;
+            var rotSpeed = pTime * (2.0 + l * 0.35);
+            var w = 28 - l * 4;
+            var h = 12 - l * 1.6;
             
-            // Add slight pulsing to scale
             var pulse = 1.0 + Math.sin(pTime * 4 + l) * 0.08;
             ctx.scale(pulse, pulse);
             
-            ctx.strokeStyle = color1;
-            ctx.lineWidth = 3.0 - l * 0.5;
-            ctx.globalAlpha = 0.4 + (l / numLayers) * 0.6;
+            ctx.strokeStyle = l < 3 ? color1 : color2;
+            ctx.lineWidth = 3.0 - l * 0.4;
+            ctx.globalAlpha = 0.35 + (l / numLayers) * 0.65;
             
             ctx.beginPath();
             ctx.ellipse(0, 0, w, h, rotSpeed, 0, Math.PI * 2);
@@ -836,24 +850,55 @@ var Overworld = (function() {
             ctx.restore();
         }
 
+        // 3.5 Lightning arc sparks
+        ctx.save();
+        ctx.strokeStyle = color2;
+        ctx.lineWidth = 1;
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = color2;
+        ctx.globalAlpha = 0.5 + Math.sin(pTime * 7) * 0.3;
+        for (var lk = 0; lk < 3; lk++) {
+            var lAngle = pTime * 3 + lk * Math.PI * 2 / 3;
+            var lx1 = Math.cos(lAngle) * 16;
+            var ly1 = Math.sin(lAngle) * 7;
+            var lx2 = Math.cos(lAngle + 0.3) * 30;
+            var ly2 = Math.sin(lAngle + 0.3) * 13;
+            var lmx = (lx1 + lx2) / 2 + (Math.random() - 0.5) * 8;
+            var lmy = (ly1 + ly2) / 2 + (Math.random() - 0.5) * 5;
+            ctx.beginPath();
+            ctx.moveTo(lx1, ly1);
+            ctx.lineTo(lmx, lmy);
+            ctx.lineTo(lx2, ly2);
+            ctx.stroke();
+        }
+        ctx.restore();
+
         // 4. Draw a bright, glowing center core (white-hot singularity)
-        ctx.shadowBlur = 15;
+        ctx.shadowBlur = 18;
         ctx.shadowColor = "#FFF";
         ctx.fillStyle = "#FFF";
         ctx.beginPath();
         ctx.ellipse(0, 0, 7, 3.5, pTime * 2.5, 0, Math.PI * 2);
         ctx.fill();
+        // Secondary core ring
+        ctx.strokeStyle = color1;
+        ctx.lineWidth = 1;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = color1;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 10, 5, pTime * -1.8, 0, Math.PI * 2);
+        ctx.stroke();
 
         // 5. Orbiting dust/sparks getting sucked into the portal
         ctx.shadowBlur = 8;
         ctx.shadowColor = color2;
-        var numSparks = 12;
+        var numSparks = 14;
         for (var i = 0; i < numSparks; i++) {
             var baseAngle = i * (Math.PI * 2 / numSparks);
-            var spiralTime = (pTime * 0.4 + i * 0.08) % 1.0; // moves from 0 (outer) to 1 (inner)
-            var currentRadiusW = 36 * (1.0 - spiralTime) + 4;
-            var currentRadiusH = 18 * (1.0 - spiralTime) + 2;
-            var angle = baseAngle + spiralTime * Math.PI * 3.5; // spirals around
+            var spiralTime = (pTime * 0.4 + i * 0.08) % 1.0;
+            var currentRadiusW = 38 * (1.0 - spiralTime) + 4;
+            var currentRadiusH = 19 * (1.0 - spiralTime) + 2;
+            var angle = baseAngle + spiralTime * Math.PI * 3.5;
             
             var px = Math.cos(angle) * currentRadiusW;
             var py = Math.sin(angle) * currentRadiusH;
@@ -864,6 +909,14 @@ var Overworld = (function() {
             ctx.arc(px, py, 1.2 + (1.0 - spiralTime) * 1.8, 0, Math.PI * 2);
             ctx.fill();
         }
+
+        // 6. Glowing label
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = color1;
+        ctx.font = "bold 8pt 'Determination Mono', monospace";
+        ctx.textAlign = "center";
+        ctx.fillStyle = color2;
+        ctx.fillText(label, 0, -40);
         
         ctx.restore();
         ctx.shadowBlur = 0;
@@ -3031,46 +3084,74 @@ var Overworld = (function() {
 
         // If sprite is loaded and ready, use it
         if (sprite && sprite.complete && sprite.naturalWidth > 0) {
-            var sprW = 90;  // Display width (increased from 56)
-            var sprH = 90;  // Display height (increased from 56)
+            // === FIT within bounding box preserving aspect ratio ===
+            var maxW = 80;
+            var maxH = 65;
+            var natW = sprite.naturalWidth;
+            var natH = sprite.naturalHeight;
+            var scale = Math.min(maxW / natW, maxH / natH);
+            var sprW = natW * scale;
+            var sprH = natH * scale;
+
+            // Decorative frame background
+            ctx.save();
+            ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = "rgba(0, 0, 0, 0.6)";
+            var frameP = 6;
+            var roundR = 5;
+            ctx.beginPath();
+            ctx.moveTo(-sprW / 2 - frameP + roundR, -sprH / 2 - frameP);
+            ctx.lineTo(sprW / 2 + frameP - roundR, -sprH / 2 - frameP);
+            ctx.arc(sprW / 2 + frameP - roundR, -sprH / 2 - frameP + roundR, roundR, -Math.PI / 2, 0);
+            ctx.lineTo(sprW / 2 + frameP, sprH / 2 + frameP - roundR);
+            ctx.arc(sprW / 2 + frameP - roundR, sprH / 2 + frameP - roundR, roundR, 0, Math.PI / 2);
+            ctx.lineTo(-sprW / 2 - frameP + roundR, sprH / 2 + frameP);
+            ctx.arc(-sprW / 2 - frameP + roundR, sprH / 2 + frameP - roundR, roundR, Math.PI / 2, Math.PI);
+            ctx.lineTo(-sprW / 2 - frameP, -sprH / 2 - frameP + roundR);
+            ctx.arc(-sprW / 2 - frameP + roundR, -sprH / 2 - frameP + roundR, roundR, Math.PI, -Math.PI / 2);
+            ctx.closePath();
+            ctx.fill();
+            // Frame border
+            ctx.strokeStyle = isSelected ? accentColor : "rgba(255, 255, 255, 0.2)";
+            ctx.lineWidth = isSelected ? 2 : 1;
+            ctx.stroke();
+            ctx.restore();
 
             // Selection glow
             if (isSelected && !opened) {
                 ctx.save();
                 ctx.shadowBlur = 24;
                 ctx.shadowColor = accentColor;
-                // Pulsing glow
                 var glowPulse = 0.6 + Math.sin(time * 4) * 0.4;
                 ctx.globalAlpha = glowPulse;
                 ctx.shadowBlur = 22 + Math.sin(time * 6) * 6;
                 ctx.strokeStyle = accentColor;
-                ctx.lineWidth = 3.5;
-                ctx.strokeRect(-sprW / 2 - 5, -sprH / 2 - 5, sprW + 10, sprH + 10);
+                ctx.lineWidth = 3;
+                ctx.strokeRect(-sprW / 2 - frameP, -sprH / 2 - frameP, sprW + frameP * 2, sprH + frameP * 2);
                 ctx.restore();
             }
 
             // Draw the chest sprite
             ctx.save();
             if (opened) {
-                // Opened: tilt lid back and add inner glow
                 ctx.save();
                 ctx.globalAlpha = 0.85;
-                ctx.translate(0, -6);
-                ctx.rotate(-0.15);
+                ctx.translate(0, -4);
+                ctx.rotate(-0.1);
                 ctx.drawImage(sprite, -sprW / 2, -sprH / 2, sprW, sprH);
                 ctx.restore();
 
                 // Inner glow emanating from chest
-                var innerGlow = ctx.createRadialGradient(0, 12, 3, 0, 12, 45);
+                var innerGlow = ctx.createRadialGradient(0, 10, 3, 0, 10, 40);
                 innerGlow.addColorStop(0, accentColor);
                 innerGlow.addColorStop(0.5, accentColor.substring(0, 7) + "44");
                 innerGlow.addColorStop(1, "rgba(0, 0, 0, 0)");
                 ctx.fillStyle = innerGlow;
                 ctx.beginPath();
-                ctx.arc(0, 12, 45, 0, Math.PI * 2);
+                ctx.arc(0, 10, 40, 0, Math.PI * 2);
                 ctx.fill();
             } else {
-                // Closed: draw normally with subtle bob if selected
                 var bob = isSelected ? Math.sin(time * 5) * 3 : 0;
                 ctx.translate(0, bob);
                 ctx.drawImage(sprite, -sprW / 2, -sprH / 2, sprW, sprH);
@@ -3085,7 +3166,7 @@ var Overworld = (function() {
                 ctx.fillStyle = accentColor;
                 ctx.shadowBlur = 6;
                 ctx.shadowColor = accentColor;
-                ctx.fillText("???", 0, sprH / 2 + 15);
+                ctx.fillText("???", 0, sprH / 2 + 18);
                 ctx.restore();
             }
         } else {
