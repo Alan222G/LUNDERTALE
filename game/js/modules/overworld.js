@@ -50,6 +50,7 @@ var Overworld = (function() {
     // Replenish Items State Variables
     var showEquipPrompt = false;
     var equipPromptSelection = 0; // 0 = SÍ, 1 = NO
+    var manifestoPhase = 0; // 0 = inactive, 1 = manifesto text, 2 = run stats text
 
     var bgImage = new Image();
     bgImage.src = "Resources/Fondo del overworld Best.png";
@@ -220,7 +221,7 @@ var Overworld = (function() {
             }
         });
 
-        // --- SECRET FINAL BOSS (Subworld 0 - Ultimate Enemy) ---
+        // --- SECRET FINAL LETTER (Subworld 0 - Ultimate Enemy) ---
         triggerList.push({
             x: 370, y: 240, w: 40, h: 40,
             triggered: false,
@@ -230,8 +231,12 @@ var Overworld = (function() {
             color: "rgba(255, 0, 0, 0.8)",
             isUltimateBoss: true,
             action: function() {
-                var self = this;
-                activeBossTriggerIndex = triggerList.indexOf(self);
+                if (!areAllBaseBossesDefeated()) return;
+                
+                manifestoPhase = 1;
+                signpostActive = true;
+                Sound.playSound("select", true);
+                
                 var manifestoText = 
                     "* UN MENSAJE DESDE EL CORAZÓN DE LUNDERTALE...\n\n" +
                     "* Este proyecto fue construido con un inmenso cariño, pasión y nostalgia en cada línea de código.\n\n" +
@@ -241,22 +246,9 @@ var Overworld = (function() {
                     "* GRACIAS DE CORAZÓN A TODOS POR SU COMPAÑÍA EN ESTE VIAJE.\n\n" +
                     "* Un agradecimiento muy especial y eterno a mi Profesor de Computación, PROFE ÁNGEL, por inspirar la pasión por la tecnología y la enseñanza.\n\n" +
                     "* Y a mis grandes mejores amigos, YANKARLO MORÁN y MILTON MENDOZA, por su amistad incondicional, risas y apoyo constante.\n\n" +
-                    "* Recuerda siempre: seguir adelante, sin importar cuántas veces caigas o si pierdes, esa es la verdadera clave de la vida.\n\n" +
-                    "* ¡Llegó la hora de enfrentar a tu mayor rival... TU PROPIA DETERMINACIÓN!";
+                    "* Recuerda siempre: seguir adelante, sin importar cuántas veces caigas o si pierdes, esa es la verdadera clave de la vida.";
                 
-                signpostActive = true;
                 Writer.setupText(manifestoText);
-                
-                var checkFinishedInterval = setInterval(function() {
-                    if (!signpostActive) {
-                        clearInterval(checkFinishedInterval);
-                        Transition.start(function() {
-                            main.gameState = main.GAME_STATE.COMBAT;
-                            Combat.init(self.bossId);
-                            Combat.setup(main.ctx);
-                        });
-                    }
-                }, 100);
             }
         });
 
@@ -517,16 +509,6 @@ var Overworld = (function() {
             if (!triggerList[i].triggered) {
                 allDefeated = false;
                 break;
-            }
-        }
-        if (allDefeated && triggerList.length > 0) {
-            main.gameState = main.GAME_STATE.SUPER_WIN;
-            Sound.pauseSoundHard("bgm_overworld");
-            Sound.playSound("heal", true);
-            active = false;
-            return;
-        }
-
         active = true;
         Sound.pauseSoundHard("bgm");
         Sound.pauseSoundHard("bgm_seraphina");
@@ -535,7 +517,14 @@ var Overworld = (function() {
         Sound.pauseSoundHard("bgm_paradox");
         Sound.pauseSoundHard("bgm_godzilla");
         Sound.pauseSoundHard("bgm_prism");
-        Sound.playSound("bgm_overworld", true);
+
+        if (areAllBaseBossesDefeated()) {
+            Sound.pauseSoundHard("bgm_overworld");
+            Sound.playSound("bgm_vague", true);
+        } else {
+            Sound.pauseSoundHard("bgm_vague");
+            Sound.playSound("bgm_overworld", true);
+        }
     }
 
     function update(dt) {
@@ -577,13 +566,38 @@ var Overworld = (function() {
                 myKeys.keydown[myKeys.KEYBOARD.KEY_Z] = false;
                 myKeys.keydown[myKeys.KEYBOARD.KEY_ENTER] = false;
                 if (Writer.isFinished()) {
-                    signpostActive = false;
-                    Sound.playSound("button", true);
+                    if (manifestoPhase === 1) {
+                        manifestoPhase = 2;
+                        Sound.playSound("heal", true);
+                        var currentClassId = (typeof Player !== "undefined" && Player.getSoulClass) ? Player.getSoulClass() : 0;
+                        var soulName = "Alma de Determinación";
+                        for (var sci = 0; sci < allCatalogOptions.length; sci++) {
+                            if (allCatalogOptions[sci].id === currentClassId) {
+                                soulName = allCatalogOptions[sci].name;
+                                break;
+                            }
+                        }
+                        var statsText = 
+                            "* --- ESTADÍSTICAS FINALIZADAS DE LA RUN ---\n\n" +
+                            "* JEFES DERROTADOS: 10 / 10 (COMPLETADO AL 100%)\n" +
+                            "* RUTA ALCANZADA: VERDADERA PACIFISTA / DETERMINACIÓN SUPREMA\n" +
+                            "* ALMA EQUIPADA: " + soulName + "\n" +
+                            "* ESTADO DEL VACÍO: TODOS LOS SUBMUNDOS PACIFICADOS CON ÉXITO\n\n" +
+                            "* TÍTULO OBTENIDO:\n" +
+                            "  ★ LEYENDA DEL VACÍO DE LUNDERTALE ★\n\n" +
+                            "* ¡GRACIAS POR JUGAR Y COMPLETAR LUNDERTALE!";
+                        Writer.setupText(statsText);
+                    } else {
+                        manifestoPhase = 0;
+                        signpostActive = false;
+                        Sound.playSound("button", true);
+                    }
                 } else {
                     Writer.skip();
                 }
             } else if (myKeys.isCancel()) {
                 myKeys.keydown[myKeys.KEYBOARD.KEY_X] = false;
+                manifestoPhase = 0;
                 signpostActive = false;
                 Sound.playSound("button", true);
             }
