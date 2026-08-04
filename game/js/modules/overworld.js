@@ -520,6 +520,8 @@ var Overworld = (function() {
         Sound.pauseSoundHard("bgm_paradox");
         Sound.pauseSoundHard("bgm_godzilla");
         Sound.pauseSoundHard("bgm_prism");
+        Sound.pauseSoundHard("bgm_bill");
+        Sound.pauseSoundHard("bgm_glitch");
 
         if (areAllBaseBossesDefeated()) {
             Sound.pauseSoundHard("bgm_overworld");

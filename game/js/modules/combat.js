@@ -39,8 +39,15 @@ var Combat = (function() {
         Sound.pauseSoundHard("bgm_paradox");
         Sound.pauseSoundHard("bgm_godzilla");
         Sound.pauseSoundHard("bgm_prism");
+        Sound.pauseSoundHard("bgm_vague");
+        Sound.pauseSoundHard("bgm_bill");
+        Sound.pauseSoundHard("bgm_glitch");
 
-        if (bossId === "ramiel" || bossId === "sachiel") {
+        if (bossId === "bill") {
+            Sound.playSound("bgm_bill", true);
+        } else if (bossId === "glitch") {
+            Sound.playSound("bgm_glitch", true);
+        } else if (bossId === "ramiel" || bossId === "sachiel") {
             Sound.playSound("bgm_evangelion", true);
         } else if (bossId === "paradox") {
             Sound.playSound("bgm_paradox", true);
