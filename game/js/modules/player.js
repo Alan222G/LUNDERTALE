@@ -100,7 +100,7 @@ var Player = (function() {
         // Passives based on soulClass
         if (soulClass === 7) { selfPoison = 1.0; } // Caffeine Heart
         if (soulClass === 8) { magnetActive = true; } // Magnetic Heart
-        if (soulClass === 18) { artistCritRate = 0.30; artistShieldTurnCounter = 0; } // Ultimate Artist
+        if (soulClass === 18) { artistCritRate = 0.225; artistShieldTurnCounter = 0; } // Ultimate Artist (nerfed 25%)
         if (soulClass === 19) { kindestMercyMult = 2.5; kindestAbsorbRate = 0.15; } // Ultimate Kindest
     }
 
@@ -125,7 +125,7 @@ var Player = (function() {
             case 15: hpMax = 70;  baseSpd = 1.0; baseAtk = 1.0; baseDef = 1.0; break; // Subaru (Retorno por Muerte)
             case 16: hpMax = 150; baseSpd = 1.0; baseAtk = 1.6; baseDef = 1.4; break; // All Might (One For All)
             case 17: hpMax = 100; baseSpd = 1.1; baseAtk = 1.3; baseDef = 0.9; break; // Itadori (Jujutsu)
-            case 18: hpMax = 110; baseSpd = 1.15; baseAtk = 1.35; baseDef = 1.0; break; // Ultimate Artist (Nanami 7:3)
+            case 18: hpMax = 100; baseSpd = 1.11; baseAtk = 1.26; baseDef = 1.0; break; // Ultimate Artist (Nanami 7:3 - nerfed 25%)
             case 19: hpMax = 120; baseSpd = 0.95; baseAtk = 0.8; baseDef = 1.6; break; // Ultimate Kindest (Mercy Tank)
         }
         hpCur = hpMax;

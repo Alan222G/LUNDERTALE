@@ -853,7 +853,7 @@ var Cgroup = (function() {
     function dealDamage(idx, damage) {
         if (typeof Player !== "undefined") {
             if (Player.rollArtistCrit && Player.rollArtistCrit()) {
-                damage = Math.floor(damage * 2.5);
+                damage = Math.floor(damage * 1.875);
                 if (typeof Soul !== "undefined" && Soul.addFloatingText) {
                     var sPos = Soul.getPos();
                     Soul.addFloatingText("¡7:3 CRÍTICO!", sPos.x + Soul.getWidth() / 2, sPos.y - 20, "#FFD700");

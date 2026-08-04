@@ -705,8 +705,8 @@ Enemy.prototype.dealDamage = function(damage) {
     
     // Lifesteal Passives
     if (typeof Player !== "undefined") {
-        if (sClass === 10) { // Vampire: 10% lifesteal
-            Player.heal(Math.ceil(finalDmg * 0.10));
+        if (sClass === 10) { // Vampire: 5% lifesteal (nerfed 50%)
+            Player.heal(Math.ceil(finalDmg * 0.05));
         }
     }
     
