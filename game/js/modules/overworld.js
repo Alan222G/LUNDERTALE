@@ -509,6 +509,9 @@ var Overworld = (function() {
             if (!triggerList[i].triggered) {
                 allDefeated = false;
                 break;
+            }
+        }
+
         active = true;
         Sound.pauseSoundHard("bgm");
         Sound.pauseSoundHard("bgm_seraphina");
@@ -1401,6 +1404,48 @@ var Overworld = (function() {
                         ctx.stroke();
                         
                         ctx.restore();
+                    } else if (t.isUltimateBoss) {
+                        if (areAllBaseBossesDefeated()) {
+                            ctx.save();
+                            var ucx = t.x + t.w / 2;
+                            var ucy = t.y + t.h / 2;
+                            
+                            // Golden / Crimson Mail Envelope icon with red glow
+                            ctx.shadowBlur = 15;
+                            ctx.shadowColor = "#FFD700";
+                            
+                            // Envelope body
+                            ctx.fillStyle = "#FFD700";
+                            ctx.fillRect(ucx - 14, ucy - 9, 28, 18);
+                            ctx.strokeStyle = "#8B4513";
+                            ctx.lineWidth = 1.5;
+                            ctx.strokeRect(ucx - 14, ucy - 9, 28, 18);
+
+                            // Flap lines
+                            ctx.beginPath();
+                            ctx.moveTo(ucx - 14, ucy - 9);
+                            ctx.lineTo(ucx, ucy);
+                            ctx.lineTo(ucx + 14, ucy - 9);
+                            ctx.stroke();
+
+                            // Glowing heart seal
+                            ctx.fillStyle = "#FF0000";
+                            ctx.shadowBlur = 10;
+                            ctx.shadowColor = "#FF0000";
+                            ctx.beginPath();
+                            ctx.arc(ucx, ucy + 2, 3.5, 0, Math.PI * 2);
+                            ctx.fill();
+
+                            // Label
+                            ctx.font = "bold 9pt 'Determination Mono', monospace";
+                            ctx.textAlign = "center";
+                            ctx.fillStyle = "#FFD700";
+                            ctx.shadowBlur = 8;
+                            ctx.shadowColor = "#FFD700";
+                            ctx.fillText("CARTA FINAL (ULTIMATE ENEMY)", ucx, t.y - 12);
+                            
+                            ctx.restore();
+                        }
                     } else if (img && img.complete) {
                         ctx.drawImage(img, t.x, t.y, t.w, t.h);
                     } else {
@@ -1419,105 +1464,16 @@ var Overworld = (function() {
                         ctx.fill();
                     }
                     
-                    ctx.font = "8pt Determination Mono";
-                    ctx.textAlign = "center";
-                    ctx.fillStyle = "#FFF";
-                    ctx.fillText(t.label, gcx, t.y - 5);
+                    if (!t.isUltimateBoss) {
+                        ctx.font = "8pt Determination Mono";
+                        ctx.textAlign = "center";
+                        ctx.fillStyle = "#FFF";
+                        ctx.fillText(t.label, gcx, t.y - 5);
+                    }
                     
                     ctx.restore();
                 }
-            } else if (t.isUltimateBoss) {
-                if (areAllBaseBossesDefeated()) {
-                    ctx.save();
-                    var shadowPulse = Math.sin(time * 3) * 4;
-                    var ucx = t.x + t.w / 2;
-                    var ucy = t.y + t.h / 2;
-                    
-                    // Crimson dark radial aura
-                    var shadowGrad = ctx.createRadialGradient(ucx, ucy, 5, ucx, ucy, 45 + shadowPulse);
-                    shadowGrad.addColorStop(0, "rgba(255, 0, 0, 0.6)");
-                    shadowGrad.addColorStop(0.5, "rgba(100, 0, 50, 0.3)");
-                    shadowGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
-                    ctx.fillStyle = shadowGrad;
-                    ctx.beginPath();
-                    ctx.arc(ucx, ucy, 45 + shadowPulse, 0, Math.PI * 2);
-                    ctx.fill();
-
-                    // Shadow entity body silhouette
-                    ctx.fillStyle = "#0A0A0F";
-                    ctx.strokeStyle = "#FF0000";
-                    ctx.lineWidth = 2;
-                    ctx.shadowBlur = 12;
-                    ctx.shadowColor = "#FF0000";
-                    
-                    // Head
-                    ctx.beginPath();
-                    ctx.arc(ucx, ucy - 16, 12, 0, Math.PI * 2);
-                    ctx.fill(); ctx.stroke();
-                    
-                    // Torso / Cloak
-                    ctx.beginPath();
-                    ctx.moveTo(ucx - 16, ucy + 18);
-                    ctx.lineTo(ucx + 16, ucy + 18);
-                    ctx.lineTo(ucx, ucy - 6);
-                    ctx.closePath();
-                    ctx.fill(); ctx.stroke();
-                    
-                    // Glowing red eyes
-                    ctx.fillStyle = "#FF0000";
-                    ctx.shadowBlur = 15;
-                    ctx.shadowColor = "#FF0000";
-                    ctx.beginPath(); ctx.arc(ucx - 4, ucy - 17, 2.5, 0, Math.PI * 2); ctx.fill();
-                    ctx.beginPath(); ctx.arc(ucx + 4, ucy - 17, 2.5, 0, Math.PI * 2); ctx.fill();
-
-                    // Label
-                    ctx.font = "bold 9pt 'Determination Mono', monospace";
-                    ctx.textAlign = "center";
-                    ctx.fillStyle = "#FF3333";
-                    ctx.shadowBlur = 8;
-                    ctx.shadowColor = "#FF0000";
-                    ctx.fillText("ULTIMATE ENEMY", ucx, t.y - 12);
-                    
-                    ctx.restore();
-                }
-            } else if (!t.triggered) {
-                ctx.save();
-                var gcx2 = t.x + t.w / 2;
-                var gcy2 = t.y + t.h / 2;
-                
-                if (t.bossId && t.bossId.startsWith("portal_")) {
-                    // Enhanced Portal Glow FX
-                    var pPulse = Math.sin(time * 4) * 5;
-                    var pColor1 = t.bossId === "portal_originals" ? "#9D4EDD" : "#00F0FF";
-                    var pColor2 = t.bossId === "portal_originals" ? "#7B2CBF" : "#0077FF";
-                    
-                    var pGrad = ctx.createRadialGradient(gcx2, gcy2, 2, gcx2, gcy2, 28 + pPulse);
-                    pGrad.addColorStop(0, pColor1);
-                    pGrad.addColorStop(0.6, pColor2);
-                    pGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
-                    ctx.fillStyle = pGrad;
-                    ctx.beginPath();
-                    ctx.arc(gcx2, gcy2, 28 + pPulse, 0, Math.PI * 2);
-                    ctx.fill();
-
-                    // Swirling energy ring
-                    ctx.strokeStyle = pColor1;
-                    ctx.lineWidth = 2;
-                    ctx.shadowBlur = 10;
-                    ctx.shadowColor = pColor1;
-                    ctx.beginPath();
-                    ctx.arc(gcx2, gcy2, 14 + Math.sin(time * 6) * 2, 0, Math.PI * 2);
-                    ctx.stroke();
-                }
-                
-                ctx.font = "8pt Determination Mono";
-                ctx.textAlign = "center";
-                ctx.fillStyle = "#FFF";
-                ctx.fillText(t.label, gcx2, t.y - 5);
-                
-                ctx.restore();
             }
-            
             if (main.debug) {
                 ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
                 ctx.fillRect(t.x, t.y, t.w, t.h);
