@@ -979,6 +979,9 @@ var Cgroup = (function() {
         ];
         enemies[0].bubblePos = enemies[0].damagePos.getAdd(new Vect(60, -160, 0));
         mercies = ["Spare", "Flee"];
+        defends = [];
+    }
+
     function setupUltimateEnemy() {
         enemies = [
             new Enemy({

@@ -1387,9 +1387,33 @@ var Overworld = (function() {
                         ctx.stroke();
                         
                         ctx.restore();
-                if (t.isUltimateBoss) {
-                    if (!areAllBaseBossesDefeated()) continue; // Only visible when all 10 base bosses are defeated!
+                    } else if (img && img.complete) {
+                        ctx.drawImage(img, t.x, t.y, t.w, t.h);
+                    } else {
+                        var pulse = Math.sin(time * 3 + i * 2) * 0.15 + 0.85;
+                        ctx.globalAlpha = pulse;
+                        var glowGrad = ctx.createRadialGradient(gcx, gcy, 5, gcx, gcy, 35);
+                        glowGrad.addColorStop(0, t.color);
+                        glowGrad.addColorStop(1, "rgba(0,0,0,0)");
+                        ctx.fillStyle = glowGrad;
+                        ctx.beginPath();
+                        ctx.arc(gcx, gcy, 35, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.fillStyle = t.bossId === "seraphina" ? "#FFD700" : "#8800FF";
+                        ctx.beginPath();
+                        ctx.arc(gcx, gcy, 8, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
                     
+                    ctx.font = "8pt Determination Mono";
+                    ctx.textAlign = "center";
+                    ctx.fillStyle = "#FFF";
+                    ctx.fillText(t.label, gcx, t.y - 5);
+                    
+                    ctx.restore();
+                }
+            } else if (t.isUltimateBoss) {
+                if (areAllBaseBossesDefeated()) {
                     ctx.save();
                     var shadowPulse = Math.sin(time * 3) * 4;
                     var ucx = t.x + t.w / 2;
@@ -1441,62 +1465,43 @@ var Overworld = (function() {
                     ctx.fillText("ULTIMATE ENEMY", ucx, t.y - 12);
                     
                     ctx.restore();
-                    continue;
                 }
+            } else if (!t.triggered) {
+                ctx.save();
+                var gcx2 = t.x + t.w / 2;
+                var gcy2 = t.y + t.h / 2;
+                
+                if (t.bossId && t.bossId.startsWith("portal_")) {
+                    // Enhanced Portal Glow FX
+                    var pPulse = Math.sin(time * 4) * 5;
+                    var pColor1 = t.bossId === "portal_originals" ? "#9D4EDD" : "#00F0FF";
+                    var pColor2 = t.bossId === "portal_originals" ? "#7B2CBF" : "#0077FF";
+                    
+                    var pGrad = ctx.createRadialGradient(gcx2, gcy2, 2, gcx2, gcy2, 28 + pPulse);
+                    pGrad.addColorStop(0, pColor1);
+                    pGrad.addColorStop(0.6, pColor2);
+                    pGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+                    ctx.fillStyle = pGrad;
+                    ctx.beginPath();
+                    ctx.arc(gcx2, gcy2, 28 + pPulse, 0, Math.PI * 2);
+                    ctx.fill();
 
-                if (!t.triggered) {
-                    ctx.save();
-                    var gcx = t.x + t.w / 2;
-                    var gcy = t.y + t.h / 2;
-                    
-                    if (t.bossId && t.bossId.startsWith("portal_")) {
-                        // Enhanced Portal Glow FX
-                        var pPulse = Math.sin(time * 4) * 5;
-                        var pColor1 = t.bossId === "portal_originals" ? "#9D4EDD" : "#00F0FF";
-                        var pColor2 = t.bossId === "portal_originals" ? "#7B2CBF" : "#0077FF";
-                        
-                        var pGrad = ctx.createRadialGradient(gcx, gcy, 2, gcx, gcy, 28 + pPulse);
-                        pGrad.addColorStop(0, pColor1);
-                        pGrad.addColorStop(0.6, pColor2);
-                        pGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
-                        ctx.fillStyle = pGrad;
-                        ctx.beginPath();
-                        ctx.arc(gcx, gcy, 28 + pPulse, 0, Math.PI * 2);
-                        ctx.fill();
-
-                        // Swirling energy ring
-                        ctx.strokeStyle = pColor1;
-                        ctx.lineWidth = 2;
-                        ctx.shadowBlur = 10;
-                        ctx.shadowColor = pColor1;
-                        ctx.beginPath();
-                        ctx.arc(gcx, gcy, 14 + Math.sin(time * 6) * 2, 0, Math.PI * 2);
-                        ctx.stroke();
-                    } else if (img && img.complete) {
-                        ctx.drawImage(img, t.x, t.y, t.w, t.h);
-                    } else {
-                        var pulse = Math.sin(time * 3 + i * 2) * 0.15 + 0.85;
-                        ctx.globalAlpha = pulse;
-                        var glowGrad = ctx.createRadialGradient(gcx, gcy, 5, gcx, gcy, 35);
-                        glowGrad.addColorStop(0, t.color);
-                        glowGrad.addColorStop(1, "rgba(0,0,0,0)");
-                        ctx.fillStyle = glowGrad;
-                        ctx.beginPath();
-                        ctx.arc(gcx, gcy, 35, 0, Math.PI * 2);
-                        ctx.fill();
-                        ctx.fillStyle = t.bossId === "seraphina" ? "#FFD700" : "#8800FF";
-                        ctx.beginPath();
-                        ctx.arc(gcx, gcy, 8, 0, Math.PI * 2);
-                        ctx.fill();
-                    }
-                    
-                    ctx.font = "8pt Determination Mono";
-                    ctx.textAlign = "center";
-                    ctx.fillStyle = "#FFF";
-                    ctx.fillText(t.label, gcx, t.y - 5);
-                    
-                    ctx.restore();
+                    // Swirling energy ring
+                    ctx.strokeStyle = pColor1;
+                    ctx.lineWidth = 2;
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = pColor1;
+                    ctx.beginPath();
+                    ctx.arc(gcx2, gcy2, 14 + Math.sin(time * 6) * 2, 0, Math.PI * 2);
+                    ctx.stroke();
                 }
+                
+                ctx.font = "8pt Determination Mono";
+                ctx.textAlign = "center";
+                ctx.fillStyle = "#FFF";
+                ctx.fillText(t.label, gcx2, t.y - 5);
+                
+                ctx.restore();
             }
             
             if (main.debug) {
